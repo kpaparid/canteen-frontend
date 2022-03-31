@@ -8,7 +8,9 @@ export function useSocket() {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const socketIo = io("http://localhost:3005").connect();
+    const k = process.env.BACKEND_URI;
+    console.log(k);
+    const socketIo = io(process.env.BACKEND_URI).connect();
 
     setSocket(socketIo);
     console.log("setting socket", socketIo);

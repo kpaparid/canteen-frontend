@@ -62,12 +62,19 @@ export default function Dashboard() {
 
   return (
     <div className="bg-darker-nonary d-flex flex-nowrap h-100">
-      <div style={{ width: "60px", zIndex: 9000 }} className="h-100">
+      <div
+        style={{ minWidth: "60px", maxWidth: "60px", zIndex: 9000 }}
+        className="h-100"
+      >
         <SideBar></SideBar>
       </div>
-      <div className="h-100 d-flex flex-nowrap flex-fill">
-        <Tab.Container activeKey={key}>
-          <Tab.Content className="m-auto">
+      <div
+        className="h-100 d-flex flex-nowrap overflow-auto"
+        style={{ width: "calc(100% - 60px)" }}
+        // style={{ width: "100px" }}
+      >
+        <Tab.Container activeKey={key} classNamew="w-100">
+          <Tab.Content className="px-5 m-auto">
             <Tab.Pane eventKey="newOrders">
               <NewOrders orders={orders} />
             </Tab.Pane>
@@ -83,10 +90,7 @@ export default function Dashboard() {
 
 const NewOrders = memo(({ orders }) => {
   return (
-    <div
-      className="pt-3 mx-auto flex-fill overflow-auto"
-      style={{ minWidth: "200px" }}
-    >
+    <div className="pt-3 mx-auto flex-fill overflow-auto">
       <div className="text-white fw-bolder">New Orders</div>
       {Object.keys(orders).map(
         (status) =>
@@ -112,14 +116,14 @@ const PrimaryTabModal = memo(
               <div className="font-large fw-bolder">{user}</div>
               <div>{id}</div>
             </div>
-            <div className="d-flex flex-wrap">
-              <div className="pe-3 text-end">
+            <div className="d-flex flex-wrap justify-content-end">
+              <div className="text-end">
                 <div className="fw-bold">
                   Ordered at {moment(createdAt).format("HH:mm")}
                 </div>
                 <div>{pickupTime} min(s)</div>
               </div>
-              <WhiteButton onClick={() => setKey("2")}>
+              <WhiteButton onClick={() => setKey("2")} className="ms-3">
                 HELP
                 <FontAwesomeIcon
                   className="ps-2"
@@ -240,7 +244,7 @@ const CancelOrder = memo(({ orderId, setKey }) => {
 const HelpModal = memo(({ orderId, setKey }) => {
   const CustomButton = ({ children, ...rest }) => (
     <WhiteButton
-      className="w-100 border-0 border-bottom border-light d-flex justify-content-between py-3 align-items-center"
+      className="w-100 border-0 border-bottom border-light d-flex justify-content-between py-3 align-items-center px-5"
       {...rest}
     >
       {children}
@@ -260,9 +264,7 @@ const HelpModal = memo(({ orderId, setKey }) => {
           <FontAwesomeIcon icon={faArrowRight} />
         </CustomButton> */}
         <CustomButton onClick={() => setKey("4")}>
-          <span className="fw-bolder text-primary text-shadow">
-            Cancel order
-          </span>
+          <span className="fw-bolder text-primary">Cancel order</span>
           <FontAwesomeIcon icon={faArrowRight} />
         </CustomButton>
       </Modal.Body>
@@ -289,7 +291,7 @@ const OrderModal = memo((props) => {
         <div className="d-flex px-2 justify-content-between align-items-center">
           <div className="text-start">
             <div className="fw-bold">{user}</div>
-            <div className="fw-normal">{id}</div>
+            <div className="fw-normal text-truncate">{id}</div>
           </div>
           <div className="fw-bold">{moment(createdAt).format("HH:mm")}</div>
         </div>
@@ -299,7 +301,7 @@ const OrderModal = memo((props) => {
         onHide={handleClose}
         centered
         contentClassName="shadow-none"
-        dialogClassName="order bg-darker-nonary"
+        dialogClassName="order bg-darker-nonary w-100"
         className="text-dark p-0"
         backdropClassName="opacity-0"
         fullscreen
@@ -390,7 +392,7 @@ const SideBar = memo(({ onClick }) => {
           <Button
             variant="senary"
             className="w-100 h-100 rounded-0 rounded-top shadow-none"
-            style={{ padding: "18px" }}
+            style={{ padding: "15px" }}
             onClick={() => onClick("newOrders")}
           >
             <FontAwesomeIcon icon={faFileLines} className="h-100 w-100" />

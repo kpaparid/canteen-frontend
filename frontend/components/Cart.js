@@ -1,105 +1,90 @@
-import { faBasketShopping, faClose } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBasketShopping,
+  faCartArrowDown,
+  faCartPlus,
+  faCartShopping,
+  faClose,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { debounce, isEqual } from "lodash";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import Card from "react-bootstrap/Card";
+import { Form } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
+import Card from "react-bootstrap/Card";
+import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import { formatPrice } from "../utilities/utils";
-import Accumulator from "./Accumulator";
 import {
   addCommentCart,
-  cartItemsSelectors,
+  postOrders,
   removeItemCart,
   selectCart,
   updateItemCountCart,
 } from "../reducer/redux2";
-import { useDispatch, useSelector } from "react-redux";
-import { FormTextarea } from "./Item";
-import { Form } from "react-bootstrap";
-import { text } from "@fortawesome/fontawesome-svg-core";
-
+import { formatPrice } from "../utilities/utils";
+import Accumulator from "./Accumulator";
+import { useSocket } from "../hooks/orderHooks";
 // eslint-disable-next-line react/display-name
+
 const Cart = memo(() => {
   const items = useSelector(selectCart);
+  const dispatch = useDispatch();
   const summa = items && items?.reduce((a, b) => a + b.calculatedPrice, 0);
-  // const summa = 0;
+  const socket = useSocket();
+
+  const handleOrderClick = useCallback(async () => {
+    dispatch(postOrders({ items, user: "kostas" }));
+  }, [socket, items]);
+
+  useEffect(() => {
+    function handleEvent(payload) {
+      console.log(payload);
+    }
+    if (socket) {
+      socket.on("updated_order", handleEvent);
+    }
+  }, [socket]);
 
   return (
-    <div className="mt-0 p-0">
-      <Card
-        className="cart mx-4"
-        style={{
-          position: "sticky",
-          top: 40,
-          zIndex: 900,
-          backgroundColor: "white",
-          maxHeight: "90vh",
-          overflow: "auto",
-          boxShadow: "0 2px 4px 0 rgba(0,0,0,.13)",
-          border: 0,
-        }}
-      >
-        <Card.Header
-          className="d-flex font-bolder p-0 pt-3 pb-2 border-bottom border-gray-900 mx-4"
-          style={{
-            position: "sticky",
-            top: 0,
-            zIndex: 900,
-            backgroundColor: "white",
-          }}
-        >
-          Warenkorb
-        </Card.Header>
-        <Card.Body
-          className="d-flex flex-column p-0"
-          style={{ height: "fit-content" }}
-        >
-          {items.length ? (
-            items?.map((i) => <CartItem key={i.id} {...i} />)
-          ) : (
-            <div className="p-5 d-flex flex-column">
-              <FontAwesomeIcon
-                className="pb-4"
-                size="4x"
-                icon={faBasketShopping}
-              />
-              <div className="text-center font-small">
-                Füllen Sie Ihren Warenkorb mit den Produkten auf der linken
-                Seite
-              </div>
+    <div variant="transparent" className="cart p-0 border-0">
+      <Card.Header className="d-flex font-bolder px-4 pt-3 pb-3">
+        <span className="">Warenkorb</span>
+      </Card.Header>
+      <Card.Body className="p-0">
+        {items.length ? (
+          items?.map((i) => <CartItem key={i.id} {...i} />)
+        ) : (
+          <div className="p-5 d-flex flex-column">
+            <FontAwesomeIcon
+              className="pb-4 text-primary"
+              size="4x"
+              icon={faBasketShopping}
+            />
+            <div className="text-center font-small">
+              Füllen Sie Ihren Warenkorb mit den Produkten auf der linken Seite
             </div>
-          )}
-        </Card.Body>
-        <Card.Footer
-          className="pt-0"
-          style={{
-            position: "sticky",
-            bottom: 0,
-            zIndex: 900,
-            backgroundColor: "white",
-            border: "2px solid white",
-          }}
-        >
-          {summa ? (
-            <div className="d-flex flex-nowrap justify-content-between font-bolder text-gray-900">
-              <span>Gesamt</span>
-              <span>{formatPrice(summa)} €</span>
-            </div>
-          ) : (
-            <></>
-          )}
-          <div className="d-flex w-100 pt-2">
-            <Button
-              disabled={!items.length}
-              className="m-auto"
-              variant="light-tertiary"
-            >
-              Weiter
-            </Button>
           </div>
-        </Card.Footer>
-      </Card>
+        )}
+      </Card.Body>
+      <Card.Footer className="pt-0">
+        {summa ? (
+          <div className="d-flex flex-nowrap justify-content-between font-bolder text-gray-900">
+            <span>Gesamt</span>
+            <span>{formatPrice(summa)} €</span>
+          </div>
+        ) : (
+          <></>
+        )}
+        <div className="d-flex w-100 pt-2">
+          <Button
+            // disabled={!items.length}
+            className="m-auto"
+            variant="primary"
+            onClick={handleOrderClick}
+          >
+            Weiter
+          </Button>
+        </div>
+      </Card.Footer>
     </div>
   );
 }, isEqual);
@@ -108,8 +93,7 @@ const Cart = memo(() => {
 const CartItem = memo(
   ({ count: count = 1, extras, id, calculatedPrice, title, comment }) => {
     const dispatch = useDispatch();
-    const extrasText = extras?.join(", ");
-
+    const extrasText = extras.map(({ text }) => text)?.join(", ");
     const handleIncrease = (v) =>
       dispatch(updateItemCountCart({ id, add: true }));
     const handleDecrease = (v) =>
@@ -136,7 +120,7 @@ const CartItem = memo(
         </div>
         {extras && (
           <div className="px-4 col-11 font-small text-gray-700">
-            {extrasText}
+            Extras: {extrasText}
           </div>
         )}
         <Comment text={comment} onChange={handleCommentChange} />
@@ -193,7 +177,7 @@ const Comment = ({ text: initialText, onChange }) => {
             onChange={handleDirectChange}
             as="textarea"
             rows={3}
-            resize={false}
+            resize={"false"}
             maxLength={160}
             value={text}
             autoFocus

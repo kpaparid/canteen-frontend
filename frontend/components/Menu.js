@@ -9,18 +9,17 @@ import React, {
   useRef,
   useState,
 } from "react";
-import Header from "./Header";
-import { Card } from "react-bootstrap";
-import Button from "react-bootstrap/Button";
 import { useDispatch, useSelector } from "react-redux";
 // import { menu } from "../data/menu";
 import {
   itemAddedCart,
+  selectAllActiveCategories,
   selectAllCategories,
   selectAllMealsByCategory,
 } from "../reducer/redux2";
-import { formatPrice, useIntersection } from "../utilities/utils";
+import { formatPrice } from "../utilities/utils";
 import Cart from "./Cart";
+import Header from "./Header";
 import Item from "./Item";
 
 export default function Menu({}) {
@@ -28,7 +27,7 @@ export default function Menu({}) {
   const ref = useRef();
 
   const dispatch = useDispatch();
-  const categories = useSelector(selectAllCategories);
+  const categories = useSelector(selectAllActiveCategories);
   const menu = useSelector(selectAllMealsByCategory);
 
   useEffect(() => {
@@ -59,7 +58,6 @@ export default function Menu({}) {
         document.documentElement.clientHeight,
         window.innerHeight
       );
-      console.log(viewHeight);
       const viewable = !(
         rect.bottom - viewHeight / 2 < 0 ||
         rect.top + viewHeight / 2 - viewHeight >= 0
@@ -67,11 +65,11 @@ export default function Menu({}) {
       if (viewable) {
         document
           .querySelector(".categories-navbar #" + sectionId)
-          .classList.add("fw-bolder");
+          .classList.add("active");
       } else {
         document
           .querySelector(".categories-navbar #" + sectionId)
-          .classList.remove("fw-bolder");
+          .classList.remove("active");
       }
     });
   }, []);
@@ -82,19 +80,20 @@ export default function Menu({}) {
   return (
     <div className="h-100 overflow-auto" ref={ref} onScroll={debouncedCallback}>
       <Header />
+      <div className="menu-banner">Speisekarte</div>
       <div
-        className="p-4 d-flex bg-octonary"
+        className="p-4 d-flex bg-white"
         // style={{ height: "calc(100% - 300px)" }}
       >
-        <div className="h-100 m-auto flex-column bg-orange mb-2 flex-fill">
+        <div className="h-100 m-auto flex-column mb-2 flex-fill">
           <div className="d-flex flex-nowrap justify-content-center">
             <CategoriesNavbar
               categories={categories}
               onClick={handleCategoryClick}
             />
             <div
-              className="d-flex flex-column flex-fill"
-              style={{ maxWidth: "780px" }}
+              className="d-flex flex-column flex-fill px-5"
+              style={{ maxWidth: "700px" }}
             >
               <div className="flex-fill">
                 {menu &&
@@ -115,31 +114,30 @@ export default function Menu({}) {
     </div>
   );
 }
+
 const CategoriesNavbar = memo(({ categories, onClick }) => {
   return (
-    <div className="d-flex flex-nowrap flex-column categories-navbar">
-      <div className="p-0 py-2">
-        {categories?.map(({ id, text }, index) => (
-          <div
-            key={id}
-            className="py-1 category"
-            onClick={() => onClick(index)}
-          >
-            <div className="px-4 text-dark category-text" id={id}>
-              {text}
-            </div>
+    <div className="categories-navbar">
+      {categories?.map(({ id }, index) => (
+        <div key={id} className="category" onClick={() => onClick(index)}>
+          <div className="p-2 category-text rounded" id={id}>
+            {id}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }, isEqual);
 
 CategoriesNavbar.displayName = "CategoriesNavbar";
-const SubCategory = forwardRef(({ items, onClick, ...rest }, ref) => {
+const SubCategory = forwardRef(({ items, category, onClick, ...rest }, ref) => {
   return (
     <div className="pb-4 category-wrapper" ref={ref} id={items.id}>
-      <div className=" font-big pb-2 fw-bolder">{items?.text}</div>
+      <CategoryTitle
+        text={items.text}
+        photoURL={items.photoURL}
+        title={items.title}
+      />
       <div className="bg-white rounded meal-list">
         {items?.data.map((i) => (
           <ItemModal key={i.id} {...i} {...rest} />
@@ -150,9 +148,47 @@ const SubCategory = forwardRef(({ items, onClick, ...rest }, ref) => {
 });
 
 SubCategory.displayName = "SubCategory";
+function CategoryTitle({ title, text, photoURL }) {
+  return (
+    <>
+      {!photoURL ? (
+        <div className="category-title d-flex flex-column align-items-start">
+          <h2>{title}</h2>
+          <div className="bg-darker-primary text-white w-100 px-4 py-3">
+            {text}
+          </div>
+        </div>
+      ) : (
+        <div
+          className="bg-primary"
+          style={{
+            width: "100%",
+            height: "200px",
+            position: "relative",
+            textShadow: "1px 1px 20px rgb(34 34 34)",
+          }}
+        >
+          <div
+            className="w-100 category-title d-flex justify-content-end align-items-start h-100 bg-transparent flex-column"
+            style={{ position: "absolute", zIndex: 10 }}
+          >
+            <h2>{title}</h2>
+            {text && (
+              <div className="bg-darker-primary text-white w-100 px-4 py-3">
+                {text}
+              </div>
+            )}
+          </div>
+          <Image alt="alt" src={photoURL} layout="fill" objectFit="cover" />
+        </div>
+      )}
+    </>
+  );
+}
 
 function ItemModal(props) {
-  const { name, description, photoURL, price } = props;
+  const { name, description, photoURL, price, uid, withFoto = false } = props;
+
   const formattedPrice = formatPrice(price);
   const [show, setShow] = useState(false);
 
@@ -160,21 +196,33 @@ function ItemModal(props) {
   const handleShow = () => setShow(true);
   return (
     <>
-      <div className="item-modal-toggle meal-item border-bottom">
+      <div className="item-modal-toggle meal-item my-4 bg-gray-100 rounded">
         <div className="w-100 border-0 rounded-0 p-0" onClick={handleShow}>
           <div className=" d-flex flex-nowrap justify-content-between p-3">
-            <div className="text-left flex-fill">
-              <div className="fw-bolder text-gray-900 meal-title">{name}</div>
+            <div className="text-left flex-fill pe-4 d-flex flex-column justify-content-around">
+              <div className="fw-bolder text-gray-900 meal-title">
+                {uid}. {name}
+              </div>
               {description && (
                 <p className="m-0 font-small fw-normal text-gray-800 meal-description">
                   {description}
                 </p>
               )}
-              <div className="font-bolder text-gray-900 py-2 meal-price">
-                {formattedPrice} €
-              </div>
+              {withFoto && (
+                <span className="d-flex font-bolder text-white p-2 meal-price bg-primary rounded">
+                  {formattedPrice} €
+                </span>
+              )}
             </div>
-            {photoURL && (
+            {!withFoto && (
+              <div
+                className="d-flex justify-content-center align-items-center font-bolder text-white meal-price bg-primary rounded text-center"
+                style={{ minWidth: "75px", height: "40px" }}
+              >
+                <span className="text-center">{formattedPrice} €</span>
+              </div>
+            )}
+            {photoURL && withFoto && (
               <div className="d-flex meal-img">
                 <div
                   className="mb-auto rounded overflow-hidden"

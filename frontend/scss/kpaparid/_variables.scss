@@ -20,7 +20,7 @@
 // $black   : #2e3650;
 
 $white: #ffffff;
-$gray-100: #f3f7fa;
+$gray-100: #eaeaea;
 $gray-200: #f5f8fb;
 $gray-300: #f0f3f6;
 $gray-400: #eaedf2;
@@ -79,15 +79,15 @@ $colors: (
   "gray-dark": $gray-800,
 );
 
-$primary: #0a3761;
+$inverse-primary: #fff;
+$primary: #d40811;
+$darker-primary: #340006;
 $inverse: #0a3758;
 $secondary: #567ba0;
 $tertiary: #fe6600;
 $gray-500: #d7e3ef;
 $light-blue: #0771d0;
 $very-light-blue: #b2d4ff;
-$light-tertiary: lighten($tertiary, 25%);
-$very-light-tertiary: lighten($tertiary, 15%);
 $darker-blue: #0771ab;
 $senary: #fc6f5b;
 $septenary: #9b9b9b;
@@ -106,9 +106,14 @@ $denary: #fff09a;
 $duodenary: #ffbccb;
 $default: $primary;
 $confirmed: #38d962;
-$pending: #e1ae24;
+$pending: #fbe960;
 $declined: #c80000;
 $darker-senary: #c95848;
+
+$light-tertiary: lighten($tertiary, 15%);
+$very-light-tertiary: lighten($tertiary, 25%);
+$light-senary: lighten($senary, 15%);
+$very-light-senary: lighten($senary, 20%);
 // $gray-200: #dee2e6;
 
 // Series names and colors. This can be extended or customized as desired. Just add more series and colors.
@@ -180,6 +185,8 @@ $theme-colors: map-merge(
   (
     "gray-white": $gray-white,
     "primary": $primary,
+    "darker-primary": $darker-primary,
+    "inverse-primary": $inverse-primary,
     "inverse": $inverse,
     "secondary": $secondary,
     "tertiary": $tertiary,
@@ -190,6 +197,8 @@ $theme-colors: map-merge(
     "light-blue": $light-blue,
     "light-tertiary": $light-tertiary,
     "very-light-tertiary": $very-light-tertiary,
+    "light-senary": $light-senary,
+    "very-light-senary": $very-light-senary,
     "quinary": $quinary,
     "duodenary": $duodenary,
     "senary": $senary,

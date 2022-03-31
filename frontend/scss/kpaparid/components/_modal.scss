@@ -107,3 +107,38 @@
     width: 30px;
   }
 }
+
+.modal-dialog.order {
+  display: flex;
+  padding-top: 5%;
+  padding-bottom: 5%;
+  padding-left: calc(60px + 5%);
+  padding-right: 5%;
+  min-height: 100%;
+
+  // padding-left: 60px;
+  // max-width: calc(100% - 65px);
+
+  height: fit-content;
+  max-width: none;
+  .modal-content {
+    margin: auto;
+    background-color: transparent;
+  }
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    background-color: white;
+  }
+  .tab-content {
+    height: fit-content;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .tab-pane.active {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+}

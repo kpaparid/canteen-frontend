@@ -9,24 +9,46 @@ import {
 } from "@reduxjs/toolkit";
 import { isEqual } from "lodash";
 import { createWrapper, HYDRATE } from "next-redux-wrapper";
-import { menu } from "../data/menu";
 import { shopToState } from "../utilities/dataMapper";
+import { fMenu } from "../data/menu";
 
 const mealsAdapter = createEntityAdapter();
 const categoriesAdapter = createEntityAdapter();
 const cartItemsAdapter = createEntityAdapter();
+const ordersAdapter = createEntityAdapter();
 export const fetchShop = createAsyncThunk("data/fetchShop", async () => {
-  const url = "http://localhost:3000/";
-  //   return await fetch(url, requestOptions)
-  //     .then((res) =>
-  //       res.json().then((res) => {
-  //         return menu;
-  //       })
-  //     )
-  //     .catch(() => ({
-  //       ...menu,
-  //     }));
-  return menu;
+  const url = "http://localhost:3005/";
+  return await fetch(url + "meals").then((res) =>
+    res.json().then((meals) =>
+      fetch(url + "settings").then((r) =>
+        r.json().then((settings) => {
+          return {
+            meals: meals.data,
+            categories: settings.data[0].entities,
+          };
+        })
+      )
+    )
+  );
+});
+export const fetchOrders = createAsyncThunk("data/fetchOrders", async () => {
+  const url = "http://localhost:3005/";
+  return await fetch(url + "orders").then((res) =>
+    res.json().then((r) => r.data)
+  );
+});
+export const postOrders = createAsyncThunk("data/postOrders", async (body) => {
+  const url = "http://localhost:3005/";
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  };
+  return await fetch(url + "orders", options).then((res) =>
+    res.json().then((r) => {
+      r.data;
+    })
+  );
 });
 
 export const subjectSlice = createSlice({
@@ -35,6 +57,7 @@ export const subjectSlice = createSlice({
     meals: mealsAdapter.getInitialState(),
     categories: categoriesAdapter.getInitialState(),
     cart: { items: cartItemsAdapter.getInitialState() },
+    orders: ordersAdapter.getInitialState(),
   },
   reducers: {
     addCommentCart: (state, action) => {
@@ -46,6 +69,10 @@ export const subjectSlice = createSlice({
     },
     itemAddedCart: (state, action) => {
       const { id: itemId, count, price, extras, comment } = action.payload;
+      const singleItemPrice = extras.reduce(
+        (a, b) => a + (b.price || 0),
+        price
+      );
       const old = cartItemsAdapter
         .getSelectors()
         .selectAll(state.cart.items)
@@ -62,20 +89,19 @@ export const subjectSlice = createSlice({
         ? cartItemsAdapter.upsertOne(state.cart.items, {
             ...old,
             count: old.count + count,
-            calculatedPrice: price * (count + old.count),
+            calculatedPrice: singleItemPrice * (count + old.count),
           })
         : cartItemsAdapter.upsertOne(state.cart.items, {
             ...action.payload,
             id: nanoid(),
             itemId,
-            calculatedPrice: count * price,
+            calculatedPrice: count * singleItemPrice,
           });
     },
     removeItemCart: (state, action) => {
       cartItemsAdapter.removeOne(state.cart.items, action.payload);
     },
     updateItemCountCart: (state, action) => {
-      console.log("hi");
       const { id, add } = action.payload;
       const old = cartItemsAdapter
         .getSelectors()
@@ -91,20 +117,23 @@ export const subjectSlice = createSlice({
 
   extraReducers: {
     [HYDRATE]: (state, action) => {
-      console.log("HYDRATE", state, action.payload);
       return {
         ...state,
         ...action.payload.shop,
       };
     },
     [fetchShop.fulfilled](state, { payload }) {
-      const p = payload;
-      const { items, categories } = shopToState(payload);
-      //   mealsAdapter.upsertOne(state.meals, m);
-      mealsAdapter.upsertMany(state.meals, items);
+      const { categories } = shopToState(payload);
+      mealsAdapter.upsertMany(state.meals, payload.meals);
       categoriesAdapter.upsertMany(state.categories, categories);
-
-      //   return { ...state, test: "true" };
+    },
+    [fetchOrders.fulfilled](state, { payload }) {
+      ordersAdapter.upsertMany(state.orders, payload);
+    },
+    [postOrders.fulfilled](state) {
+      const items = cartItemsSelectors.selectAll(state);
+      ordersAdapter.upsertMany(state.orders, items);
+      cartItemsAdapter.removeAll(state.cart.items);
     },
   },
 });
@@ -146,6 +175,10 @@ export const cartItemsSelectors = cartItemsAdapter.getSelectors(
   (state) => state.cart.items
 );
 
+export const ordersSelectors = ordersAdapter.getSelectors((state) => {
+  return state.orders;
+});
+
 export const categoriesSelectors = categoriesAdapter.getSelectors(
   (state) => state.categories
 );
@@ -155,9 +188,14 @@ export const selectAllMeals = (state) => mealsSelector.selectAll(state.shop);
 export const categoriesSelector = categoriesAdapter.getSelectors(
   (state) => state.categories
 );
+
 export const selectAllCategories = (state) =>
   categoriesSelector.selectAll(state.shop);
-
+export const selectAllActiveCategories = (state) => {
+  return categoriesSelector
+    .selectAll(state.shop)
+    .filter((category) => category.itemIds.length);
+};
 export const selectAllMealsByCategory = createSelector(
   [selectAllCategories, selectAllMeals],
   (categories, meals) => {
@@ -165,11 +203,23 @@ export const selectAllMealsByCategory = createSelector(
       a[b.id] = b;
       return a;
     }, {});
-    return categories?.reduce((a, { id, text, itemIds }) => {
-      a[id] = { id, text, data: itemIds.map((id) => mealsObject[id]) };
+    return categories?.reduce((a, { id, itemIds, ...rest }) => {
+      const data = itemIds.map((id) => mealsObject[id]);
+      if (data.length) a[id] = { id, data, ...rest };
       return a;
     }, {});
   }
 );
-
 export const selectCart = (state) => cartItemsSelectors.selectAll(state.shop);
+export const selectOrders = (state) => ordersSelectors.selectAll(state.shop);
+export const selectAllOrdersByCategory = createSelector(
+  [selectOrders],
+  (orders) =>
+    ["pending", "confirmed", "declined", "ready"].reduce(
+      (a, status) => ({
+        ...a,
+        [status]: orders.filter((o) => o.status === status),
+      }),
+      {}
+    )
+);

@@ -8,7 +8,7 @@ const Accumulator = ({ count, onIncrease, onDecrease }) => {
       <Button
         disabled={!(count - 1)}
         className="rounded-circle p-0 fw-bolder d-flex"
-        variant="light-tertiary"
+        variant="primary"
         onClick={onDecrease}
       >
         <FontAwesomeIcon size="xs" className="m-auto" icon={faMinus} />
@@ -16,7 +16,7 @@ const Accumulator = ({ count, onIncrease, onDecrease }) => {
       <span className="px-2 fw-bold">{count}</span>
       <Button
         className="rounded-circle p-0 fw-bolder d-flex"
-        variant="light-tertiary"
+        variant="primary"
         onClick={onIncrease}
       >
         <FontAwesomeIcon size="xs" className="m-auto" icon={faPlus} />

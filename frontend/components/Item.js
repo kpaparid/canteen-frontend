@@ -66,16 +66,13 @@ const Item = memo(
       }
       function handleAddToCart() {
         clearState();
-        addToCart(id, name, count, calculatedPrice, calculatedExtras, comment);
+        addToCart(id, name, count, price, calculatedExtras, comment);
         onClose();
       }
       function handleClose() {
         clearState();
         onClose();
       }
-      // const myLoader = ({ src, width, quality }) => {
-      //   return `https://example.com/${src}?w=${width}&q=${quality || 75}`;
-      // };
       return (
         <Modal
           show={show}
@@ -131,8 +128,8 @@ const Item = memo(
               count={count}
             />
             <Button
-              className="m-0"
-              variant="light-tertiary"
+              className="m-0 header-text"
+              variant="primary"
               onClick={handleAddToCart}
             >
               In den Warenkorb
@@ -226,16 +223,16 @@ function FormMultiCheckbox({ options, onChange }) {
 function FormComponent({ type, onChange, ...rest }) {
   const [_, setState] = useState({ price: 0, options: [] });
   function handleSelectChange(price, option) {
-    const obj = { price, options: [option] };
+    const obj = { price, options: [{ text: option, price }] };
     setState(obj);
     onChange && onChange(obj);
   }
-  function handleMultiCheckbox(price, option, checked) {
+  function handleMultiCheckbox(price, text, checked) {
     checked
       ? setState((old) => {
           const newState = {
             price: old.price + price,
-            options: [...old.options, option],
+            options: [...old.options, { text, price }],
           };
           onChange && onChange(newState);
           return newState;
@@ -243,7 +240,7 @@ function FormComponent({ type, onChange, ...rest }) {
       : setState((old) => {
           const newState = {
             price: old.price - price,
-            options: old.options.filter((o) => o !== option),
+            options: old.options.filter((o) => o.text !== text),
           };
           onChange && onChange(newState);
           return newState;
@@ -251,7 +248,7 @@ function FormComponent({ type, onChange, ...rest }) {
   }
 
   switch (type) {
-    case "select":
+    case "selection":
       return <FormSelect {...rest} onChange={handleSelectChange} />;
     case "multi-checkbox":
       return <FormMultiCheckbox {...rest} onChange={handleMultiCheckbox} />;

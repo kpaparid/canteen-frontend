@@ -15,12 +15,7 @@ export default function Home(props) {
 export const getServerSideProps = wrapper.getServerSideProps(
   (store) =>
     async ({ params }) => {
-      // const { id } = params;
-
       await store.dispatch(fetchShop());
-
-      // console.log("State on server", store.getState());
-
       return {
         props: {},
       };

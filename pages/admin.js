@@ -22,7 +22,7 @@ export default function Page() {
         ? category &&
           postPhoto(category.photoURL[0]).then((r) =>
             r.json().then(({ secure_url }) =>
-              fetch("http://localhost:3005/settings", {
+              fetch(process.env.BACKEND_URI + "settings", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -37,7 +37,7 @@ export default function Page() {
             )
           )
         : category &&
-          fetch("http://localhost:3005/settings", {
+          fetch(process.env.BACKEND_URI + "settings", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -81,7 +81,7 @@ export default function Page() {
               "/upload/",
               "/upload/w_450,h_350,ar_1:1,c_lfill,g_center/"
             );
-            return fetch("http://localhost:3005/meals", {
+            return fetch(process.env.BACKEND_URI + "meals", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ ...formattedData, photoURL: newUrl }),
@@ -91,7 +91,7 @@ export default function Page() {
         .then(() => setLoading(false))
         .catch(() => setLoading(false));
     } else {
-      await fetch("http://localhost:3005/meals", {
+      await fetch(process.env.BACKEND_URI + "meals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formattedData, photoURL: "" }),

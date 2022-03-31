@@ -1,3 +1,3 @@
 import io from "socket.io-client";
 
-export const sio = io("http://localhost:3005");
+export const sio = io(process.env.BACKEND_URI);

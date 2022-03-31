@@ -17,7 +17,7 @@ const categoriesAdapter = createEntityAdapter();
 const cartItemsAdapter = createEntityAdapter();
 const ordersAdapter = createEntityAdapter();
 export const fetchShop = createAsyncThunk("data/fetchShop", async () => {
-  const url = "http://localhost:3005/";
+  const url = process.env.BACKEND_URI;
   return await fetch(url + "meals").then((res) =>
     res.json().then((meals) =>
       fetch(url + "settings").then((r) =>
@@ -32,13 +32,13 @@ export const fetchShop = createAsyncThunk("data/fetchShop", async () => {
   );
 });
 export const fetchOrders = createAsyncThunk("data/fetchOrders", async () => {
-  const url = "http://localhost:3005/";
+  const url = process.env.BACKEND_URI;
   return await fetch(url + "orders").then((res) =>
     res.json().then((r) => r.data)
   );
 });
 export const postOrders = createAsyncThunk("data/postOrders", async (body) => {
-  const url = "http://localhost:3005/";
+  const url = process.env.BACKEND_URI;
   const options = {
     method: "POST",
     headers: { "Content-Type": "application/json" },

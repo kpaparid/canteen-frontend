@@ -5,28 +5,14 @@ import "../styles/globals.css";
 import { Provider } from "react-redux";
 // import { createStore } from "../reducer/store";
 import { wrapper } from "../reducer/redux2";
-
-function MyApp({ Component, ...rest }) {
-  // const { store, props } = wrapper.useWrappedStore(rest);
-  const { store, props } = wrapper.withRedux(rest);
-  return (
-    <div className="hi">
-      <Provider store={store}>
-        <Head>
-          <title>Cantine eFood</title>
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
-        {/* <Component {...pageProps} /> */}
-        <Component {...props.pageProps} />
-      </Provider>
-    </div>
-  );
-}
-
-// export default MyApp;
+import { SSRProvider } from "react-bootstrap";
 
 const WrappedApp = ({ Component, pageProps }) => {
-  return <Component {...pageProps} />;
+  return (
+    <SSRProvider>
+      <Component {...pageProps} />
+    </SSRProvider>
+  );
 };
 
 export default wrapper.withRedux(WrappedApp);

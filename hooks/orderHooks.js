@@ -18,9 +18,6 @@ export function useSocket() {
       socketIo.disconnect();
     }
     return cleanup;
-
-    // should only run once and not on every re-render,
-    // so pass an empty array
   }, []);
 
   return socket;

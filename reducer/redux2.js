@@ -50,6 +50,20 @@ export const postOrders = createAsyncThunk("data/postOrders", async (body) => {
     })
   );
 });
+export const changeOrderStatus = createAsyncThunk(
+  "data/changeOrderStatus",
+  async ({ id, body }) => {
+    const url = `${process.env.BACKEND_URI}orders/${id}`;
+    const options = {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    };
+    return await fetch(url, options).then((res) =>
+      res.json().then((r) => r.data)
+    );
+  }
+);
 
 export const subjectSlice = createSlice({
   name: "shop",
@@ -135,6 +149,16 @@ export const subjectSlice = createSlice({
       ordersAdapter.upsertMany(state.orders, items);
       cartItemsAdapter.removeAll(state.cart.items);
     },
+    [changeOrderStatus.fulfilled](state, { payload, meta }) {
+      console.log(state);
+      const {
+        body: { status },
+        id,
+      } = meta.arg;
+      // const items = cartItemsSelectors.selectAll(state);
+      ordersAdapter.upsertOne(state.orders, { id, status });
+      // cartItemsAdapter.removeAll(state.cart.items);
+    },
   },
 });
 
@@ -215,7 +239,7 @@ export const selectOrders = (state) => ordersSelectors.selectAll(state.shop);
 export const selectAllOrdersByCategory = createSelector(
   [selectOrders],
   (orders) =>
-    ["pending", "confirmed", "declined", "ready"].reduce(
+    ["pending", "confirmed", "declined", "ready", "finished"].reduce(
       (a, status) => ({
         ...a,
         [status]: orders.filter((o) => o.status === status),

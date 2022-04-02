@@ -17,7 +17,12 @@ import { Button, Card, Form, Modal, Spinner, Tab } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { useSocket } from "../hooks/orderHooks";
-import { fetchOrders, selectAllOrdersByCategory } from "../reducer/redux2";
+import {
+  changeOrderStatus,
+  fetchOrders,
+  selectAllOrdersByCategory,
+} from "../reducer/redux2";
+import SideBar from "./Sidebar";
 export const formatPrice = (price) =>
   parseFloat(price)?.toLocaleString("de-DE", {
     maximumFractionDigits: 2,
@@ -44,8 +49,24 @@ const WhiteButton = ({ className = "", children, ...rest }) => (
 
 export default function Dashboard() {
   const socket = useSocket();
-  const [key, setKey] = useState("newOrders");
+  const [activeKey, setActiveKey] = useState("pending");
   const orders = useSelector(selectAllOrdersByCategory);
+  const dispatch = useDispatch();
+  const handleStatusChange = useCallback((id, body) => {
+    dispatch(changeOrderStatus({ id, body }));
+  }, []);
+  const handleNext = useCallback((id) => {
+    handleStatusChange(id, { status: "confirmed" });
+  }, []);
+  const handleNew = useCallback((id) => {
+    handleStatusChange(id, { status: "pending" });
+  }, []);
+  const handleReady = useCallback((id) => {
+    handleStatusChange(id, { status: "ready" });
+  }, []);
+  const handleFinish = useCallback((id) => {
+    handleStatusChange(id, { status: "finished" });
+  }, []);
 
   useEffect(() => {
     socket?.emit("join_room", "admin");
@@ -66,20 +87,41 @@ export default function Dashboard() {
         style={{ minWidth: "60px", maxWidth: "60px", zIndex: 9000 }}
         className="h-100"
       >
-        <SideBar></SideBar>
+        <SideBar setActiveKey={setActiveKey} activeKey={activeKey}></SideBar>
       </div>
       <div
         className="h-100 d-flex flex-nowrap overflow-auto"
         style={{ width: "calc(100% - 60px)" }}
-        // style={{ width: "100px" }}
       >
-        <Tab.Container activeKey={key} classNamew="w-100">
-          <Tab.Content className="px-5 m-auto">
-            <Tab.Pane eventKey="newOrders">
-              <NewOrders orders={orders} />
+        <Tab.Container activeKey={activeKey} classNamew="w-100">
+          <Tab.Content className="px-5 m-auto w-75">
+            <Tab.Pane eventKey="pending">
+              <OrdersComponent
+                orders={orders?.pending}
+                title="New"
+                onNext={handleNext}
+              />
             </Tab.Pane>
-            <Tab.Pane eventKey="second">
-              <NewOrders orders={orders} />
+            <Tab.Pane eventKey="confirmed">
+              <OrdersComponent
+                orders={orders?.confirmed}
+                title="In Progress"
+                onNext={handleReady}
+              />
+            </Tab.Pane>
+            <Tab.Pane eventKey="ready">
+              <OrdersComponent
+                orders={orders?.ready}
+                title="Ready"
+                onNext={handleFinish}
+              />
+            </Tab.Pane>
+            <Tab.Pane eventKey="finished">
+              <OrdersComponent
+                orders={orders?.finished}
+                title="Archive"
+                onNext={handleNew}
+              />
             </Tab.Pane>
           </Tab.Content>
         </Tab.Container>
@@ -88,26 +130,83 @@ export default function Dashboard() {
   );
 }
 
-const NewOrders = memo(({ orders }) => {
+const OrdersComponent = memo(({ orders, title, ...rest }) => {
   return (
     <div className="pt-3 mx-auto flex-fill overflow-auto">
-      <div className="text-white fw-bolder">New Orders</div>
-      {Object.keys(orders).map(
-        (status) =>
-          orders?.[status].length !== 0 && (
-            <div className="w-100" key={status}>
-              {orders?.[status]?.map((o) => (
-                <OrderModal {...o} key={o.id} />
-              ))}
-            </div>
-          )
-      )}
+      <div className="text-white fw-bolder">{title}</div>
+      <div className="w-100">
+        {orders?.map((o) => (
+          <OrderModal {...o} key={o.id} {...rest} />
+        ))}
+      </div>
     </div>
   );
 }, isEqual);
 
-const PrimaryTabModal = memo(
-  ({ createdAt, pickupTime, user, id, items, onConfirm, setKey }) => {
+const OrderModal = memo((props) => {
+  const { user, id = "FF4FSD", createdAt, onNext } = props;
+  const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+  const handleNext = useCallback(() => {
+    onNext(id);
+    handleClose();
+  }, []);
+
+  return (
+    <>
+      <Button
+        variant="senary text-dark"
+        className="rounded-0 shadow-none w-100 my-2"
+        onClick={handleShow}
+      >
+        <div className="d-flex px-2 justify-content-between align-items-center">
+          <div className="text-start">
+            <div className="fw-bold">{user}</div>
+            <div className="fw-normal text-truncate">{id}</div>
+          </div>
+          <div className="fw-bold">{moment(createdAt).format("HH:mm")}</div>
+        </div>
+      </Button>
+      <Modal
+        show={show}
+        onHide={handleClose}
+        centered
+        contentClassName="shadow-none"
+        dialogClassName="order bg-darker-nonary w-100"
+        className="text-dark p-0"
+        backdropClassName="opacity-0"
+        fullscreen
+      >
+        <OrderContent {...props} onNext={handleNext} />
+      </Modal>
+    </>
+  );
+}, isEqual);
+
+const OrderContent = memo((props) => {
+  const [key, setKey] = useState("1");
+  return (
+    <Tab.Container activeKey={key}>
+      <Tab.Content className="">
+        <Tab.Pane eventKey="1">
+          <OrderOverview {...props} setKey={setKey} />
+        </Tab.Pane>
+        <Tab.Pane eventKey="2">
+          <HelpModal {...props} setKey={setKey} />
+        </Tab.Pane>
+        <Tab.Pane eventKey="3">
+          <DelayOrder {...props} setKey={setKey} />
+        </Tab.Pane>
+        <Tab.Pane eventKey="4">
+          <CancelOrder {...props} setKey={setKey} />
+        </Tab.Pane>
+      </Tab.Content>
+    </Tab.Container>
+  );
+}, isEqual);
+const OrderOverview = memo(
+  ({ createdAt, pickupTime, user, id, items, onNext, setKey }) => {
     return (
       <>
         <Modal.Header>
@@ -138,40 +237,15 @@ const PrimaryTabModal = memo(
             <Item {...i} index={index} key={i.itemId} length={items.length} />
           ))}
         </Modal.Body>
-        <Modal.Footer className="border-0 d-flex pb-4">
-          <WhiteButton className="m-auto" onClick={onConfirm}>
-            Confirm Order
-          </WhiteButton>
+        <Modal.Footer className="border-0 d-flex pb-4 justify-content-center align-items-center">
+          <WhiteButton onClick={onNext}>Confirm Order</WhiteButton>
         </Modal.Footer>
       </>
     );
   },
   isEqual
 );
-
-const ModalContent = memo((props) => {
-  const [key, setKey] = useState("1");
-  return (
-    <Tab.Container activeKey={key}>
-      <Tab.Content className="">
-        <Tab.Pane eventKey="1">
-          <PrimaryTabModal {...props} setKey={setKey} />
-        </Tab.Pane>
-        <Tab.Pane eventKey="2">
-          <HelpModal {...props} setKey={setKey} />
-        </Tab.Pane>
-        <Tab.Pane eventKey="3">
-          <DelayOrder {...props} setKey={setKey} />
-        </Tab.Pane>
-        <Tab.Pane eventKey="4">
-          <CancelOrder {...props} setKey={setKey} />
-        </Tab.Pane>
-      </Tab.Content>
-    </Tab.Container>
-  );
-}, isEqual);
-
-const DelayOrder = memo(({ orderId, setKey }) => {
+const DelayOrder = memo(({ id, setKey }) => {
   return <></>;
 }, isEqual);
 const CustomInput = styled.input`
@@ -187,14 +261,41 @@ const CustomInput = styled.input`
     opacity: 0.5;
   }
 `;
-const CancelOrder = memo(({ orderId, setKey }) => {
+const CancelOrder = memo(({ id, setKey }) => {
+  const dispatch = useDispatch();
   const [reason, setReason] = useState();
   const [extra, setExtra] = useState("");
   const CustomButton = ({ children }) => (
-    <WhiteButton className="m-1" onClick={() => setReason(children)}>
+    <WhiteButton
+      className="m-1"
+      variant={children === reason ? "senary text-dark" : "white"}
+      onClick={() => setReason(children)}
+    >
       {children}
     </WhiteButton>
   );
+  const clear = useCallback(() => {
+    setReason();
+    setExtra("");
+  });
+  const handleTextChange = useCallback((e) => {
+    setExtra(e.target.value);
+  }, []);
+  const handleCancel = useCallback(() => {
+    console.log("post cancel");
+    dispatch(changeOrderStatus({ id, status: "canceled", reason, extra }));
+    handleClose();
+  }, []);
+  const handleBack = useCallback(() => {
+    setKey("2");
+    clear();
+  }, []);
+  const handleClose = useCallback(() => {
+    setKey("1");
+    clear();
+  }, []);
+  console.log({ extra });
+  console.log({ reason });
 
   return (
     <>
@@ -202,7 +303,7 @@ const CancelOrder = memo(({ orderId, setKey }) => {
         <Button
           variant="white"
           className="my-1 px-3 py-1 border-black rounded-0  font-large fw-bolder"
-          onClick={() => setKey("2")}
+          onClick={handleBack}
         >
           <FontAwesomeIcon icon={faLongArrowLeft}></FontAwesomeIcon>
         </Button>
@@ -221,20 +322,18 @@ const CancelOrder = memo(({ orderId, setKey }) => {
           <CustomButton>Other</CustomButton>
         </div>
         <CustomInput
-          className="border-dark rounded-0 font-small fw-bolder my-2 text-dark "
+          className="border-dark rounded-0 font-small fw-bold my-2 text-dark "
           placeholder="Anything else to add?"
-          onChange={(e) => setExtra(e.target.value)}
+          onChange={handleTextChange}
           value={extra}
         ></CustomInput>
       </Modal.Body>
-      <Modal.Footer>
-        <WhiteButton onClick={() => setKey("2")}>
+      <Modal.Footer className="justify-content-around">
+        <WhiteButton onClick={handleBack}>
           <span className="fw-bolder">Back</span>
         </WhiteButton>
-        <WhiteButton onClick={() => setKey("1")}>
-          <span className="fw-bolder text-primary text-shadow">
-            Cancel order
-          </span>
+        <WhiteButton onClick={handleCancel} disabled={!reason} variant="senary">
+          <span className="fw-bolder">Cancel order</span>
         </WhiteButton>
       </Modal.Footer>
     </>
@@ -268,46 +367,6 @@ const HelpModal = memo(({ orderId, setKey }) => {
           <FontAwesomeIcon icon={faArrowRight} />
         </CustomButton>
       </Modal.Body>
-    </>
-  );
-}, isEqual);
-const OrderModal = memo((props) => {
-  const { user, id = "FF4FSD", createdAt, onConfirm, setKey } = props;
-  const [show, setShow] = useState(false);
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-  const handleConfirm = useCallback(() => {
-    onConfirm(id);
-    handleClose();
-  }, []);
-
-  return (
-    <>
-      <Button
-        variant="senary text-dark"
-        className="rounded-0 shadow-none w-100 my-2"
-        onClick={handleShow}
-      >
-        <div className="d-flex px-2 justify-content-between align-items-center">
-          <div className="text-start">
-            <div className="fw-bold">{user}</div>
-            <div className="fw-normal text-truncate">{id}</div>
-          </div>
-          <div className="fw-bold">{moment(createdAt).format("HH:mm")}</div>
-        </div>
-      </Button>
-      <Modal
-        show={show}
-        onHide={handleClose}
-        centered
-        contentClassName="shadow-none"
-        dialogClassName="order bg-darker-nonary w-100"
-        className="text-dark p-0"
-        backdropClassName="opacity-0"
-        fullscreen
-      >
-        <ModalContent {...props} onConfirm={handleConfirm} />
-      </Modal>
     </>
   );
 }, isEqual);
@@ -373,63 +432,3 @@ const Item = memo(
   },
   isEqual
 );
-
-const SideBar = memo(({ onClick }) => {
-  return (
-    <div className="h-100 flex-fill d-flex flex-column">
-      <div className="w-100 ratio ratio-1x1">
-        <Button
-          variant="nonary"
-          className="w-100 shadow-none rounded-0 rounded-bottom"
-          style={{ padding: "18px" }}
-          onClick={() => onClick("home")}
-        >
-          <FontAwesomeIcon icon={faBars} className="h-100 w-100" />
-        </Button>
-      </div>
-      <div className="d-flex flex-column flex-fill py-2">
-        <div className="w-100 flex-fill">
-          <Button
-            variant="senary"
-            className="w-100 h-100 rounded-0 rounded-top shadow-none"
-            style={{ padding: "15px" }}
-            onClick={() => onClick("newOrders")}
-          >
-            <FontAwesomeIcon icon={faFileLines} className="h-100 w-100" />
-          </Button>
-        </div>
-        <div className="w-100 flex-fill">
-          <Button
-            variant="nonary"
-            className="w-100 h-100 rounded-0 shadow-none"
-            style={{ padding: "18px" }}
-            onClick={() => onClick("activeOrders")}
-          >
-            <FontAwesomeIcon icon={faListCheck} className="h-100 w-100" />
-          </Button>
-        </div>
-
-        <div className="w-100 flex-fill">
-          <Button
-            variant="nonary"
-            className="w-100 h-100 rounded-0 rounded-bottom shadow-none"
-            style={{ padding: "18px" }}
-            onClick={() => onClick("finishedOrders")}
-          >
-            <FontAwesomeIcon icon={faListCheck} className="h-100 w-100" />
-          </Button>
-        </div>
-      </div>
-      <div className="w-100 ratio ratio-1x1">
-        <Button
-          variant="nonary"
-          className="w-100 shadow-none rounded-0 rounded-top"
-          style={{ padding: "18px" }}
-          onClick={() => onClick("history")}
-        >
-          <FontAwesomeIcon icon={faHistory} className="h-100 w-100" />
-        </Button>
-      </div>
-    </div>
-  );
-}, isEqual);

@@ -32,7 +32,9 @@ const Cart = memo(() => {
   const socket = useSocket();
 
   const handleOrderClick = useCallback(async () => {
-    dispatch(postOrders({ items, user: "kostas" }));
+    dispatch(postOrders({ items, user: "kostas" })).then(() =>
+      socket.emit("send_order", { test: "hi" })
+    );
   }, [socket, items]);
 
   useEffect(() => {

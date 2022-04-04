@@ -11,6 +11,12 @@ import { isEqual } from "lodash";
 import { createWrapper, HYDRATE } from "next-redux-wrapper";
 import { shopToState } from "../utilities/dataMapper";
 import { fMenu } from "../data/menu";
+import {
+  faBars,
+  faFileLines,
+  faHistory,
+  faListCheck,
+} from "@fortawesome/free-solid-svg-icons";
 
 const mealsAdapter = createEntityAdapter();
 const categoriesAdapter = createEntityAdapter();
@@ -150,7 +156,6 @@ export const subjectSlice = createSlice({
       cartItemsAdapter.removeAll(state.cart.items);
     },
     [changeOrderStatus.fulfilled](state, { payload, meta }) {
-      console.log(state);
       const {
         body: { status },
         id,

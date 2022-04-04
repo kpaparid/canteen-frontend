@@ -9,11 +9,11 @@ import { isEqual } from "lodash";
 import { memo, useCallback } from "react";
 import Button from "react-bootstrap/Button";
 
-const SideBar = memo(({ setActiveKey, activeKey }) => {
+const SideBar = memo(({ setActiveKey, activeKey, pendingCount }) => {
   const CustomButton = useCallback(
     ({
       icon,
-      className,
+      className = "",
       value,
       variant = activeKey === value ? "quaternary" : "nonary",
       padding = "18px",
@@ -21,7 +21,7 @@ const SideBar = memo(({ setActiveKey, activeKey }) => {
     }) => (
       <Button
         {...rest}
-        className={`${className} w-100 h-100 rounded-0 shadow-none`}
+        className={`${className} w-100 h-100 rounded-0 shadow-none btn-pulse`}
         style={{ padding }}
         onClick={() => setActiveKey(value)}
         variant={variant}
@@ -39,7 +39,17 @@ const SideBar = memo(({ setActiveKey, activeKey }) => {
       </div>
       <div className="d-flex flex-column flex-fill py-2">
         <div className="w-100 flex-fill">
-          <CustomButton icon={faFileLines} value="pending" />
+          <CustomButton
+            icon={faFileLines}
+            value="pending"
+            variant={
+              activeKey === "pending"
+                ? "quaternary"
+                : pendingCount
+                ? "pulse"
+                : "nonary"
+            }
+          />
         </div>
         <div className="w-100 flex-fill">
           <CustomButton icon={faListCheck} value="confirmed" />

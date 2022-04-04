@@ -1,6 +1,62 @@
+.pulse {
+  animation: pulse 2s infinite !important;
+  @keyframes pulse {
+    0% {
+      background: $nonary;
+      color: white;
+      border-color: $nonary;
+    }
+    50% {
+      background: $pending;
+      color: $dark;
+      border-color: $pending;
+    }
+    100% {
+      background: $nonary;
+      color: white;
+      border-color: $nonary;
+    }
+  }
+  @-moz-keyframes pulse {
+    0% {
+      background: $nonary;
+      color: white;
+      border-color: $nonary;
+    }
+    50% {
+      background: $pending;
+      color: $dark;
+      border-color: $pending;
+    }
+    100% {
+      background: $nonary;
+      color: white;
+      border-color: $nonary;
+    }
+  }
+
+  @-webkit-keyframes pulse {
+    0% {
+      background: $nonary;
+      color: white;
+      border-color: $nonary;
+    }
+    50% {
+      background: $pending;
+      color: $dark;
+      border-color: $pending;
+    }
+    100% {
+      background: $nonary;
+      color: white;
+      border-color: $nonary;
+    }
+  }
+}
+
 @mixin btn-variant($parent, $color) {
   #{$parent} {
-    background-color: $color !important;
+    background-color: $color;
     &:hover {
       background-color: lighten($color, 5%) !important;
       border-color: lighten($color, 5%) !important;
@@ -25,7 +81,7 @@
 
 @mixin bg-variant($parent, $color) {
   #{$parent} {
-    background-color: $color !important;
+    background-color: $color;
   }
   a#{$parent},
   button#{$parent} {
@@ -49,4 +105,155 @@
   background-repeat: $background-repeat;
   background-position: top center;
   background-size: $background-size;
+}
+
+.bg-pulse-nonary-pending {
+  animation: pulse 2s infinite !important;
+
+  @keyframes pulse {
+    0% {
+      background: $nonary;
+      color: $white;
+      border-color: $nonary;
+    }
+    50% {
+      background: $pending;
+      color: $nonary;
+      border-color: $pending;
+    }
+    100% {
+      background: $nonary;
+      color: $white;
+      border-color: $nonary;
+    }
+  }
+  @-moz-keyframes pulse {
+    0% {
+      background: $nonary;
+      color: $white;
+      border-color: $nonary;
+    }
+    50% {
+      background: $pending;
+      color: $nonary;
+      border-color: $pending;
+    }
+    100% {
+      background: $nonary;
+      color: $white;
+      border-color: $nonary;
+    }
+  }
+
+  @-webkit-keyframes pulse {
+    0% {
+      background: $nonary;
+      color: $white;
+      border-color: $nonary;
+    }
+    50% {
+      background: $pending;
+      color: $nonary;
+      border-color: $pending;
+    }
+    100% {
+      background: $nonary;
+      color: $white;
+      border-color: $nonary;
+    }
+  }
+}
+.bg-pulse-darker-nonary-pending {
+  animation: pulse 2s infinite !important;
+
+  @keyframes pulse {
+    0% {
+      background: $darker-nonary;
+      color: $pending;
+      border-color: $darker-nonary;
+    }
+    50% {
+      background: $pending;
+      color: $darker-nonary;
+      border-color: $pending;
+    }
+    100% {
+      background: $darker-nonary;
+      color: $pending;
+      border-color: $darker-nonary;
+    }
+  }
+  @-moz-keyframes pulse {
+    0% {
+      background: $darker-nonary;
+      color: $pending;
+      border-color: $darker-nonary;
+    }
+    50% {
+      background: $pending;
+      color: $darker-nonary;
+      border-color: $pending;
+    }
+    100% {
+      background: $darker-nonary;
+      color: $pending;
+      border-color: $darker-nonary;
+    }
+  }
+
+  @-webkit-keyframes pulse {
+    0% {
+      background: $darker-nonary;
+      color: $pending;
+      border-color: $darker-nonary;
+    }
+    50% {
+      background: $pending;
+      color: $darker-nonary;
+      border-color: $pending;
+    }
+    100% {
+      background: $darker-nonary;
+      color: $pending;
+      border-color: $darker-nonary;
+    }
+  }
+}
+.swing {
+  animation: swing 2s infinite !important;
+
+  @keyframes swing {
+    0% {
+      transform: rotate(45deg);
+    }
+    50% {
+      transform: rotate(-45deg);
+    }
+    100% {
+      transform: rotate(45deg);
+    }
+  }
+  @-moz-keyframes swing {
+    0% {
+      transform: rotate(45deg);
+    }
+    50% {
+      transform: rotate(-45deg);
+    }
+    100% {
+      transform: rotate(45deg);
+    }
+  }
+
+  @-webkit-keyframes swing {
+    0% {
+      transform: rotate(45deg);
+    }
+    50% {
+      transform: rotate(-45deg);
+    }
+    100% {
+      transform: rotate(45deg);
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import {
   faArrowRight,
   faBars,
+  faBell,
   faFileLines,
   faGlobe,
   faHistory,
@@ -8,6 +9,7 @@ import {
   faListCheck,
   faLongArrowLeft,
   faLongArrowRight,
+  faTruck,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isEqual } from "lodash";
@@ -51,6 +53,11 @@ export default function Dashboard() {
   const socket = useSocket();
   const [activeKey, setActiveKey] = useState("pending");
   const orders = useSelector(selectAllOrdersByCategory);
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
   const dispatch = useDispatch();
   const handleStatusChange = useCallback((id, body) => {
     dispatch(changeOrderStatus({ id, body }));
@@ -76,57 +83,78 @@ export default function Dashboard() {
     if (socket) {
       socket.on("received_order", (data) => {
         console.log(`received order in admin ${data}`);
-        setOrders((old) => [...old, ...data]);
+        dispatch(fetchOrders()).then(() => setShow(true));
       });
     }
   }, [socket]);
 
   return (
-    <div className="bg-darker-nonary d-flex flex-nowrap h-100">
-      <div
-        style={{ minWidth: "60px", maxWidth: "60px", zIndex: 9000 }}
-        className="h-100"
+    <>
+      <Modal
+        show={show}
+        onHide={handleClose}
+        centered
+        fullscreen
+        contentClassName="d-flex justify-content-center align-items-center bg-pulse-nonary-pending"
       >
-        <SideBar setActiveKey={setActiveKey} activeKey={activeKey}></SideBar>
+        <div className="h-100 w-100 d-flex" onClick={handleClose}>
+          <FontAwesomeIcon
+            className="swing m-auto"
+            icon={faBell}
+            size="9x"
+          ></FontAwesomeIcon>
+        </div>
+      </Modal>
+      <div className="bg-darker-nonary d-flex flex-nowrap h-100">
+        <div
+          style={{ minWidth: "60px", maxWidth: "60px", zIndex: 9000 }}
+          className="h-100"
+        >
+          <SideBar
+            setActiveKey={setActiveKey}
+            activeKey={activeKey}
+            pendingCount={orders.pending.length}
+          ></SideBar>
+        </div>
+        <div
+          className="h-100 d-flex flex-nowrap overflow-auto"
+          style={{ width: "calc(100% - 60px)" }}
+        >
+          <Tab.Container activeKey={activeKey} classNamew="w-100">
+            <Tab.Content className="px-5 m-auto w-100">
+              <Tab.Pane eventKey="pending">
+                <OrdersComponent
+                  orders={orders?.pending}
+                  title="New"
+                  onNext={handleNext}
+                />
+              </Tab.Pane>
+              <Tab.Pane eventKey="confirmed">
+                <OrdersComponent
+                  orders={orders?.confirmed}
+                  title="In Progress"
+                  onNext={handleReady}
+                />
+              </Tab.Pane>
+              <Tab.Pane eventKey="ready">
+                <OrdersComponent
+                  orders={orders?.ready}
+                  title="Ready"
+                  onNext={handleFinish}
+                />
+              </Tab.Pane>
+              <Tab.Pane eventKey="archived">
+                <OrdersComponent
+                  orders={orders?.archived}
+                  title="Archived"
+                  onNext={handleNew}
+                />
+              </Tab.Pane>
+            </Tab.Content>
+          </Tab.Container>
+        </div>
       </div>
-      <div
-        className="h-100 d-flex flex-nowrap overflow-auto"
-        style={{ width: "calc(100% - 60px)" }}
-      >
-        <Tab.Container activeKey={activeKey} classNamew="w-100">
-          <Tab.Content className="px-5 m-auto w-100">
-            <Tab.Pane eventKey="pending">
-              <OrdersComponent
-                orders={orders?.pending}
-                title="New"
-                onNext={handleNext}
-              />
-            </Tab.Pane>
-            <Tab.Pane eventKey="confirmed">
-              <OrdersComponent
-                orders={orders?.confirmed}
-                title="In Progress"
-                onNext={handleReady}
-              />
-            </Tab.Pane>
-            <Tab.Pane eventKey="ready">
-              <OrdersComponent
-                orders={orders?.ready}
-                title="Ready"
-                onNext={handleFinish}
-              />
-            </Tab.Pane>
-            <Tab.Pane eventKey="archived">
-              <OrdersComponent
-                orders={orders?.archived}
-                title="Archived"
-                onNext={handleNew}
-              />
-            </Tab.Pane>
-          </Tab.Content>
-        </Tab.Container>
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -158,7 +186,7 @@ const OrderModal = memo(({ status, ...rest }) => {
     <>
       <Button
         variant={variant}
-        className="rounded-0 shadow-none w-100 my-2 text-dark"
+        className="rounded-0 w-100 my-2 text-dark p-0"
         onClick={handleShow}
       >
         <div className="d-flex px-2 justify-content-between align-items-center">

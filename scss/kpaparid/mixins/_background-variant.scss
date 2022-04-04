@@ -164,9 +164,9 @@
   }
 }
 .bg-pulse-darker-nonary-pending {
-  animation: pulse 2s infinite !important;
+  animation: pulse2 2s infinite !important;
 
-  @keyframes pulse {
+  @keyframes pulse2 {
     0% {
       background: $darker-nonary;
       color: $pending;
@@ -183,7 +183,7 @@
       border-color: $darker-nonary;
     }
   }
-  @-moz-keyframes pulse {
+  @-moz-keyframes pulse2 {
     0% {
       background: $darker-nonary;
       color: $pending;
@@ -201,7 +201,7 @@
     }
   }
 
-  @-webkit-keyframes pulse {
+  @-webkit-keyframes pulse2 {
     0% {
       background: $darker-nonary;
       color: $pending;

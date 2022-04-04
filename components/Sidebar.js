@@ -21,7 +21,7 @@ const SideBar = memo(({ setActiveKey, activeKey, pendingCount }) => {
     }) => (
       <Button
         {...rest}
-        className={`${className} w-100 h-100 rounded-0 shadow-none btn-pulse`}
+        className={`${className} w-100 h-100 rounded-0 shadow-none`}
         style={{ padding }}
         onClick={() => setActiveKey(value)}
         variant={variant}
@@ -46,7 +46,7 @@ const SideBar = memo(({ setActiveKey, activeKey, pendingCount }) => {
               activeKey === "pending"
                 ? "quaternary"
                 : pendingCount
-                ? "pulse"
+                ? "ds bg-pulse-nonary-pending "
                 : "nonary"
             }
           />

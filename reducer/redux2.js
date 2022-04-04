@@ -239,10 +239,14 @@ export const selectOrders = (state) => ordersSelectors.selectAll(state.shop);
 export const selectAllOrdersByCategory = createSelector(
   [selectOrders],
   (orders) =>
-    ["pending", "confirmed", "declined", "ready", "finished"].reduce(
+    ["pending", "confirmed", "ready", "archived"].reduce(
       (a, status) => ({
         ...a,
-        [status]: orders.filter((o) => o.status === status),
+        [status]: orders.filter((o) =>
+          status !== "archived"
+            ? o.status === status
+            : o.status === "canceled" || o.status === "finished"
+        ),
       }),
       {}
     )

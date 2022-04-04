@@ -15,7 +15,7 @@ const SideBar = memo(({ setActiveKey, activeKey }) => {
       icon,
       className,
       value,
-      variant = activeKey === value ? "senary" : "nonary",
+      variant = activeKey === value ? "quaternary" : "nonary",
       padding = "18px",
       ...rest
     }) => (
@@ -50,7 +50,7 @@ const SideBar = memo(({ setActiveKey, activeKey }) => {
         </div>
       </div>
       <div className="w-100 ratio ratio-1x1">
-        <CustomButton icon={faHistory} value="finished" />
+        <CustomButton icon={faHistory} value="archived" />
       </div>
     </div>
   );

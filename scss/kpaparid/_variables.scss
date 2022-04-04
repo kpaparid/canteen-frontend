@@ -92,23 +92,34 @@ $darker-blue: #0771ab;
 $senary: #fc6f5b;
 $septenary: #9b9b9b;
 $octonary: #f7f7f7;
-$nonary: #252a4a;
-$darker-nonary: #161c3b;
+// $nonary: #252a4a;
+$nonary: #252935;
+$darker-nonary: #090a19;
+// $darker-nonary: #161c3b;
 $gray-white: #b1bac6;
 $border-gray: #2e365020;
 $mega-light-blue: #deebff;
 // $secondary: #00acac;
 // $tertiary: #1b998b;
-$quaternary: #c96480;
+$quaternary: #6a6c77;
 $dark: #01161a;
-$quinary: #b1dfc2;
-$denary: #fff09a;
-$duodenary: #ffbccb;
-$default: $primary;
-$confirmed: #38d962;
-$pending: #fbe960;
-$declined: #c80000;
+// $quinary: #b1dfc2;
+$quinary: #6bcb77;
+$denary: #ffd124;
+$duodenary: #9bdcf4;
 $darker-senary: #c95848;
+$default: $primary;
+
+// $ready: #6bcb77;
+// $confirmed: #ff8e00;
+// $pending: #ffe400;
+// $declined: #f6a9a9;
+
+$pending: #ffc24d;
+$confirmed: #f58634;
+$ready: #81b214;
+$declined: #f05945;
+$canceled: #f05945;
 
 $light-tertiary: lighten($tertiary, 15%);
 $very-light-tertiary: lighten($tertiary, 25%);
@@ -190,6 +201,7 @@ $theme-colors: map-merge(
     "inverse": $inverse,
     "secondary": $secondary,
     "tertiary": $tertiary,
+    "ready": $ready,
     "quaternary": $quaternary,
     "primary-app": $primary-app,
     "secondary-app": $secondary-app,
@@ -210,6 +222,7 @@ $theme-colors: map-merge(
     "border-gray": $border-gray,
     "darker-nonary": $darker-nonary,
     "darker-senary": $darker-senary,
+    "canceled": $canceled,
     "confirmed": $confirmed,
     "pending": $pending,
     "declined": $declined,

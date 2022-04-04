@@ -94,7 +94,7 @@ export default function Dashboard() {
         style={{ width: "calc(100% - 60px)" }}
       >
         <Tab.Container activeKey={activeKey} classNamew="w-100">
-          <Tab.Content className="px-5 m-auto w-75">
+          <Tab.Content className="px-5 m-auto w-100">
             <Tab.Pane eventKey="pending">
               <OrdersComponent
                 orders={orders?.pending}
@@ -116,10 +116,10 @@ export default function Dashboard() {
                 onNext={handleFinish}
               />
             </Tab.Pane>
-            <Tab.Pane eventKey="finished">
+            <Tab.Pane eventKey="archived">
               <OrdersComponent
-                orders={orders?.finished}
-                title="Archive"
+                orders={orders?.archived}
+                title="Archived"
                 onNext={handleNew}
               />
             </Tab.Pane>
@@ -143,8 +143,9 @@ const OrdersComponent = memo(({ orders, title, ...rest }) => {
   );
 }, isEqual);
 
-const OrderModal = memo((props) => {
-  const { user, id = "FF4FSD", createdAt, onNext } = props;
+const OrderModal = memo(({ status, ...rest }) => {
+  const variant = status === "finished" ? "ready" : status;
+  const { user, id = "FF4FSD", createdAt, onNext } = rest;
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -156,8 +157,8 @@ const OrderModal = memo((props) => {
   return (
     <>
       <Button
-        variant="senary text-dark"
-        className="rounded-0 shadow-none w-100 my-2"
+        variant={variant}
+        className="rounded-0 shadow-none w-100 my-2 text-dark"
         onClick={handleShow}
       >
         <div className="d-flex px-2 justify-content-between align-items-center">
@@ -178,7 +179,7 @@ const OrderModal = memo((props) => {
         backdropClassName="opacity-0"
         fullscreen
       >
-        <OrderContent {...props} onNext={handleNext} />
+        <OrderContent {...rest} onNext={handleNext} />
       </Modal>
     </>
   );
@@ -283,7 +284,9 @@ const CancelOrder = memo(({ id, setKey }) => {
   }, []);
   const handleCancel = useCallback(() => {
     console.log("post cancel");
-    dispatch(changeOrderStatus({ id, status: "canceled", reason, extra }));
+    dispatch(
+      changeOrderStatus({ id, body: { status: "canceled", reason, extra } })
+    );
     handleClose();
   }, []);
   const handleBack = useCallback(() => {

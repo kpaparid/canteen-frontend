@@ -189,7 +189,7 @@ const OrderModal = memo(({ status, ...rest }) => {
         className="rounded-0 w-100 my-2 text-dark p-0"
         onClick={handleShow}
       >
-        <div className="d-flex px-2 justify-content-between align-items-center">
+        <div className="d-flex p-2 justify-content-between align-items-center">
           <div className="text-start">
             <div className="fw-bold">{user}</div>
             <div className="fw-normal text-truncate">{id}</div>

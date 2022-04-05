@@ -1,3 +1,11 @@
+.menu {
+  display: flex;
+  flex: 1 1 auto !important;
+  flex-direction: column;
+  padding-left: 3rem;
+  padding-right: 3rem;
+  max-width: 700px;
+}
 .categories-navbar {
   position: sticky;
   top: 40px;
@@ -106,12 +114,18 @@
   overflow: auto;
   box-shadow: 4px 3px 9px 4px rgb(0 0 0 / 13%);
   background-color: white;
-
-  .card-header {
+  border-radius: 0.5rem;
+  .textarea-wrapper {
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+  }
+  .card-header,
+  .modal-header {
+    border-radius: 0;
     position: sticky;
     top: 0;
     z-index: 900;
-    background-color: var(--bs-primary);
+    background-color: $primary;
     color: white;
     display: flex;
     align-items: center;
@@ -122,28 +136,95 @@
       font-weight: 700;
     }
   }
-  .card-body {
+  .card-body,
+  .modal-body {
+    padding: 0;
+    padding-top: 1rem;
     display: flex;
     flex-direction: column;
     height: fit-content;
     overflow: auto;
     max-height: 100%;
   }
-  .card-footer {
+  .card-footer,
+  .modal-footer {
     position: sticky;
     bottom: 0;
     z-index: 900;
+    background-color: white;
   }
   .card-body,
-  .card-footer {
-    border: 1px solid #e5e5e5;
-    border-bottom: 0;
-    border-top: 0;
+  .card-footer,
+  .modal-body,
+  .modal-footer {
+    border: 0;
   }
-  .card {
+  .card,
+  .modal {
     border-bottom: 2px solid #e5e5e5;
   }
+  @include media-breakpoint-down(lg) {
+    position: initial;
+    top: 0;
+    max-height: 100vh;
+    box-shadow: none;
+    width: 100vw;
+    .modal-footer {
+      border-top: 1px solid $gray-100;
+      justify-content: center;
+    }
+  }
 }
+
 .header-text {
-  text-shadow: 1px 1px 3px rgba(34, 34, 34, 0.7);
+  text-shadow: 1px 1px 3px rgb(34 34 34 / 70%);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.menu-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  padding: 1.5rem;
+  @include media-breakpoint-down(lg) {
+    flex-wrap: wrap !important;
+    padding: 0;
+    .category-text {
+      padding: 1.5rem;
+    }
+    .categories-navbar {
+      background-color: white;
+      flex-direction: row;
+      width: 100vw;
+      padding-bottom: 5px;
+      padding-top: 5px;
+      top: 0;
+      border-bottom: 1px solid $gray-100;
+      justify-content: space-around;
+    }
+    .category {
+      margin-left: 0.5rem;
+      margin-right: 0.5rem;
+    }
+    .menu {
+      padding: 0 !important;
+      width: 100%;
+    }
+    .meal-list {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    .cart-toggle {
+      position: sticky;
+      bottom: 0px;
+      width: 100%;
+      padding-bottom: 5px;
+      padding-top: 5px;
+      display: flex;
+      justify-content: center;
+      background-color: white;
+      border-top: 1px solid $gray-100;
+      z-index: 900;
+    }
+  }
 }

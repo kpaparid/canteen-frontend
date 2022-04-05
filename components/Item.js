@@ -83,7 +83,9 @@ const Item = memo(
           dialogClassName="p-4"
         >
           {photoURL && (
-            <div style={{ height: "400px" }}>
+            <div
+            //  style={{ height: "400px" }}
+            >
               <Image
                 src={photoURL}
                 alt="alt-img"

@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { debounce, isEqual } from "lodash";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { Form } from "react-bootstrap";
+import { Form, Modal } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,13 +23,14 @@ import {
 import { formatPrice } from "../utilities/utils";
 import Accumulator from "./Accumulator";
 import { useSocket } from "../hooks/orderHooks";
+import { useMediaQuery } from "react-responsive";
 // eslint-disable-next-line react/display-name
-
-const Cart = memo(() => {
+const useCart = () => {
+  const socket = useSocket();
   const items = useSelector(selectCart);
   const dispatch = useDispatch();
   const summa = items && items?.reduce((a, b) => a + b.calculatedPrice, 0);
-  const socket = useSocket();
+  const formattedSumma = formatPrice(summa) + " €";
 
   const handleOrderClick = useCallback(async () => {
     dispatch(postOrders({ items, user: "kostas" })).then(() =>
@@ -46,49 +47,99 @@ const Cart = memo(() => {
     }
   }, [socket]);
 
-  return (
-    <div variant="transparent" className="cart p-0 border-0">
-      <Card.Header className="d-flex font-bolder px-4 pt-3 pb-3">
-        <span className="">Warenkorb</span>
-      </Card.Header>
-      <Card.Body className="p-0">
-        {items.length ? (
-          items?.map((i) => <CartItem key={i.id} {...i} />)
-        ) : (
-          <div className="p-5 d-flex flex-column">
-            <FontAwesomeIcon
-              className="pb-4 text-primary"
-              size="4x"
-              icon={faBasketShopping}
-            />
-            <div className="text-center font-small">
-              Füllen Sie Ihren Warenkorb mit den Produkten auf der linken Seite
-            </div>
-          </div>
-        )}
-      </Card.Body>
-      <Card.Footer className="pt-0">
-        {summa ? (
-          <div className="d-flex flex-nowrap justify-content-between font-bolder text-gray-900">
-            <span>Gesamt</span>
-            <span>{formatPrice(summa)} €</span>
-          </div>
-        ) : (
-          <></>
-        )}
-        <div className="d-flex w-100 pt-2">
-          <Button
-            // disabled={!items.length}
-            className="m-auto"
-            variant="primary"
-            onClick={handleOrderClick}
-          >
-            Weiter
-          </Button>
-        </div>
-      </Card.Footer>
+  const header = <span>Warenkorb</span>;
+  const body = items.length ? (
+    items?.map((i) => <CartItem key={i.id} {...i} />)
+  ) : (
+    <div className="p-5 d-flex flex-column">
+      <FontAwesomeIcon
+        className="pb-4 text-primary"
+        size="4x"
+        icon={faBasketShopping}
+      />
+      <div className="text-center font-small">
+        Füllen Sie Ihren Warenkorb mit den Produkten auf der linken Seite
+      </div>
     </div>
   );
+  const footer = (
+    <>
+      {summa ? (
+        <div className="d-flex flex-nowrap justify-content-between font-bolder text-gray-900">
+          <span>Gesamt</span>
+          <span>{formattedSumma}</span>
+        </div>
+      ) : (
+        <></>
+      )}
+      <div className="d-flex w-100 pt-2">
+        <Button className="m-auto" variant="primary" onClick={handleOrderClick}>
+          Weiter
+        </Button>
+      </div>
+    </>
+  );
+  return {
+    header,
+    body,
+    footer,
+    summa,
+    items,
+    formattedSumma,
+    onOrder: handleOrderClick,
+  };
+};
+const CartModal = () => {
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+  const { formattedSumma, items, body } = useCart();
+  return (
+    <>
+      {items.length !== 0 && (
+        <div className="cart-toggle">
+          <Button className="header-text" onClick={handleShow}>
+            Warenkorb
+          </Button>
+        </div>
+      )}
+
+      <Modal
+        show={show}
+        onHide={handleClose}
+        fullscreen
+        contentClassName="cart"
+      >
+        <Modal.Header closeVariant="white" className="bg-primary" closeButton>
+          <span>Warenkorb</span>
+        </Modal.Header>
+        <Modal.Body>{body}</Modal.Body>
+        <Modal.Footer>
+          <Button className="px-5 d-flex flex-wrap justify-content-center header-text">
+            <span>Bestellen</span>{" "}
+            <span className="px-1">({formattedSumma})</span>
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
+  );
+};
+const CartCard = () => {
+  const { header, body, footer } = useCart();
+  return (
+    <div className="cart">
+      <Card.Header className="d-flex font-bolder px-4 pt-3 pb-3">
+        {header}
+      </Card.Header>
+      <Card.Body>{body}</Card.Body>
+      <Card.Footer>{footer}</Card.Footer>
+    </div>
+  );
+};
+const Cart = memo(() => {
+  const isBigScreen = useMediaQuery({ query: "(min-width: 992px)" });
+  return <>{isBigScreen ? <CartCard /> : <CartModal />}</>;
 }, isEqual);
 
 // eslint-disable-next-line react/display-name
@@ -106,7 +157,7 @@ const CartItem = memo(
     };
 
     return (
-      <div className="pt-3 d-flex w-100 flex-wrap">
+      <div className="d-flex w-100 flex-wrap">
         <div className="ps-4 col-8 m-0 font-small fw-bolder text-gray-900">
           {title}
         </div>
@@ -120,7 +171,7 @@ const CartItem = memo(
             <FontAwesomeIcon className="m-auto" icon={faClose} />
           </Button>
         </div>
-        {extras && (
+        {extras.length !== 0 && (
           <div className="px-4 col-11 font-small text-gray-700">
             Extras: {extrasText}
           </div>
@@ -189,7 +240,7 @@ const Comment = ({ text: initialText, onChange }) => {
         </div>
       </div>
       <div
-        className={`px-4 pb-2 text-gray-700 font-small comment-text ${
+        className={`px-4 pb-2 text-gray-700 font-small text-break text-wrap comment-text ${
           show ? "opacity-0" : "opacity-100"
         }`}
       >

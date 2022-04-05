@@ -82,19 +82,16 @@ export default function Menu({}) {
       <Header />
       <div className="menu-banner">Speisekarte</div>
       <div
-        className="p-4 d-flex bg-white"
+        className="d-flex bg-white"
         // style={{ height: "calc(100% - 300px)" }}
       >
         <div className="h-100 m-auto flex-column mb-2 flex-fill">
-          <div className="d-flex flex-nowrap justify-content-center">
+          <div className="menu-wrapper">
             <CategoriesNavbar
               categories={categories}
               onClick={handleCategoryClick}
             />
-            <div
-              className="d-flex flex-column flex-fill px-5"
-              style={{ maxWidth: "700px" }}
-            >
+            <div className="menu">
               <div className="flex-fill">
                 {menu &&
                   Object.keys(menu)?.map((i, index) => (
@@ -198,7 +195,7 @@ function ItemModal(props) {
     <>
       <div className="item-modal-toggle meal-item my-4 bg-gray-100 rounded">
         <div className="w-100 border-0 rounded-0 p-0" onClick={handleShow}>
-          <div className=" d-flex flex-nowrap justify-content-between p-3">
+          <div className=" d-flex flex-nowrap justify-content-between align-items-center p-3">
             <div className="text-left flex-fill pe-4 d-flex flex-column justify-content-around">
               <div className="fw-bolder text-gray-900 meal-title">
                 {uid}. {name}

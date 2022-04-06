@@ -1,3 +1,5 @@
+import { fa0, faCircleXmark, faX } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import isEqual from "lodash/isEqual";
 import Image from "next/image";
 import { Fragment, memo, useState } from "react";
@@ -79,71 +81,78 @@ const Item = memo(
           onHide={handleClose}
           centered
           className="item-modal"
-          fullscreen="md-down"
+          // fullscreen="md-down"
           // dialogClassName="p-0"
+          // onClick={(e) => {
+          //   e.stopPropagation();
+          //   e.preventDefault();
+          //   handleClose();
+          // }}
         >
-          <div
-            className="modal-wrapper"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleClose();
-            }}
-          >
-            {photoURL && (
-              <div
-              //  style={{ height: "400px" }}
-              >
-                <Image
-                  src={photoURL}
-                  alt="alt-img"
-                  width="460px"
-                  height="350px"
-                />
-              </div>
-            )}
-            <Modal.Header closeButton={false} className="p-0">
-              <div className="p-3 w-100">
-                <div className="font-medium fw-bolder">{name}</div>
-                {description && (
-                  <div className="font-small text-septenary">{description}</div>
-                )}
-                <div className="mt-2 font-medium fw-bolder">
-                  {formatPrice(price)} €
-                </div>
-              </div>
-            </Modal.Header>
-            <Modal.Body className="bg-octonary">
-              <Form.Group className="d-flex flex-column">
-                {extras?.map((e, index) => (
-                  <Fragment key={e.title}>
-                    <Form.Label className="pt-1 text-dark font-small fw-bold">
-                      {e.title}
-                    </Form.Label>
-                    <FormComponent
-                      key={e.title}
-                      {...e}
-                      onChange={(e) => handleChange(e, index)}
-                    />
-                  </Fragment>
-                ))}
-                <FormTextarea text={comment || ""} onChange={setComment} />
-              </Form.Group>
-            </Modal.Body>
-            <Modal.Footer className="justify-content-around">
-              <Accumulator
-                onIncrease={handleIncrease}
-                onDecrease={handleDecrease}
-                count={count}
+          {/* <div className="modal-wrapper"> */}
+          {photoURL && (
+            <div
+            //  style={{ height: "400px" }}
+            >
+              <Image
+                src={photoURL}
+                alt="alt-img"
+                width="460px"
+                height="350px"
               />
-              <Button
-                className="m-0 header-text"
-                variant="primary"
-                onClick={handleAddToCart}
-              >
-                {formattedPrice} €
-              </Button>
-            </Modal.Footer>
-          </div>
+            </div>
+          )}
+          <Modal.Header closeButton={false} className="p-0">
+            <div
+              className={`close-modal-btn ${
+                photoURL ? "text-white" : "text-black"
+              }`}
+              onClick={handleClose}
+            >
+              <FontAwesomeIcon icon={faX}></FontAwesomeIcon>
+            </div>
+            <div className="p-3 w-100">
+              <div className="font-medium fw-bolder">{name}</div>
+              {description && (
+                <div className="font-small text-septenary">{description}</div>
+              )}
+              <div className="mt-2 font-medium fw-bolder">
+                {formatPrice(price)} €
+              </div>
+            </div>
+          </Modal.Header>
+          <Modal.Body className="bg-octonary">
+            <Form.Group className="d-flex flex-column">
+              {extras?.map((e, index) => (
+                <Fragment key={e.title}>
+                  <Form.Label className="pt-1 text-dark font-small fw-bold">
+                    {e.title}
+                  </Form.Label>
+                  <FormComponent
+                    key={e.title}
+                    {...e}
+                    onChange={(e) => handleChange(e, index)}
+                  />
+                </Fragment>
+              ))}
+              <FormTextarea text={comment || ""} onChange={setComment} />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer className="justify-content-around">
+            <Accumulator
+              onIncrease={handleIncrease}
+              onDecrease={handleDecrease}
+              count={count}
+            />
+            <Button
+              className="m-0 header-text"
+              variant="primary"
+              onClick={handleAddToCart}
+            >
+              {formattedPrice} €
+            </Button>
+          </Modal.Footer>
+          {/* </div> */}
         </Modal>
       );
     }

@@ -6,8 +6,8 @@
 }
 .modal {
   &.static-example {
-    position: relative;
     display: block;
+    position: relative;
   }
 }
 
@@ -21,8 +21,8 @@
 
 .modal-fluid {
   .modal-dialog {
-    margin-top: 0;
     margin-bottom: 0;
+    margin-top: 0;
   }
   .modal-content {
     border-radius: 0;
@@ -38,46 +38,48 @@
 }
 .item-modal {
   display: flex !important;
-
   .modal-dialog {
-    min-width: 100%;
-    margin: auto;
-    height: 100%;
+    // height: 100%;
+    margin: 1.5rem;
+    margin-left: auto;
+    margin-right: auto;
+    // min-width: 100%;
   }
   .modal-body {
     overflow: initial;
   }
   .modal-wrapper {
-    box-shadow: 0 0.5rem 1rem rgb(46 54 80 / 15%);
     background-color: white;
-    width: fit-content;
+    box-shadow: 0 0.5rem 1rem rgb(46 54 80 / 15%);
     margin: 1.5rem;
     margin-left: auto;
     margin-right: auto;
+    width: fit-content;
   }
   .modal-content {
-    width: 100%;
-    display: flex;
+    background-color: white;
     border: 0;
-    max-height: 100%;
-    height: fit-content;
-    overflow: auto;
-    background-color: transparent;
     box-shadow: none;
+    display: flex;
+    height: fit-content;
+    margin: auto;
+    max-height: 100%;
+    min-width: 460px;
+    width: fit-content;
   }
   .modal-header {
-    width: 100%;
     background-color: white;
     border: 0;
     box-shadow: 4px 4px 8px 0 rgb(0 0 0 / 8%);
+    width: 100%;
   }
   .modal-footer {
-    justify-content: space-around;
-    display: flex;
-    width: 100%;
     background-color: white;
     border: 0;
     box-shadow: 0 -4px 12px 0 rgb(0 0 0 / 5%);
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
   }
 
   textarea {
@@ -97,13 +99,29 @@
   .form-check-input:checked {
     background-color: $primary;
   }
+  @include media-breakpoint-down(sm) {
+    .modal-dialog {
+      margin: 0;
+      width: 100%;
+    }
+    .modal-content {
+      margin: 0;
+      min-width: 100%;
+      height: 100%;
+    }
+  }
+  .close-modal-btn {
+    position: absolute;
+    top: 10px;
+    right: 18px;
+  }
 }
 .count-wrapper {
-  margin: 0;
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: nowrap;
   align-items: center;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  margin: 0;
   width: 90px;
   button {
     height: 30px;
@@ -113,16 +131,16 @@
 
 .modal-dialog.order {
   display: flex;
-  padding-top: 5%;
+  height: fit-content;
+  max-width: none;
+  min-height: 100%;
   padding-bottom: 5%;
   padding-left: calc(60px + 5%);
   padding-right: 5%;
-  min-height: 100%;
-  height: fit-content;
-  max-width: none;
+  padding-top: 5%;
   .modal-content {
-    margin: auto;
     background-color: transparent;
+    margin: auto;
   }
   .modal-header,
   .modal-body,
@@ -130,14 +148,14 @@
     background-color: white;
   }
   .tab-content {
-    height: fit-content;
-    min-height: 80vh;
     display: flex;
     flex-direction: column;
+    height: fit-content;
+    min-height: 80vh;
   }
   .tab-pane.active {
-    flex: 1 1 auto;
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
   }
 }

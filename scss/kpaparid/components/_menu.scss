@@ -21,7 +21,7 @@
   }
   .category-text {
     font-weight: 700;
-    text-transform: uppercase;
+    text-transform: capitalize;
     &.active {
       background-color: var(--bs-primary);
       color: white;
@@ -64,7 +64,7 @@
     margin: 24px;
     padding-bottom: 5px;
     font-weight: 700;
-    text-transform: uppercase;
+    text-transform: capitalize;
     color: white;
     text-shadow: 5px 4px 3px rgb(34 34 34 / 70%);
     &:after {
@@ -85,7 +85,7 @@
   align-items: center;
   min-height: 50px;
   font-weight: 700;
-  text-transform: uppercase;
+  text-transform: capitalize;
   text-shadow: 1px 1px 0px rgba(34, 34, 34, 0.7);
   font-size: 1.3rem;
   .title {
@@ -131,7 +131,7 @@
     align-items: center;
     justify-content: center;
     text-shadow: 1px 1px 3px rgba(34, 34, 34, 0.7);
-    text-transform: uppercase;
+    text-transform: capitalize;
     span {
       font-weight: 700;
     }
@@ -148,9 +148,10 @@
   }
   .card-footer,
   .modal-footer {
-    position: sticky;
-    bottom: 0;
-    z-index: 900;
+    padding-top: 0;
+    // position: sticky;
+    // bottom: 0;
+    // z-index: 900;
     background-color: white;
   }
   .card-body,
@@ -179,7 +180,7 @@
 .header-text {
   text-shadow: 1px 1px 3px rgb(34 34 34 / 70%);
   font-weight: 700;
-  text-transform: uppercase;
+  text-transform: capitalize;
 }
 .menu-wrapper {
   display: flex;

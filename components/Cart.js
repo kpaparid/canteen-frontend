@@ -100,7 +100,14 @@ const CartModal = () => {
       {items.length !== 0 && (
         <div className="cart-toggle">
           <Button className="header-text" onClick={handleShow}>
-            Warenkorb
+            <FontAwesomeIcon icon={faCartShopping} />
+            <span
+              className="px-4
+            "
+            >
+              Warenkorb
+            </span>
+            <span>({formattedSumma})</span>
           </Button>
         </div>
       )}

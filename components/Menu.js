@@ -77,6 +77,13 @@ export default function Menu({}) {
     () => debounce(handleScroll, 20),
     [handleScroll]
   );
+  useEffect(() => {
+    const ref = itemsRef.current[0];
+    const sectionId = ref.getAttribute("id");
+    document
+      .querySelector(".categories-navbar #" + sectionId)
+      .classList.add("active");
+  }, []);
   return (
     <div className="h-100 overflow-auto" ref={ref} onScroll={debouncedCallback}>
       <Header />

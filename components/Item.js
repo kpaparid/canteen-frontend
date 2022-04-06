@@ -80,63 +80,70 @@ const Item = memo(
           centered
           className="item-modal"
           fullscreen="md-down"
-          dialogClassName="p-4"
+          // dialogClassName="p-0"
         >
-          {photoURL && (
-            <div
-            //  style={{ height: "400px" }}
-            >
-              <Image
-                src={photoURL}
-                alt="alt-img"
-                width="460px"
-                height="350px"
-              />
-            </div>
-          )}
-          <Modal.Header closeButton={false} className="p-0">
-            <div className="p-3 w-100">
-              <div className="font-medium fw-bolder">{name}</div>
-              {description && (
-                <div className="font-small text-septenary">{description}</div>
-              )}
-              <div className="mt-2 font-medium fw-bolder">
-                {formattedPrice} €
+          <div
+            className="modal-wrapper"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClose();
+            }}
+          >
+            {photoURL && (
+              <div
+              //  style={{ height: "400px" }}
+              >
+                <Image
+                  src={photoURL}
+                  alt="alt-img"
+                  width="460px"
+                  height="350px"
+                />
               </div>
-            </div>
-          </Modal.Header>
-
-          <Modal.Body className="bg-octonary">
-            <Form.Group className="d-flex flex-column">
-              {extras?.map((e, index) => (
-                <Fragment key={e.title}>
-                  <Form.Label className="pt-1 text-dark font-small fw-bold">
-                    {e.title}
-                  </Form.Label>
-                  <FormComponent
-                    key={e.title}
-                    {...e}
-                    onChange={(e) => handleChange(e, index)}
-                  />
-                </Fragment>
-              ))}
-              <FormTextarea text={comment || ""} onChange={setComment} />
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Accumulator
-              onIncrease={handleIncrease}
-              onDecrease={handleDecrease}
-              count={count}
-            />
-            <Button
-              className="m-0 header-text"
-              variant="primary"
-              onClick={handleAddToCart}
-            >
-              In den Warenkorb
-            </Button>
-          </Modal.Footer>
+            )}
+            <Modal.Header closeButton={false} className="p-0">
+              <div className="p-3 w-100">
+                <div className="font-medium fw-bolder">{name}</div>
+                {description && (
+                  <div className="font-small text-septenary">{description}</div>
+                )}
+                <div className="mt-2 font-medium fw-bolder">
+                  {formatPrice(price)} €
+                </div>
+              </div>
+            </Modal.Header>
+            <Modal.Body className="bg-octonary">
+              <Form.Group className="d-flex flex-column">
+                {extras?.map((e, index) => (
+                  <Fragment key={e.title}>
+                    <Form.Label className="pt-1 text-dark font-small fw-bold">
+                      {e.title}
+                    </Form.Label>
+                    <FormComponent
+                      key={e.title}
+                      {...e}
+                      onChange={(e) => handleChange(e, index)}
+                    />
+                  </Fragment>
+                ))}
+                <FormTextarea text={comment || ""} onChange={setComment} />
+              </Form.Group>
+            </Modal.Body>
+            <Modal.Footer className="justify-content-around">
+              <Accumulator
+                onIncrease={handleIncrease}
+                onDecrease={handleDecrease}
+                count={count}
+              />
+              <Button
+                className="m-0 header-text"
+                variant="primary"
+                onClick={handleAddToCart}
+              >
+                {formattedPrice} €
+              </Button>
+            </Modal.Footer>
+          </div>
         </Modal>
       );
     }

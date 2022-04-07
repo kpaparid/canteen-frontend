@@ -29,6 +29,11 @@ export default function Menu({}) {
   const dispatch = useDispatch();
   const categories = useSelector(selectAllActiveCategories);
   const menu = useSelector(selectAllMealsByCategory);
+  const [activeCategory, setActiveCategory] = useState();
+
+  useEffect(() => {
+    console.log(activeCategory);
+  }, [activeCategory]);
 
   useEffect(() => {
     itemsRef.current = itemsRef.current.slice(0, categories.length);
@@ -63,14 +68,28 @@ export default function Menu({}) {
         rect.top + viewHeight / 2 - viewHeight >= 0
       );
       if (viewable) {
-        document
-          .querySelector(".categories-navbar #" + sectionId)
-          .classList.add("active");
-      } else {
-        document
-          .querySelector(".categories-navbar #" + sectionId)
-          .classList.remove("active");
+        setActiveCategory((oldId) => {
+          document
+            .querySelector(".categories-navbar #" + oldId)
+            ?.classList.remove("active");
+          document
+            .querySelector(".categories-navbar #" + sectionId)
+            ?.classList.add("active");
+          return sectionId;
+        });
       }
+      // if (!viewable) {
+
+      //   document
+      //     .querySelector(".categories-navbar #" + sectionId)
+      //     .classList.remove("active");
+      //   // setActiveCategory(null);
+      // } else {
+      //   document
+      //     .querySelector(".categories-navbar #" + sectionId)
+      //     .classList.add("active");
+      //   setActiveCategory(sectionId);
+      // }
     });
   }, []);
   const debouncedCallback = useMemo(
@@ -79,10 +98,11 @@ export default function Menu({}) {
   );
   useEffect(() => {
     const ref = itemsRef.current[0];
-    const sectionId = ref.getAttribute("id");
+    const sectionId = ref?.getAttribute("id");
+    setActiveCategory(sectionId);
     document
       .querySelector(".categories-navbar #" + sectionId)
-      .classList.add("active");
+      ?.classList.add("active");
   }, []);
   return (
     <div className="h-100 overflow-auto" ref={ref} onScroll={debouncedCallback}>
@@ -92,7 +112,7 @@ export default function Menu({}) {
         className="d-flex bg-white"
         // style={{ height: "calc(100% - 300px)" }}
       >
-        <div className="h-100 m-auto flex-column mb-2 flex-fill">
+        <div className="h-100 m-auto flex-column flex-fill">
           <div className="menu-wrapper">
             <CategoriesNavbar
               categories={categories}
@@ -136,7 +156,7 @@ const CategoriesNavbar = memo(({ categories, onClick }) => {
 CategoriesNavbar.displayName = "CategoriesNavbar";
 const SubCategory = forwardRef(({ items, category, onClick, ...rest }, ref) => {
   return (
-    <div className="pb-4 category-wrapper" ref={ref} id={items.id}>
+    <div className="category-wrapper" ref={ref} id={items.id}>
       <CategoryTitle
         text={items.text}
         photoURL={items.photoURL}

@@ -6,6 +6,12 @@
   padding-right: 3rem;
   max-width: 700px;
 }
+.category-wrapper {
+  padding-bottom: 0.5rem;
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
 .categories-navbar {
   position: sticky;
   top: 40px;

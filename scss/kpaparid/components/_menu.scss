@@ -29,10 +29,17 @@
   .category-text {
     font-weight: 700;
     text-transform: capitalize;
+    padding: 0.5rem 0.75rem 0.5rem 0.75rem !important;
+    border-radius: 0.5rem;
+    box-shadow: none !important;
     &.active {
-      background-color: var(--bs-primary);
+      background-color: var(--bs-primary) !important;
       color: white;
       text-shadow: 1px 1px 3px rgba(34, 34, 34, 0.7);
+      &:hover,
+      &:focus {
+        background-color: var(--bs-primary) !important;
+      }
     }
   }
 }

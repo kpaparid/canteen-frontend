@@ -9,6 +9,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { Button } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 // import { menu } from "../data/menu";
 import {
@@ -49,7 +50,10 @@ export default function Menu({}) {
     (id) => {
       itemsRef.current[id].scrollIntoView({
         behavior: "smooth",
-        top: itemsRef.current[id].offsetTop - 70,
+        // top: itemsRef.current[id].offsetTop + 80,
+        // alignToTop: true,
+        block: "start",
+        inline: "nearest",
       });
     },
     [itemsRef]
@@ -128,10 +132,15 @@ const CategoriesNavbar = memo(({ categories, onClick }) => {
   return (
     <div className="categories-navbar">
       {categories?.map(({ id }, index) => (
-        <div key={id} className="category" onClick={() => onClick(index)}>
-          <div className="p-2 category-text rounded" id={id}>
+        <div key={id} className="category">
+          <Button
+            variant="transparent"
+            className="category-text"
+            id={id}
+            onClick={() => onClick(index)}
+          >
             {id}
-          </div>
+          </Button>
         </div>
       ))}
     </div>

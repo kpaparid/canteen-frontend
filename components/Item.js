@@ -103,14 +103,16 @@ const Item = memo(
             </div>
           )}
           <Modal.Header closeButton={false} className="p-0">
-            <div
-              className={`close-modal-btn ${
-                photoURL ? "text-white" : "text-black"
-              }`}
+            <Button
+              variant="white"
+              style={{ height: "27px", width: "27px" }}
+              className={`close-modal-btn rounded-circle p-0
+              `}
+              // ${photoURL ? "text-white" : "text-black"}
               onClick={handleClose}
             >
               <FontAwesomeIcon icon={faX}></FontAwesomeIcon>
-            </div>
+            </Button>
             <div className="p-3 w-100">
               <div className="font-medium fw-bolder">{name}</div>
               {description && (

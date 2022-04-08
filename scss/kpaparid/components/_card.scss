@@ -261,34 +261,34 @@
     cursor: pointer;
   }
 }
+.comment {
+  .textarea-wrapper {
+    height: 0;
+    visibility: hidden;
+    transition: all 0.5s linear 0s;
+  }
+  .comment-text {
+    height: auto;
+    transition: all 0.5s linear 0s;
+  }
+}
+
+.comment.open {
+  .textarea-wrapper {
+    visibility: visible;
+    height: 150px;
+    box-shadow: inset 0px 3px 8px 0 rgb(0 0 0 / 5%),
+      inset 0px -3px 9px 0 rgb(0 0 0 / 5%);
+  }
+  .comment-text {
+    transition: all 0.5s linear 0s, opacity 0.1s linear 0s;
+    height: 0;
+  }
+}
 .cart {
   width: 300px;
   height: fit-content;
   textarea {
     resize: none;
-  }
-  .comment {
-    .textarea-wrapper {
-      height: 0;
-      visibility: hidden;
-      transition: all 0.5s linear 0s;
-    }
-    .comment-text {
-      height: auto;
-      transition: all 0.5s linear 0s;
-    }
-  }
-
-  .comment.open {
-    .textarea-wrapper {
-      visibility: visible;
-      height: 150px;
-      box-shadow: inset 0px 3px 8px 0 rgb(0 0 0 / 5%),
-        inset 0px -3px 9px 0 rgb(0 0 0 / 5%);
-    }
-    .comment-text {
-      transition: all 0.5s linear 0s, opacity 0.1s linear 0s;
-      height: 0;
-    }
   }
 }

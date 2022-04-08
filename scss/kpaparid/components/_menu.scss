@@ -5,6 +5,7 @@
   padding-left: 3rem;
   padding-right: 3rem;
   max-width: 700px;
+  padding-bottom: 60px !important;
 }
 .category-wrapper {
   padding-bottom: 0.5rem;
@@ -192,6 +193,7 @@
   display: flex;
   flex-wrap: nowrap;
   justify-content: center;
+  align-content: center;
   padding: 1.5rem;
   @include media-breakpoint-down(lg) {
     // flex-wrap: wrap !important;
@@ -223,7 +225,7 @@
       padding-right: 10px;
     }
     .cart-toggle {
-      position: sticky;
+      position: fixed;
       bottom: 0px;
       width: 100%;
       padding-bottom: 5px;

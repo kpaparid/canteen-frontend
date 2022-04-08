@@ -5,7 +5,7 @@
   padding-left: 3rem;
   padding-right: 3rem;
   max-width: 700px;
-  padding-bottom: 60px !important;
+  margin: auto;
 }
 .category-wrapper {
   padding-bottom: 0.5rem;
@@ -218,6 +218,7 @@
     }
     .menu {
       padding: 0 !important;
+      padding-bottom: 60px !important;
       width: 100%;
     }
     .meal-list {

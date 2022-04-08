@@ -78,18 +78,6 @@ export default function Menu({}) {
           return sectionId;
         });
       }
-      // if (!viewable) {
-
-      //   document
-      //     .querySelector(".categories-navbar #" + sectionId)
-      //     .classList.remove("active");
-      //   // setActiveCategory(null);
-      // } else {
-      //   document
-      //     .querySelector(".categories-navbar #" + sectionId)
-      //     .classList.add("active");
-      //   setActiveCategory(sectionId);
-      // }
     });
   }, []);
   const debouncedCallback = useMemo(
@@ -108,10 +96,7 @@ export default function Menu({}) {
     <div className="h-100 overflow-auto" ref={ref} onScroll={debouncedCallback}>
       <Header />
       <div className="menu-banner">Speisekarte</div>
-      <div
-        className="d-flex bg-white"
-        // style={{ height: "calc(100% - 300px)" }}
-      >
+      <div className="d-flex bg-white">
         <div className="h-100 m-auto flex-column flex-fill">
           <div className="menu-wrapper">
             <CategoriesNavbar

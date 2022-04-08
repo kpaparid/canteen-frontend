@@ -98,6 +98,7 @@ const CartModal = () => {
   return (
     <>
       {items.length !== 0 && (
+        // <div className="cart-p">
         <div className="cart-toggle">
           <Button className="header-text" onClick={handleShow}>
             <FontAwesomeIcon icon={faCartShopping} />
@@ -110,6 +111,7 @@ const CartModal = () => {
             <span>({formattedSumma})</span>
           </Button>
         </div>
+        // </div>
       )}
 
       <Modal

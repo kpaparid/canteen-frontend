@@ -194,7 +194,8 @@
   justify-content: center;
   padding: 1.5rem;
   @include media-breakpoint-down(lg) {
-    flex-wrap: wrap !important;
+    // flex-wrap: wrap !important;
+    flex-direction: column;
     padding: 0;
     .category-text {
       padding: 1.5rem;

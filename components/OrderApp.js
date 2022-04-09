@@ -120,7 +120,7 @@ export default function Dashboard() {
           className="h-100 d-flex flex-nowrap overflow-auto"
           style={{ width: "calc(100% - 60px)" }}
         >
-          <Tab.Container activeKey={activeKey} classNamew="w-100">
+          <Tab.Container activeKey={activeKey} className="w-100">
             <Tab.Content className="px-5 m-auto w-100">
               <Tab.Pane eventKey="pending">
                 <OrdersComponent

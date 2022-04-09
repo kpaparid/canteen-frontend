@@ -4,19 +4,11 @@ import {
   createEntityAdapter,
   createSelector,
   createSlice,
-  current,
   nanoid,
 } from "@reduxjs/toolkit";
 import { isEqual } from "lodash";
 import { createWrapper, HYDRATE } from "next-redux-wrapper";
 import { shopToState } from "../utilities/dataMapper";
-import { fMenu } from "../data/menu";
-import {
-  faBars,
-  faFileLines,
-  faHistory,
-  faListCheck,
-} from "@fortawesome/free-solid-svg-icons";
 
 const mealsAdapter = createEntityAdapter();
 const categoriesAdapter = createEntityAdapter();
@@ -24,18 +16,19 @@ const cartItemsAdapter = createEntityAdapter();
 const ordersAdapter = createEntityAdapter();
 export const fetchShop = createAsyncThunk("data/fetchShop", async () => {
   const url = process.env.BACKEND_URI;
-  return await fetch(url + "meals").then((res) =>
-    res.json().then((meals) =>
-      fetch(url + "settings").then((r) =>
-        r.json().then((settings) => {
-          return {
-            meals: meals.data,
-            categories: settings.data[0].entities,
-          };
-        })
-      )
-    )
-  );
+  const promises = [
+    fetch(url + "meals").then((r) => r.json()),
+    fetch(url + "settings").then((r) => r.json()),
+    fetch(url + "orders?user=kostas").then((r) => r.json()),
+  ];
+
+  return await Promise.all(promises).then((values) => {
+    return {
+      meals: values[0].data,
+      categories: values[1].data[0].entities,
+      orders: values[2].data,
+    };
+  });
 });
 export const fetchOrders = createAsyncThunk("data/fetchOrders", async () => {
   const url = process.env.BACKEND_URI;
@@ -146,6 +139,7 @@ export const subjectSlice = createSlice({
       const { categories } = shopToState(payload);
       mealsAdapter.upsertMany(state.meals, payload.meals);
       categoriesAdapter.upsertMany(state.categories, categories);
+      ordersAdapter.upsertMany(state.orders, payload.orders);
     },
     [fetchOrders.fulfilled](state, { payload }) {
       ordersAdapter.upsertMany(state.orders, payload);

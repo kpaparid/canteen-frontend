@@ -71,7 +71,7 @@ export default function Menu({}) {
         rect.bottom - viewHeight / 2 < 0 ||
         rect.top + viewHeight / 2 - viewHeight >= 0
       );
-      if (viewable) {
+      if (viewable && activeCategory !== sectionId) {
         setActiveCategory((oldId) => {
           document
             .querySelector(".categories-navbar #" + oldId)
@@ -83,7 +83,7 @@ export default function Menu({}) {
         });
       }
     });
-  }, []);
+  }, [activeCategory]);
   const debouncedCallback = useMemo(
     () => debounce(handleScroll, 20),
     [handleScroll]
@@ -120,14 +120,16 @@ export default function Menu({}) {
                   ))}
               </div>
             </div>
-            <Cart />
+            <RightSideBar />
           </div>
         </div>
       </div>
     </div>
   );
 }
-
+const RightSideBar = memo(({}) => {
+  return <Cart></Cart>;
+}, isEqual);
 const CategoriesNavbar = memo(({ categories, onClick }) => {
   return (
     <div className="categories-navbar">

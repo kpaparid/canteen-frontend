@@ -76,24 +76,9 @@ const Item = memo(
         onClose();
       }
       return (
-        <Modal
-          show={show}
-          onHide={handleClose}
-          centered
-          className="item-modal"
-          // fullscreen="md-down"
-          // dialogClassName="p-0"
-          // onClick={(e) => {
-          //   e.stopPropagation();
-          //   e.preventDefault();
-          //   handleClose();
-          // }}
-        >
-          {/* <div className="modal-wrapper"> */}
+        <Modal show={show} onHide={handleClose} centered className="item-modal">
           {photoURL && (
-            <div
-            //  style={{ height: "400px" }}
-            >
+            <div>
               <Image
                 src={photoURL}
                 alt="alt-img"
@@ -108,7 +93,6 @@ const Item = memo(
               style={{ height: "27px", width: "27px" }}
               className={`close-modal-btn rounded-circle p-0
               `}
-              // ${photoURL ? "text-white" : "text-black"}
               onClick={handleClose}
             >
               <FontAwesomeIcon icon={faX}></FontAwesomeIcon>
@@ -154,7 +138,6 @@ const Item = memo(
               {formattedPrice} €
             </Button>
           </Modal.Footer>
-          {/* </div> */}
         </Modal>
       );
     }

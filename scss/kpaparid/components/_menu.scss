@@ -5,7 +5,6 @@
   padding-left: 3rem;
   padding-right: 3rem;
   max-width: 700px;
-  margin: auto;
 }
 .category-wrapper {
   padding-bottom: 0.5rem;
@@ -19,7 +18,6 @@
   z-index: 900;
   width: 200px;
   height: fit-content;
-  cursor: pointer;
   display: flex;
   flex-wrap: nowrap;
   flex-direction: column;
@@ -27,6 +25,8 @@
     border: 0;
   }
   .category-text {
+    text-align: start;
+    width: 100%;
     font-weight: 700;
     text-transform: capitalize;
     padding: 0.5rem 0.75rem 0.5rem 0.75rem !important;
@@ -121,14 +121,10 @@
   text-shadow: 1px 1px 3px rgba(34, 34, 34, 0.7);
 }
 .cart {
-  position: sticky;
-  top: 40px;
-  z-index: 900;
-  max-height: 90vh;
   overflow: auto;
-  box-shadow: 4px 3px 9px 4px rgb(0 0 0 / 13%);
+  // box-shadow: 4px 3px 9px 4px rgb(0 0 0 / 13%);
   background-color: white;
-  border-radius: 0.5rem;
+  // border-radius: 0.5rem;
   .textarea-wrapper {
     margin-left: 1.5rem;
     margin-right: 1.5rem;
@@ -227,6 +223,7 @@
       padding: 0 !important;
       padding-bottom: 60px !important;
       width: 100%;
+      margin: auto;
     }
     .meal-list {
       padding-left: 10px;
@@ -243,6 +240,59 @@
       background-color: white;
       border-top: 1px solid $gray-100;
       z-index: 900;
+    }
+  }
+}
+.basket {
+  height: fit-content;
+  box-shadow: 4px 3px 9px 4px rgb(0 0 0 / 13%);
+  border-radius: 0.4375rem;
+  min-width: 300px;
+  overflow: hidden;
+  position: sticky;
+  top: 40px;
+  z-index: 900;
+  max-height: 90vh;
+}
+.basket-header {
+  .nav {
+    flex-wrap: nowrap;
+  }
+  .nav-link {
+    border: 0;
+    margin: 0;
+    width: 100%;
+    border-radius: 0;
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 1.5rem 1rem 1.5rem;
+    font-weight: 700;
+    text-shadow: none;
+    text-transform: capitalize;
+    color: $gray-900;
+    border-bottom: 1px solid $gray-100;
+    box-shadow: none;
+    &:hover,
+    &:focus {
+      background-color: white !important;
+      color: $primary;
+      box-shadow: none;
+    }
+    &.active {
+      text-shadow: 1px 1px 3px rgba(34, 34, 34, 0.7);
+      background-color: $primary !important;
+      border-bottom: 1px solid $primary;
+      color: white;
+      &:hover,
+      &:focus {
+        background-color: $primary !important;
+        color: white;
+      }
     }
   }
 }

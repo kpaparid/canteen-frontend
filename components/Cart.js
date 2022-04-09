@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { debounce, isEqual } from "lodash";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { Form, Modal } from "react-bootstrap";
+import { Col, Form, Modal, Nav, Row, Tab, Tabs } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,22 +18,101 @@ import {
   postOrders,
   removeItemCart,
   selectCart,
+  selectOrders,
   updateItemCountCart,
 } from "../reducer/redux2";
 import { formatPrice } from "../utilities/utils";
 import Accumulator from "./Accumulator";
 import { useSocket } from "../hooks/orderHooks";
 import { useMediaQuery } from "react-responsive";
+import moment from "moment";
+import { nanoid } from "@reduxjs/toolkit";
 // eslint-disable-next-line react/display-name
+
+export const useRightSideBar = () => {
+  const cart = useCart();
+  const orders = useOrders();
+  return { cart, orders };
+};
+
+const useOrders = () => {
+  const orders = useSelector(selectOrders);
+  const ordersExist = orders?.length !== 0;
+  return { orders, ordersExist };
+};
+const Orders = ({ orders }) => {
+  const sortedOrders = [...orders].sort((a, b) =>
+    moment(a.timestamp).isBefore(b.createdAt) ? 1 : -1
+  );
+  return (
+    <div className="py-3 d-flex flex-column w-100">
+      {sortedOrders?.map((o) => {
+        const variant = o.status;
+        return (
+          <div className="py-1 px-3 w-100">
+            <Button
+              variant={variant}
+              className="w-100 d-flex justify-content-between"
+            >
+              <span>{nanoid(6)}</span>
+              <span>{moment(o.createdAt).format("HH:mm")}</span>
+            </Button>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+const Basket = () => {
+  const { orders, ordersExist } = useOrders();
+  const { items } = useCart();
+  const [activeKey, setActiveKey] = useState("cart");
+  return (
+    <Tab.Container id="left-tabs-example" defaultActiveKey={activeKey}>
+      <div className="basket">
+        <div className="basket-header">
+          <Nav>
+            <Nav.Item className="flex-fill">
+              <Nav.Link as={Button} eventKey="cart">
+                Warenkorb
+              </Nav.Link>
+            </Nav.Item>
+            {ordersExist && (
+              <Nav.Item className="flex-fill">
+                <Nav.Link as={Button} eventKey="orders">
+                  Orders
+                </Nav.Link>
+              </Nav.Item>
+            )}
+          </Nav>
+        </div>
+        <Col sm={12}>
+          <Tab.Content>
+            <Tab.Pane eventKey="cart">
+              <CartCard />
+            </Tab.Pane>
+            {ordersExist && (
+              <Tab.Pane eventKey="orders">
+                <Orders orders={orders} />
+              </Tab.Pane>
+            )}
+          </Tab.Content>
+        </Col>
+      </div>
+    </Tab.Container>
+  );
+};
+
 const useCart = () => {
   const socket = useSocket();
   const items = useSelector(selectCart);
+  const empty = !items?.length !== 0;
   const dispatch = useDispatch();
   const summa = items && items?.reduce((a, b) => a + b.calculatedPrice, 0);
   const formattedSumma = formatPrice(summa) + " €";
 
   const handleOrderClick = useCallback(async () => {
-    dispatch(postOrders({ items, user: "kostas" })).then(() =>
+    dispatch(postOrders({ items: items, user: "kostas" })).then(() =>
       socket.emit("send_order", { test: "hi" })
     );
   }, [socket, items]);
@@ -85,6 +164,7 @@ const useCart = () => {
     footer,
     summa,
     items,
+    empty,
     formattedSumma,
     onOrder: handleOrderClick,
   };
@@ -94,11 +174,10 @@ const CartModal = () => {
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  const { formattedSumma, items, body } = useCart();
+  const { formattedSumma, items, body, onOrder } = useCart();
   return (
     <>
       {items.length !== 0 && (
-        // <div className="cart-p">
         <div className="cart-toggle">
           <Button className="header-text" onClick={handleShow}>
             <FontAwesomeIcon icon={faCartShopping} />
@@ -111,7 +190,6 @@ const CartModal = () => {
             <span>({formattedSumma})</span>
           </Button>
         </div>
-        // </div>
       )}
 
       <Modal
@@ -125,7 +203,10 @@ const CartModal = () => {
         </Modal.Header>
         <Modal.Body>{body}</Modal.Body>
         <Modal.Footer>
-          <Button className="px-5 d-flex flex-wrap justify-content-center header-text">
+          <Button
+            className="px-5 d-flex flex-wrap justify-content-center header-text"
+            onClick={onOrder}
+          >
             <span>Bestellen</span>{" "}
             <span className="px-1">({formattedSumma})</span>
           </Button>
@@ -138,9 +219,9 @@ const CartCard = () => {
   const { header, body, footer } = useCart();
   return (
     <div className="cart">
-      <Card.Header className="d-flex font-bolder px-4 pt-3 pb-3">
+      {/* <Card.Header className="d-flex font-bolder px-4 pt-3 pb-3">
         {header}
-      </Card.Header>
+      </Card.Header> */}
       <Card.Body>{body}</Card.Body>
       <Card.Footer>{footer}</Card.Footer>
     </div>
@@ -148,7 +229,10 @@ const CartCard = () => {
 };
 const Cart = memo(() => {
   const isBigScreen = useMediaQuery({ query: "(min-width: 992px)" });
-  return <>{isBigScreen ? <CartCard /> : <CartModal />}</>;
+
+  return <Basket></Basket>;
+
+  // return <>{isBigScreen ? <CartCard /> : <CartModal />}</>;
 }, isEqual);
 
 // eslint-disable-next-line react/display-name

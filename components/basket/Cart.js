@@ -1,117 +1,36 @@
 import {
   faBasketShopping,
-  faCartArrowDown,
-  faCartPlus,
   faCartShopping,
   faClose,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { debounce, isEqual } from "lodash";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { Col, Form, Modal, Nav, Row, Tab, Tabs } from "react-bootstrap";
+import { Form, Modal } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
+import { useMediaQuery } from "react-responsive";
 import {
   addCommentCart,
   postOrders,
   removeItemCart,
   selectCart,
-  selectOrders,
   updateItemCountCart,
-} from "../reducer/redux2";
-import { formatPrice } from "../utilities/utils";
-import Accumulator from "./Accumulator";
-import { useSocket } from "../hooks/orderHooks";
-import { useMediaQuery } from "react-responsive";
-import moment from "moment";
-import { nanoid } from "@reduxjs/toolkit";
+} from "../../reducer/redux2";
+import { formatPrice } from "../../utilities/utils";
+import { useSocket } from "../../hooks/orderHooks";
+import Accumulator from "../Accumulator";
 // eslint-disable-next-line react/display-name
-
-export const useRightSideBar = () => {
-  const cart = useCart();
-  const orders = useOrders();
-  return { cart, orders };
-};
-
-const useOrders = () => {
-  const orders = useSelector(selectOrders);
-  const ordersExist = orders?.length !== 0;
-  return { orders, ordersExist };
-};
-const Orders = ({ orders }) => {
-  const sortedOrders = [...orders].sort((a, b) =>
-    moment(a.timestamp).isBefore(b.createdAt) ? 1 : -1
-  );
-  return (
-    <div className="py-3 d-flex flex-column w-100">
-      {sortedOrders?.map((o) => {
-        const variant = o.status;
-        return (
-          <div className="py-1 px-3 w-100">
-            <Button
-              variant={variant}
-              className="w-100 d-flex justify-content-between"
-            >
-              <span>{nanoid(6)}</span>
-              <span>{moment(o.createdAt).format("HH:mm")}</span>
-            </Button>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-const Basket = () => {
-  const { orders, ordersExist } = useOrders();
-  const { items } = useCart();
-  const [activeKey, setActiveKey] = useState("cart");
-  return (
-    <Tab.Container id="left-tabs-example" defaultActiveKey={activeKey}>
-      <div className="basket">
-        <div className="basket-header">
-          <Nav>
-            <Nav.Item className="flex-fill">
-              <Nav.Link as={Button} eventKey="cart">
-                Warenkorb
-              </Nav.Link>
-            </Nav.Item>
-            {ordersExist && (
-              <Nav.Item className="flex-fill">
-                <Nav.Link as={Button} eventKey="orders">
-                  Orders
-                </Nav.Link>
-              </Nav.Item>
-            )}
-          </Nav>
-        </div>
-        <Col sm={12}>
-          <Tab.Content>
-            <Tab.Pane eventKey="cart">
-              <CartCard />
-            </Tab.Pane>
-            {ordersExist && (
-              <Tab.Pane eventKey="orders">
-                <Orders orders={orders} />
-              </Tab.Pane>
-            )}
-          </Tab.Content>
-        </Col>
-      </div>
-    </Tab.Container>
-  );
-};
-
-const useCart = () => {
+export const useCart = () => {
   const socket = useSocket();
   const items = useSelector(selectCart);
+  const cartExists = items?.length !== 0;
   const empty = !items?.length !== 0;
   const dispatch = useDispatch();
   const summa = items && items?.reduce((a, b) => a + b.calculatedPrice, 0);
-  const formattedSumma = formatPrice(summa) + " €";
 
-  const handleOrderClick = useCallback(async () => {
+  const handleSendOrder = useCallback(async () => {
     dispatch(postOrders({ items: items, user: "kostas" })).then(() =>
       socket.emit("send_order", { test: "hi" })
     );
@@ -126,70 +45,42 @@ const useCart = () => {
     }
   }, [socket]);
 
-  const header = <span>Warenkorb</span>;
-  const body = items.length ? (
-    items?.map((i) => <CartItem key={i.id} {...i} />)
-  ) : (
-    <div className="p-5 d-flex flex-column">
-      <FontAwesomeIcon
-        className="pb-4 text-primary"
-        size="4x"
-        icon={faBasketShopping}
-      />
-      <div className="text-center font-small">
-        Füllen Sie Ihren Warenkorb mit den Produkten auf der linken Seite
-      </div>
-    </div>
-  );
-  const footer = (
-    <>
-      {summa ? (
-        <div className="d-flex flex-nowrap justify-content-between font-bolder text-gray-900">
-          <span>Gesamt</span>
-          <span>{formattedSumma}</span>
-        </div>
-      ) : (
-        <></>
-      )}
-      <div className="d-flex w-100 pt-2">
-        <Button className="m-auto" variant="primary" onClick={handleOrderClick}>
-          Weiter
-        </Button>
-      </div>
-    </>
-  );
   return {
-    header,
-    body,
-    footer,
     summa,
     items,
     empty,
-    formattedSumma,
-    onOrder: handleOrderClick,
+    sendOrder: handleSendOrder,
+    cartExists,
   };
 };
-const CartModal = () => {
+const Cart = memo((props) => {
+  const isBigScreen = useMediaQuery({ query: "(min-width: 992px)" });
+
+  return (
+    <>{isBigScreen ? <CartCard {...props} /> : <CartModal {...props} />}</>
+  );
+}, isEqual);
+
+export const CartModal = ({ items, summa, onSend }) => {
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  const { formattedSumma, items, body, onOrder } = useCart();
   return (
     <>
       {items.length !== 0 && (
-        <div className="cart-toggle">
-          <Button className="header-text" onClick={handleShow}>
-            <FontAwesomeIcon icon={faCartShopping} />
-            <span
-              className="px-4
+        // <div className="cart-toggle">
+        <Button className="header-text" onClick={handleShow}>
+          <FontAwesomeIcon icon={faCartShopping} />
+          <span
+            className="px-4
             "
-            >
-              Warenkorb
-            </span>
-            <span>({formattedSumma})</span>
-          </Button>
-        </div>
+          >
+            Warenkorb
+          </span>
+          <span>({summa})</span>
+        </Button>
+        // </div>
       )}
 
       <Modal
@@ -201,40 +92,70 @@ const CartModal = () => {
         <Modal.Header closeVariant="white" className="bg-primary" closeButton>
           <span>Warenkorb</span>
         </Modal.Header>
-        <Modal.Body>{body}</Modal.Body>
+        <Modal.Body>
+          <CartBody items={items} />
+        </Modal.Body>
         <Modal.Footer>
-          <Button
-            className="px-5 d-flex flex-wrap justify-content-center header-text"
-            onClick={onOrder}
-          >
-            <span>Bestellen</span>{" "}
-            <span className="px-1">({formattedSumma})</span>
-          </Button>
+          <CartFooter summa={summa} onSend={onSend} />
         </Modal.Footer>
       </Modal>
     </>
   );
 };
-const CartCard = () => {
-  const { header, body, footer } = useCart();
+
+const CartCard = ({ items, summa, onSend }) => {
   return (
     <div className="cart">
-      {/* <Card.Header className="d-flex font-bolder px-4 pt-3 pb-3">
-        {header}
-      </Card.Header> */}
-      <Card.Body>{body}</Card.Body>
-      <Card.Footer>{footer}</Card.Footer>
+      <Card.Body>
+        <CartBody items={items} />
+      </Card.Body>
+      <Card.Footer>
+        <CartFooter summa={summa} onSend={onSend} />
+      </Card.Footer>
     </div>
   );
 };
-const Cart = memo(() => {
-  const isBigScreen = useMediaQuery({ query: "(min-width: 992px)" });
 
-  return <Basket></Basket>;
-
-  // return <>{isBigScreen ? <CartCard /> : <CartModal />}</>;
-}, isEqual);
-
+const CartBody = ({ items }) => {
+  return (
+    <>
+      {items.length ? (
+        items?.map((i) => <CartItem key={i.id} {...i} />)
+      ) : (
+        <div className="p-5 d-flex flex-column">
+          <FontAwesomeIcon
+            className="pb-4 text-primary"
+            size="4x"
+            icon={faBasketShopping}
+          />
+          <div className="text-center font-small fw-bold">
+            Füllen Sie Ihren Warenkorb mit den Produkten auf der linken Seite
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+const CartFooter = ({ summa, onSend }) => {
+  const formattedSumma = formatPrice(summa) + " €";
+  return (
+    <>
+      {summa ? (
+        <div className="d-flex flex-nowrap justify-content-between font-bolder text-gray-900">
+          <span>Gesamt</span>
+          <span>{formattedSumma}</span>
+        </div>
+      ) : (
+        <></>
+      )}
+      <div className="d-flex w-100 pt-2">
+        <Button className="m-auto" variant="primary" onClick={onSend}>
+          Weiter
+        </Button>
+      </div>
+    </>
+  );
+};
 // eslint-disable-next-line react/display-name
 const CartItem = memo(
   ({ count: count = 1, extras, id, calculatedPrice, title, comment }) => {

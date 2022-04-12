@@ -19,7 +19,8 @@ import {
   selectAllMealsByCategory,
 } from "../reducer/redux2";
 import { formatPrice } from "../utilities/utils";
-import Cart from "./Cart";
+import Basket from "./basket/Basket";
+import Cart from "./basket/Cart";
 import Header from "./Header";
 import Item from "./Item";
 
@@ -128,7 +129,7 @@ export default function Menu({}) {
   );
 }
 const RightSideBar = memo(({}) => {
-  return <Cart></Cart>;
+  return <Basket></Basket>;
 }, isEqual);
 const CategoriesNavbar = memo(({ categories, onClick }) => {
   return (

@@ -24,12 +24,8 @@ import {
   fetchOrders,
   selectAllOrdersByCategory,
 } from "../reducer/redux2";
+import { formatPrice } from "../utilities/utils";
 import SideBar from "./Sidebar";
-export const formatPrice = (price) =>
-  parseFloat(price)?.toLocaleString("de-DE", {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 2,
-  });
 
 const StyledWhiteButton = styled(Button)`
   border-radius: 0;
@@ -173,7 +169,7 @@ const OrdersComponent = memo(({ orders, title, ...rest }) => {
 
 const OrderModal = memo(({ status, ...rest }) => {
   const variant = status === "finished" ? "ready" : status;
-  const { user, id = "FF4FSD", createdAt, onNext } = rest;
+  const { user, id, number, createdAt, onNext } = rest;
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -192,7 +188,7 @@ const OrderModal = memo(({ status, ...rest }) => {
         <div className="d-flex p-2 justify-content-between align-items-center">
           <div className="text-start">
             <div className="fw-bold">{user}</div>
-            <div className="fw-normal text-truncate">{id}</div>
+            <div className="fw-normal text-truncate">{number}</div>
           </div>
           <div className="fw-bold">{moment(createdAt).format("HH:mm")}</div>
         </div>
@@ -423,7 +419,7 @@ const Item = memo(
           </div>
           <div className="ps-2 fw-bolder flex-fill">{title}</div>
           <div className="ps-3 text-end" style={{ minWidth: "100px" }}>
-            {formatPrice(price)} €
+            {formatPrice(price)}
           </div>
         </div>
         {extras?.length !== 0 && (
@@ -433,16 +429,16 @@ const Item = memo(
                 <div style={{ minWidth: "50px" }}></div>
                 <div className="ps-2 flex-fill">{e.text}</div>
                 <div className="ps-3 text-end" style={{ minWidth: "100px" }}>
-                  {formatPrice(e.price || 0)} €
+                  {formatPrice(e.price || 0)}
                 </div>
               </div>
             ))}
             <div className="col-12 d-flex flex-nowrap fw-bold px-4 text-end justify-content-end">
               <div className="ps-1 text-end border-top border-2 border-dark">
                 {parseInt(count) !== 1 &&
-                  `${count}x ${formatPrice(calculatedSinglePrice)} € = `}
+                  `${count}x ${formatPrice(calculatedSinglePrice)} = `}
                 <span className="fw-bolder">
-                  {formatPrice(calculatedPrice)} €
+                  {formatPrice(calculatedPrice)}
                 </span>
               </div>
             </div>

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 
-export const formatPrice = (price) =>
-  price?.toLocaleString("de-DE", {
+export const formatPrice = (price, euro = true) => {
+  const formattedPrice = price?.toLocaleString("de-DE", {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
   });
+  return euro ? formattedPrice + " €" : formattedPrice;
+};
 
 export const useIntersection = (element, rootMargin) => {
   const [isVisible, setState] = useState(false);

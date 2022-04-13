@@ -44,9 +44,7 @@ export const postOrders = createAsyncThunk("data/postOrders", async (body) => {
     body: JSON.stringify(body),
   };
   return await fetch(url + "orders", options).then((res) =>
-    res.json().then((r) => {
-      r.data;
-    })
+    res.json().then((r) => r.data)
   );
 });
 export const changeOrderStatus = createAsyncThunk(
@@ -144,9 +142,9 @@ export const subjectSlice = createSlice({
     [fetchOrders.fulfilled](state, { payload }) {
       ordersAdapter.upsertMany(state.orders, payload);
     },
-    [postOrders.fulfilled](state) {
+    [postOrders.fulfilled](state, { payload }) {
       const items = cartItemsSelectors.selectAll(state);
-      ordersAdapter.upsertMany(state.orders, items);
+      ordersAdapter.upsertMany(state.orders, payload);
       cartItemsAdapter.removeAll(state.cart.items);
     },
     [changeOrderStatus.fulfilled](state, { payload, meta }) {

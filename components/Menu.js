@@ -231,7 +231,7 @@ function ItemModal(props) {
               )}
               {withFoto && (
                 <span className="d-flex font-bolder text-white p-2 meal-price bg-primary rounded">
-                  {formattedPrice} €
+                  {formattedPrice}
                 </span>
               )}
             </div>
@@ -240,7 +240,7 @@ function ItemModal(props) {
                 className="d-flex justify-content-center align-items-center font-bolder text-white meal-price bg-primary rounded text-center"
                 style={{ minWidth: "75px", height: "40px" }}
               >
-                <span className="text-center">{formattedPrice} €</span>
+                <span className="text-center">{formattedPrice}</span>
               </div>
             )}
             {photoURL && withFoto && (

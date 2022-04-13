@@ -26,29 +26,6 @@
   }
 }
 
-.ct-line {
-  stroke-width: 2px !important;
-}
-.ct-line,
-.ct-point {
-  stroke: $darker-blue !important;
-}
-.ct-area {
-  fill: $secondary !important;
-}
-.ct-label.ct-horizontal {
-  position: fixed;
-  left: -10px;
-}
-.badge-wrapper {
-  .btn-light {
-    &:hover,
-    &:focus {
-      background-color: $light !important;
-    }
-  }
-}
-
 .gradient-primary-secondary {
   /* background: rgb(0,50,96); */
   background: linear-gradient(

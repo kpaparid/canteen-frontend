@@ -48,13 +48,13 @@ const BasketTabs = ({
   const [activeKey, setActiveKey] = useState(defaultKey);
 
   useEffect(() => {
-    cartExists && setActiveKey("cart");
+    cartIsVisible ? setActiveKey("cart") : setActiveKey("orders");
   }, [items, cartExists]);
 
   return (
     <div>
       <Tab.Container activeKey={activeKey}>
-        <div className="basket d-flex flex-column">
+        <div className="basket basket-card d-flex flex-column">
           <div className="basket-header">
             <Nav>
               {cartIsVisible && (
@@ -85,12 +85,12 @@ const BasketTabs = ({
           </div>
           <Col sm={12}>
             <Tab.Content>
-              {cartIsVisible && (
+              {cartIsVisible && activeKey === "cart" && (
                 <Tab.Pane eventKey="cart">
                   <Cart items={items} summa={summa} onSend={sendOrder} />
                 </Tab.Pane>
               )}
-              {ordersExist && (
+              {ordersExist && activeKey === "orders" && (
                 <Tab.Pane eventKey="orders">
                   <Orders orders={orders} />
                 </Tab.Pane>

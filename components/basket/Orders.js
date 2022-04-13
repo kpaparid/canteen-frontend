@@ -4,6 +4,7 @@ import {
   faCheckCircle,
   faCircleXmark,
   faEnvelopeOpenText,
+  faFileSignature,
   faKitchenSet,
   faThumbsUp,
 } from "@fortawesome/free-solid-svg-icons";
@@ -23,6 +24,7 @@ import Button from "react-bootstrap/Button";
 import { useSelector } from "react-redux";
 import { useMediaQuery } from "react-responsive";
 import { selectOrders } from "../../reducer/redux2";
+import { formatPrice } from "../../utilities/utils";
 // eslint-disable-next-line react/display-name
 
 export const useOrders = () => {
@@ -59,13 +61,13 @@ export const OrdersBody = memo(({ orders }) => {
               {sortedOrders?.map((o) => {
                 return (
                   <Button
-                    variant={"gray-100"}
+                    variant="quinary"
                     onClick={() => handleOrderClick(o)}
                     className="d-flex justify-content-between px-2 my-1 mx-3 flex-nowrap align-items-center"
                   >
                     <div className="d-flex flex-column align-items-start font-small fw-bold">
-                      <span>Bestellnummer: {o.id.substr(10, 5)}</span>
-                      <span>Uhr: {moment(o.timestamp).format("HH:mm")}</span>
+                      <span>Bestellnummer: {o.number}</span>
+                      <span>Uhr: {moment(o.createdAt).format("HH:mm")}</span>
                     </div>
                     <div
                       className={`text-align-middle font-small fw-bold rounded p-2 bg-${o.status}`}
@@ -181,15 +183,33 @@ const OrderStatus = memo(({ status }) => {
 }, []);
 
 const OrderOverview = memo(
-  ({ createdAt, status, pickupTime, user, id, items, onNext, setKey }) => {
+  ({
+    createdAt,
+    status,
+    pickupTime,
+    user,
+    price,
+    id,
+    number,
+    items,
+    onNext,
+    setKey,
+  }) => {
+    const Detail = ({ left, right }) => (
+      <div>
+        <span className="font-small fw-bold">{left}</span>
+        <span className="font-small fw-bolder ps-2">{right}</span>
+      </div>
+    );
     return (
       <div className="order-overview">
         <OrderStatus status={status} />
-        <div className="order-details border-bottom">
-          <span className="font-small fw-bold">Ihre Bestellnummer:</span>
-          <span className="font-small fw-bolder ps-2">{id.substr(0, 4)}</span>
+        <div className="order-details">
+          <Detail left="Bestellnummer:" right={number} />
+          <Detail left="Uhr:" right={moment(createdAt).format("HH:mm")} />
+          <Detail left="Preis:" right={formatPrice(price)} />
         </div>
-        <div className="my-2 order-list">
+        <div className="order-list">
           <Accordion defaultActiveKey="0">
             {items.map((i, index) => (
               <Order
@@ -256,14 +276,12 @@ const Order = ({
             </div>
           )}
           {comment && (
-            <i className="col-12 d-flex flex-nowrap px-2 pt-2 text-break text-wrap">
-              {comment}
-            </i>
+            <div className="comment">
+              <i>{comment}</i>
+            </div>
           )}
         </>
       </Accordion.Collapse>
-
-      <div className="w-100 border-bottom pb-2"></div>
     </>
   );
 };
@@ -290,8 +308,9 @@ export const OrdersModal = ({ orders }) => {
   return (
     <>
       {orders?.length !== 0 && (
-        <Button className="header-text" onClick={handleShow}>
-          <span className="px-4">Bestellungen</span>
+        <Button className="header-text basket-toggle-btn" onClick={handleShow}>
+          <FontAwesomeIcon icon={faFileSignature} />
+          <span className="px-4 basket-toggle-title">Bestellungen</span>
         </Button>
       )}
 
@@ -315,14 +334,14 @@ export const OrdersModal = ({ orders }) => {
                     {sortedOrders?.map((o) => {
                       return (
                         <Button
-                          variant={"gray-100"}
+                          variant="quinary"
                           onClick={() => handleOrderClick(o)}
                           className="d-flex justify-content-between px-2 my-1 mx-3 flex-nowrap align-items-center"
                         >
                           <div className="d-flex flex-column align-items-start font-small fw-bold">
-                            <span>Bestellnummer: {o.id.substr(10, 5)}</span>
+                            <span>Bestellnummer: {o.number}</span>
                             <span>
-                              Uhr: {moment(o.timestamp).format("HH:mm")}
+                              Uhr: {moment(o.createdAt).format("HH:mm")}
                             </span>
                           </div>
                           <div

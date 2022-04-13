@@ -66,19 +66,20 @@ export const CartModal = ({ items, summa, onSend }) => {
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+  const formattedSumma = formatPrice(summa);
   return (
     <>
       {items.length !== 0 && (
         // <div className="cart-toggle">
-        <Button className="header-text" onClick={handleShow}>
+        <Button className="header-text basket-toggle-btn" onClick={handleShow}>
           <FontAwesomeIcon icon={faCartShopping} />
           <span
-            className="px-4
+            className="px-4 basket-toggle-title
             "
           >
             Warenkorb
           </span>
-          <span>({summa})</span>
+          <span className="basket-toggle-price">{formattedSumma}</span>
         </Button>
         // </div>
       )}
@@ -95,9 +96,11 @@ export const CartModal = ({ items, summa, onSend }) => {
         <Modal.Body>
           <CartBody items={items} />
         </Modal.Body>
-        <Modal.Footer>
-          <CartFooter summa={summa} onSend={onSend} />
-        </Modal.Footer>
+        {items.length !== 0 && (
+          <Modal.Footer>
+            <CartFooter summa={summa} onSend={onSend} />
+          </Modal.Footer>
+        )}
       </Modal>
     </>
   );
@@ -109,9 +112,11 @@ const CartCard = ({ items, summa, onSend }) => {
       <Card.Body>
         <CartBody items={items} />
       </Card.Body>
-      <Card.Footer>
-        <CartFooter summa={summa} onSend={onSend} />
-      </Card.Footer>
+      {items.length !== 0 && (
+        <Card.Footer>
+          <CartFooter summa={summa} onSend={onSend} />
+        </Card.Footer>
+      )}
     </div>
   );
 };
@@ -137,20 +142,12 @@ const CartBody = ({ items }) => {
   );
 };
 const CartFooter = ({ summa, onSend }) => {
-  const formattedSumma = formatPrice(summa) + " €";
+  const formattedSumma = formatPrice(summa);
   return (
     <>
-      {summa ? (
-        <div className="d-flex flex-nowrap justify-content-between font-bolder text-gray-900">
-          <span>Gesamt</span>
-          <span>{formattedSumma}</span>
-        </div>
-      ) : (
-        <></>
-      )}
       <div className="d-flex w-100 pt-2">
-        <Button className="m-auto" variant="primary" onClick={onSend}>
-          Weiter
+        <Button variant="primary" onClick={onSend} className="m-auto">
+          <span className="header-text">{formattedSumma}</span>
         </Button>
       </div>
     </>
@@ -199,7 +196,7 @@ const CartItem = memo(
           />
         </div>
         <div className="pe-4 font-small fw-bold col-4 m-0 text-end d-flex align-items-end justify-content-end">
-          {formatPrice(calculatedPrice)} €
+          {formatPrice(calculatedPrice)}
         </div>
         <div className="border-bottom w-100 m-3"></div>
       </div>

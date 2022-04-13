@@ -103,7 +103,7 @@ const Item = memo(
                 <div className="font-small text-septenary">{description}</div>
               )}
               <div className="mt-2 font-medium fw-bolder">
-                {formatPrice(price)} €
+                {formatPrice(price)}
               </div>
             </div>
           </Modal.Header>
@@ -135,7 +135,7 @@ const Item = memo(
               variant="primary"
               onClick={handleAddToCart}
             >
-              {formattedPrice} €
+              {formattedPrice}
             </Button>
           </Modal.Footer>
         </Modal>
@@ -172,7 +172,7 @@ export function FormTextarea({ text, onChange }) {
 function FormSelect({ options, onChange }) {
   function getText({ text, price }) {
     const formattedPrice = formatPrice(price);
-    return price ? text + " (+" + formattedPrice + " €)" : text;
+    return price ? text + " (+" + formattedPrice + ")" : text;
   }
   function handleChange(e) {
     const obj = JSON.parse(e.target.value);
@@ -194,11 +194,8 @@ function FormSelect({ options, onChange }) {
 }
 function FormMultiCheckbox({ options, onChange }) {
   function getText({ text, price }) {
-    const formattedPrice = price?.toLocaleString("de-DE", {
-      maximumFractionDigits: 2,
-      minimumFractionDigits: 2,
-    });
-    return price ? text + " (+" + formattedPrice + " €)" : text;
+    const formattedPrice = formatPrice(price);
+    return price ? text + " (+" + formattedPrice + " )" : text;
   }
   function handleClick(e, o) {
     onChange(o.price, o.text, e.target.checked);

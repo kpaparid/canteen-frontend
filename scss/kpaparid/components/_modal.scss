@@ -163,4 +163,31 @@
     flex: 1 1 auto;
     flex-direction: column;
   }
+  .item-price {
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .item-row {
+    border-bottom: 0.0625rem solid $gray-500;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    margin: 0.5rem 1.5rem 0.5rem 1.5rem;
+    flex-wrap: nowrap;
+    display: flex;
+    &:last-child {
+      border: 0;
+    }
+  }
+  @include media-breakpoint-down(sm) {
+    padding: 0;
+    padding-bottom: 60px;
+    .tab-content {
+      min-height: calc(100vh - 60px);
+    }
+    .item-price {
+      display: none;
+    }
+  }
 }

@@ -142,6 +142,62 @@ export const subjectSlice = createSlice({
     [fetchOrders.fulfilled](state, { payload }) {
       ordersAdapter.upsertMany(state.orders, payload);
     },
+    [fetchOrders.rejected](state, { payload }) {
+      const orders = [
+        {
+          id: 100,
+          status: "pending",
+          user: "kostas",
+          number: "XSADF",
+          price: 20,
+          items: [
+            {
+              title: "KostasMock",
+              count: 2,
+              price: 10,
+              comment: "hihihihihi",
+              itemId: 200,
+              calculatedPrice: 20,
+            },
+          ],
+        },
+        {
+          id: 200,
+          status: "confirmed",
+          user: "kostas",
+          number: "XSADF",
+          price: 20,
+          items: [
+            {
+              title: "KostasMock",
+              count: 2,
+              price: 10,
+              comment: "hihihihihi",
+              itemId: 200,
+              calculatedPrice: 20,
+            },
+          ],
+        },
+        {
+          id: 300,
+          status: "ready",
+          user: "kostas",
+          number: "XSADF",
+          price: 20,
+          items: [
+            {
+              title: "KostasMock",
+              count: 2,
+              price: 10,
+              comment: "hihihihihi",
+              itemId: 200,
+              calculatedPrice: 20,
+            },
+          ],
+        },
+      ];
+      ordersAdapter.upsertMany(state.orders, orders);
+    },
     [postOrders.fulfilled](state, { payload }) {
       const items = cartItemsSelectors.selectAll(state);
       ordersAdapter.upsertMany(state.orders, payload);

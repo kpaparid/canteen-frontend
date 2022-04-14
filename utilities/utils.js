@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
 export const formatPrice = (price, euro = true) => {
-  const formattedPrice = price?.toLocaleString("de-DE", {
+  const pr = parseFloat(price);
+  const formattedPrice = pr?.toLocaleString("de-DE", {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
   });

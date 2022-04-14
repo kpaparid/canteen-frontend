@@ -16,53 +16,41 @@ const SideBar = memo(({ setActiveKey, activeKey, pendingCount }) => {
       className = "",
       value,
       variant = activeKey === value ? "quaternary" : "nonary",
-      padding = "18px",
       ...rest
     }) => (
       <Button
         {...rest}
-        className={`${className} w-100 h-100 rounded-0 shadow-none`}
-        style={{ padding }}
+        className={`${className} dashboard-sidebar-btn`}
         onClick={() => setActiveKey(value)}
         variant={variant}
       >
-        <FontAwesomeIcon icon={icon} className="h-100 w-100" />
+        <FontAwesomeIcon icon={icon} />
       </Button>
     ),
     [activeKey]
   );
 
   return (
-    <div className="h-100 flex-fill d-flex flex-column">
-      <div className="w-100 ratio ratio-1x1">
-        <CustomButton icon={faBars} value="home" variant="nonary" />
+    <div className="dashboard-sidebar">
+      <CustomButton icon={faBars} value="home" variant="nonary" />
+      <div className="dashboard-sidebar-btn-group">
+        <CustomButton
+          icon={faFileLines}
+          value="pending"
+          variant={
+            activeKey === "pending"
+              ? "quaternary"
+              : pendingCount
+              ? "ds bg-pulse-nonary-pending "
+              : "nonary"
+          }
+        />
+        <CustomButton icon={faListCheck} value="confirmed" />
+        <CustomButton icon={faListCheck} value="ready" />
       </div>
-      <div className="d-flex flex-column flex-fill py-2">
-        <div className="w-100 flex-fill">
-          <CustomButton
-            icon={faFileLines}
-            value="pending"
-            variant={
-              activeKey === "pending"
-                ? "quaternary"
-                : pendingCount
-                ? "ds bg-pulse-nonary-pending "
-                : "nonary"
-            }
-          />
-        </div>
-        <div className="w-100 flex-fill">
-          <CustomButton icon={faListCheck} value="confirmed" />
-        </div>
-
-        <div className="w-100 flex-fill">
-          <CustomButton icon={faListCheck} value="ready" />
-        </div>
-      </div>
-      <div className="w-100 ratio ratio-1x1">
-        <CustomButton icon={faHistory} value="archived" />
-      </div>
+      <CustomButton icon={faHistory} value="archived" />
     </div>
   );
 }, isEqual);
+
 export default SideBar;

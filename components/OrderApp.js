@@ -1,21 +1,16 @@
 import {
+  faAngleDown,
+  faArrowDown,
   faArrowRight,
-  faBars,
   faBell,
-  faFileLines,
   faGlobe,
-  faHistory,
-  faLeftLong,
-  faListCheck,
   faLongArrowLeft,
-  faLongArrowRight,
-  faTruck,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isEqual } from "lodash";
 import moment from "moment";
 import { memo, useCallback, useEffect, useState } from "react";
-import { Button, Card, Form, Modal, Spinner, Tab } from "react-bootstrap";
+import { Button, Modal, Tab } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { useSocket } from "../hooks/orderHooks";
@@ -33,11 +28,14 @@ const StyledWhiteButton = styled(Button)`
   border-color: black;
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
 `;
 
 const WhiteButton = ({ className = "", children, ...rest }) => (
   <StyledWhiteButton
-    className={`${className} font-small`}
+    id="dashboard-btn"
+    className={className}
     variant="white"
     {...rest}
   >
@@ -101,51 +99,55 @@ export default function Dashboard() {
           ></FontAwesomeIcon>
         </div>
       </Modal>
-      <div className="bg-darker-nonary d-flex flex-nowrap h-100">
-        <div
-          style={{ minWidth: "60px", maxWidth: "60px", zIndex: 9000 }}
-          className="h-100"
-        >
-          <SideBar
-            setActiveKey={setActiveKey}
-            activeKey={activeKey}
-            pendingCount={orders.pending.length}
-          ></SideBar>
-        </div>
-        <div
-          className="h-100 d-flex flex-nowrap overflow-auto"
-          style={{ width: "calc(100% - 60px)" }}
-        >
+      <div className="dashboard">
+        <SideBar
+          setActiveKey={setActiveKey}
+          activeKey={activeKey}
+          pendingCount={orders.pending.length}
+        ></SideBar>
+        <div className="dashboard-content">
           <Tab.Container activeKey={activeKey} className="w-100">
             <Tab.Content className="px-5 m-auto w-100">
-              <Tab.Pane eventKey="pending">
-                <OrdersComponent
-                  orders={orders?.pending}
-                  title="New"
-                  onNext={handleNext}
-                />
-              </Tab.Pane>
-              <Tab.Pane eventKey="confirmed">
-                <OrdersComponent
-                  orders={orders?.confirmed}
-                  title="In Progress"
-                  onNext={handleReady}
-                />
-              </Tab.Pane>
-              <Tab.Pane eventKey="ready">
-                <OrdersComponent
-                  orders={orders?.ready}
-                  title="Ready"
-                  onNext={handleFinish}
-                />
-              </Tab.Pane>
-              <Tab.Pane eventKey="archived">
-                <OrdersComponent
-                  orders={orders?.archived}
-                  title="Archived"
-                  onNext={handleNew}
-                />
-              </Tab.Pane>
+              {activeKey === "pending" && (
+                <Tab.Pane eventKey="pending">
+                  <OrdersComponent
+                    orders={orders?.pending}
+                    title="New"
+                    onNext={handleNext}
+                    cancel={true}
+                  />
+                </Tab.Pane>
+              )}
+              {activeKey === "confirmed" && (
+                <Tab.Pane eventKey="confirmed">
+                  <OrdersComponent
+                    orders={orders?.confirmed}
+                    title="In Progress"
+                    onNext={handleReady}
+                    acceptText="Ready"
+                  />
+                </Tab.Pane>
+              )}
+              {activeKey === "ready" && (
+                <Tab.Pane eventKey="ready">
+                  <OrdersComponent
+                    orders={orders?.ready}
+                    title="Ready"
+                    onNext={handleFinish}
+                    acceptText="Finish"
+                  />
+                </Tab.Pane>
+              )}
+              {activeKey === "archived" && (
+                <Tab.Pane eventKey="archived">
+                  <OrdersComponent
+                    orders={orders?.archived}
+                    title="Archived"
+                    onNext={handleNew}
+                    acceptText="PLACEHOLDER"
+                  />
+                </Tab.Pane>
+              )}
             </Tab.Content>
           </Tab.Container>
         </div>
@@ -169,7 +171,7 @@ const OrdersComponent = memo(({ orders, title, ...rest }) => {
 
 const OrderModal = memo(({ status, ...rest }) => {
   const variant = status === "finished" ? "ready" : status;
-  const { user, id, number, createdAt, onNext } = rest;
+  const { user, id, number, createdAt, onNext, price } = rest;
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -185,12 +187,15 @@ const OrderModal = memo(({ status, ...rest }) => {
         className="rounded-0 w-100 my-2 text-dark p-0"
         onClick={handleShow}
       >
-        <div className="d-flex p-2 justify-content-between align-items-center">
+        <div className="d-flex py-2 px-4 justify-content-between align-items-center">
           <div className="text-start">
-            <div className="fw-bold">{user}</div>
-            <div className="fw-normal text-truncate">{number}</div>
+            <div className="fw-bolder">{user}</div>
+            <div className="text-truncate">{number}</div>
           </div>
-          <div className="fw-bold">{moment(createdAt).format("HH:mm")}</div>
+          <div>
+            <div className="fw-bold">{moment(createdAt).format("HH:mm")}</div>
+            <div className="fw-bold">{formatPrice(price)}</div>
+          </div>
         </div>
       </Button>
       <Modal
@@ -198,7 +203,7 @@ const OrderModal = memo(({ status, ...rest }) => {
         onHide={handleClose}
         centered
         contentClassName="shadow-none"
-        dialogClassName="order bg-darker-nonary w-100"
+        dialogClassName="order bg-darker-nonary w-100 modal-dashboard"
         className="text-dark p-0"
         backdropClassName="opacity-0"
         fullscreen
@@ -211,59 +216,97 @@ const OrderModal = memo(({ status, ...rest }) => {
 
 const OrderContent = memo((props) => {
   const [key, setKey] = useState("1");
+  const [oldKey, setOldKey] = useState(key);
+  const handleChangeKey = useCallback(
+    (key) =>
+      setKey((old) => {
+        setOldKey(old);
+        return key;
+      }),
+    []
+  );
   return (
     <Tab.Container activeKey={key}>
       <Tab.Content className="">
         <Tab.Pane eventKey="1">
-          <OrderOverview {...props} setKey={setKey} />
+          <OrderOverview
+            {...props}
+            setKey={handleChangeKey}
+            onCancel={() => setKey("4")}
+          />
         </Tab.Pane>
         <Tab.Pane eventKey="2">
-          <HelpModal {...props} setKey={setKey} />
+          <HelpModal {...props} setKey={handleChangeKey} />
         </Tab.Pane>
         <Tab.Pane eventKey="3">
-          <DelayOrder {...props} setKey={setKey} />
+          <DelayOrder {...props} setKey={handleChangeKey} />
         </Tab.Pane>
         <Tab.Pane eventKey="4">
-          <CancelOrder {...props} setKey={setKey} />
+          <CancelOrder {...props} setKey={handleChangeKey} oldKey={oldKey} />
         </Tab.Pane>
       </Tab.Content>
     </Tab.Container>
   );
 }, isEqual);
 const OrderOverview = memo(
-  ({ createdAt, pickupTime, user, id, items, onNext, setKey }) => {
+  ({
+    createdAt,
+    pickupTime,
+    user,
+    price,
+    id,
+    number,
+    items,
+    onNext,
+    setKey,
+    onCancel,
+    cancel,
+    acceptText = "Accept Order",
+    cancelText = "Cancel Order",
+  }) => {
     return (
       <>
-        <Modal.Header>
+        <Modal.Header closeButton className="border-dark">
           <div className="d-flex justify-content-between flex-nowrap flex-fill">
             <div>
               <div className="font-large fw-bolder">{user}</div>
-              <div>{id}</div>
+              <div className="fw-bold">{number}</div>
             </div>
             <div className="d-flex flex-wrap justify-content-end">
-              <div className="text-end">
+              <div className="pe-2">
                 <div className="fw-bold">
-                  Ordered at {moment(createdAt).format("HH:mm")}
+                  {moment(createdAt).format("HH:mm")}
                 </div>
-                <div>{pickupTime} min(s)</div>
               </div>
-              <WhiteButton onClick={() => setKey("2")} className="ms-3">
+              {/* <WhiteButton onClick={() => setKey("2")} className="ms-3">
                 HELP
                 <FontAwesomeIcon
                   className="ps-2"
                   icon={faGlobe}
                 ></FontAwesomeIcon>
-              </WhiteButton>
+              </WhiteButton> */}
             </div>
           </div>
         </Modal.Header>
         <Modal.Body className="p-0 overflow-visible">
-          {items.map((i, index) => (
-            <Item {...i} index={index} key={i.itemId} length={items.length} />
-          ))}
+          <div className="items-list">
+            {items.map((i, index) => (
+              <Item {...i} index={index} key={i.itemId} length={items.length} />
+            ))}
+          </div>
+          <div className="d-flex justify-content-end mx-4 border-top border-dark py-3">
+            <WhiteButton variant="dark">{formatPrice(price)}</WhiteButton>
+          </div>
         </Modal.Body>
-        <Modal.Footer className="border-0 d-flex pb-4 justify-content-center align-items-center">
-          <WhiteButton onClick={onNext}>Confirm Order</WhiteButton>
+        <Modal.Footer className="d-flex px-0 pb-4 justify-content-center align-items-center border-dark flex-wrap">
+          {cancel && (
+            <WhiteButton variant="white" onClick={onCancel}>
+              {cancelText}
+            </WhiteButton>
+          )}
+          <WhiteButton variant="dark fw-bold" onClick={onNext}>
+            {acceptText}
+          </WhiteButton>
         </Modal.Footer>
       </>
     );
@@ -286,7 +329,7 @@ const CustomInput = styled.input`
     opacity: 0.5;
   }
 `;
-const CancelOrder = memo(({ id, setKey }) => {
+const CancelOrder = memo(({ id, setKey, oldKey }) => {
   const dispatch = useDispatch();
   const [reason, setReason] = useState();
   const [extra, setExtra] = useState("");
@@ -314,15 +357,13 @@ const CancelOrder = memo(({ id, setKey }) => {
     handleClose();
   }, []);
   const handleBack = useCallback(() => {
-    setKey("2");
+    setKey(oldKey);
     clear();
   }, []);
   const handleClose = useCallback(() => {
-    setKey("1");
+    setKey(oldKey);
     clear();
   }, []);
-  console.log({ extra });
-  console.log({ reason });
 
   return (
     <>
@@ -399,63 +440,85 @@ const HelpModal = memo(({ orderId, setKey }) => {
 }, isEqual);
 
 const Item = memo(
-  ({
-    title,
-    count,
-    price,
-    itemId,
-    calculatedPrice,
-    extras,
-    length,
-    index,
-    comment,
-  }) => {
+  ({ title, count, price, calculatedPrice, extras, comment, length }) => {
     const calculatedSinglePrice = calculatedPrice / count;
+    const [showPrice, setShowPrice] = useState(false);
     return (
-      <div className="d-flex w-100 flex-wrap py-2">
-        <div className="col-12 d-flex flex-nowrap fw-bolder px-4">
-          <div className="text-center" style={{ minWidth: "50px" }}>
-            {count}x
+      <>
+        <div className="item-row">
+          <div className="d-flex justify-content-center align-items-center">
+            <WhiteButton>
+              <div style={{ minWidth: "25px" }}>{count}x</div>
+            </WhiteButton>
           </div>
-          <div className="ps-2 fw-bolder flex-fill">{title}</div>
-          <div className="ps-3 text-end" style={{ minWidth: "100px" }}>
-            {formatPrice(price)}
+          <div className="px-4 flex-fill d-flex flex-column justify-content-center">
+            <TitleRow
+              showPrice={showPrice}
+              setShowPrice={setShowPrice}
+              calculatedPrice={calculatedPrice}
+              price={price}
+              title={title}
+            />
+            {extras?.length !== 0 && (
+              <>
+                <Extras
+                  extras={extras}
+                  showPrice={showPrice}
+                  count={count}
+                  calculatedPrice={calculatedPrice}
+                  calculatedSinglePrice={calculatedSinglePrice}
+                />
+              </>
+            )}
+            {comment && <Comment comment={comment} />}
           </div>
-        </div>
-        {extras?.length !== 0 && (
-          <div className="col-12">
-            {extras.map((e) => (
-              <div className="col-12 d-flex flex-nowrap fw-bold px-4">
-                <div style={{ minWidth: "50px" }}></div>
-                <div className="ps-2 flex-fill">{e.text}</div>
-                <div className="ps-3 text-end" style={{ minWidth: "100px" }}>
-                  {formatPrice(e.price || 0)}
-                </div>
-              </div>
-            ))}
-            <div className="col-12 d-flex flex-nowrap fw-bold px-4 text-end justify-content-end">
-              <div className="ps-1 text-end border-top border-2 border-dark">
-                {parseInt(count) !== 1 &&
-                  `${count}x ${formatPrice(calculatedSinglePrice)} = `}
-                <span className="fw-bolder">
-                  {formatPrice(calculatedPrice)}
-                </span>
-              </div>
+          {length > 1 && (
+            <div className="item-price">
+              <WhiteButton variant="white">
+                {formatPrice(calculatedPrice)}
+              </WhiteButton>
             </div>
-          </div>
-        )}
-        {comment && (
-          <div className="col-12 d-flex flex-nowrap fw-bold px-4 pt-2">
-            <div style={{ minWidth: "50px" }}></div>
-            <i className="ms-2 ps-1 flex-fill bg-very-light-senary">
-              {comment}
-            </i>
-            <div className="ps-3" style={{ minWidth: "100px" }}></div>
-          </div>
-        )}
-        <div className="w-100 border-bottom pb-2 mx-4"></div>
-      </div>
+          )}
+        </div>
+      </>
     );
   },
   isEqual
 );
+
+const TitleRow = memo(
+  ({ title }) => (
+    <>
+      <div className="flex-fill d-flex flex-nowrap fw-bolder px-1">
+        <div className="fw-bolder flex-fill d-flex align-items-center">
+          {title}
+        </div>
+      </div>
+    </>
+  ),
+  isEqual
+);
+
+const Extras = memo(
+  ({ extras, showPrice, count, calculatedPrice, calculatedSinglePrice }) => {
+    return (
+      <>
+        <div className="flex-fill">
+          {extras?.map((e) => (
+            <div className="col-12 d-flex flex-nowrap px-1">
+              <div className="flex-fill">{e.text}</div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  },
+  isEqual
+);
+const Comment = memo(({ comment }) => {
+  return (
+    <div className="w-100 d-flex flex-nowrap fw-bold px-1 pt-2">
+      <span className="px-3 bg-very-light-senary">{comment}</span>
+    </div>
+  );
+}, isEqual);

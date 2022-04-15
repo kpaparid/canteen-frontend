@@ -1,6 +1,11 @@
 import { useStore } from "react-redux";
 import Menu from "../components/Menu";
-import { fetchShop, wrapper } from "../reducer/redux2";
+import {
+  fetchCategories,
+  fetchMeals,
+  fetchOrders,
+  wrapper,
+} from "../reducer/redux2";
 
 export default function Home(props) {
   console.log("State on render", useStore().getState(), props);
@@ -15,7 +20,11 @@ export default function Home(props) {
 export const getServerSideProps = wrapper.getServerSideProps(
   (store) =>
     async ({ params }) => {
-      await store.dispatch(fetchShop());
+      const shop = store
+        .dispatch(fetchMeals())
+        .then(({ payload }) => store.dispatch(fetchCategories(payload)));
+      const promises = [store.dispatch(fetchOrders()), shop];
+      await Promise.all(promises);
       return {
         props: {},
       };

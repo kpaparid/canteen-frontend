@@ -42,8 +42,10 @@ export default function Menu({}) {
   }, [categories]);
 
   const addToCart = useCallback(
-    (id, title, count, price, extras, comment) => {
-      dispatch(itemAddedCart({ id, title, count, price, extras, comment }));
+    (id, title, count, price, extras, comment, menuId) => {
+      dispatch(
+        itemAddedCart({ id, title, count, price, extras, comment, menuId })
+      );
     },
     [dispatch]
   );

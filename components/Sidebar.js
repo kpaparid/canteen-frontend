@@ -32,7 +32,7 @@ const SideBar = memo(({ setActiveKey, activeKey, pendingCount }) => {
 
   return (
     <div className="dashboard-sidebar">
-      <CustomButton icon={faBars} value="home" variant="nonary" />
+      <CustomButton icon={faBars} value="home" variant="nonary" disabled />
       <div className="dashboard-sidebar-btn-group">
         <CustomButton
           icon={faFileLines}

@@ -4,9 +4,10 @@ import {
   createEntityAdapter,
   createSelector,
   createSlice,
+  current,
   nanoid,
 } from "@reduxjs/toolkit";
-import { isEqual } from "lodash";
+import { isEqual, sample } from "lodash";
 import { createWrapper, HYDRATE } from "next-redux-wrapper";
 import { shopToState } from "../utilities/dataMapper";
 
@@ -14,28 +15,31 @@ const mealsAdapter = createEntityAdapter();
 const categoriesAdapter = createEntityAdapter();
 const cartItemsAdapter = createEntityAdapter();
 const ordersAdapter = createEntityAdapter();
-export const fetchShop = createAsyncThunk("data/fetchShop", async () => {
-  const url = process.env.BACKEND_URI;
-  const promises = [
-    fetch(url + "meals").then((r) => r.json()),
-    fetch(url + "settings").then((r) => r.json()),
-    fetch(url + "orders?user=kostas").then((r) => r.json()),
-  ];
 
-  return await Promise.all(promises).then((values) => {
-    return {
-      meals: values[0].data,
-      categories: values[1].data[0].entities,
-      orders: values[2].data,
-    };
-  });
-});
-export const fetchOrders = createAsyncThunk("data/fetchOrders", async () => {
+export const fetchMeals = createAsyncThunk("data/fetchMeals", async () => {
   const url = process.env.BACKEND_URI;
-  return await fetch(url + "orders").then((res) =>
+  return await fetch(url + "meals").then((res) =>
     res.json().then((r) => r.data)
   );
 });
+export const fetchCategories = createAsyncThunk(
+  "data/fetchCategories",
+  async () => {
+    const url = process.env.BACKEND_URI;
+    return await fetch(url + "settings").then((res) =>
+      res.json().then((r) => r.data[0].entities)
+    );
+  }
+);
+export const fetchOrders = createAsyncThunk(
+  "data/fetchOrders",
+  async (props = "") => {
+    const url = process.env.BACKEND_URI;
+    return await fetch(url + "orders").then((res) =>
+      res.json().then((r) => r.data)
+    );
+  }
+);
 export const postOrders = createAsyncThunk("data/postOrders", async (body) => {
   const url = process.env.BACKEND_URI;
   const options = {
@@ -133,11 +137,12 @@ export const subjectSlice = createSlice({
         ...action.payload.shop,
       };
     },
-    [fetchShop.fulfilled](state, { payload }) {
-      const { categories } = shopToState(payload);
-      mealsAdapter.upsertMany(state.meals, payload.meals);
+    [fetchMeals.fulfilled](state, { payload }) {
+      mealsAdapter.upsertMany(state.meals, payload);
+    },
+    [fetchCategories.fulfilled](state, { payload, meta: { arg } }) {
+      const { categories } = shopToState(payload, arg);
       categoriesAdapter.upsertMany(state.categories, categories);
-      ordersAdapter.upsertMany(state.orders, payload.orders);
     },
     [fetchOrders.fulfilled](state, { payload }) {
       ordersAdapter.upsertMany(state.orders, payload);
@@ -255,6 +260,9 @@ export const cartItemsSelectors = cartItemsAdapter.getSelectors(
 export const ordersSelectors = ordersAdapter.getSelectors((state) => {
   return state.orders;
 });
+export const mealsSelectors = mealsAdapter.getSelectors((state) => {
+  return state.orders;
+});
 
 export const categoriesSelectors = categoriesAdapter.getSelectors(
   (state) => state.categories
@@ -289,10 +297,13 @@ export const selectAllMealsByCategory = createSelector(
 );
 export const selectCart = (state) => cartItemsSelectors.selectAll(state.shop);
 export const selectOrders = (state) => ordersSelectors.selectAll(state.shop);
+export const selectCategories = (state) =>
+  categoriesSelectors.selectAll(state.shop);
+export const selectMeals = (state) => mealsSelectors.selectAll(state.shop);
 export const selectAllOrdersByCategory = createSelector(
-  [selectOrders],
-  (orders) =>
-    ["pending", "confirmed", "ready", "archived"].reduce(
+  [selectOrders, selectMeals],
+  (orders, meals) => {
+    return ["pending", "confirmed", "ready", "archived"].reduce(
       (a, status) => ({
         ...a,
         [status]: orders.filter((o) =>
@@ -302,5 +313,6 @@ export const selectAllOrdersByCategory = createSelector(
         ),
       }),
       {}
-    )
+    );
+  }
 );

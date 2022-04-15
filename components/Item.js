@@ -22,6 +22,8 @@ const Item = memo(
     count: initialCount = 1,
     addToCart,
     id,
+    uid: menuId,
+    ...rest
   }) => {
     {
       const [comment, setComment] = useState();
@@ -68,7 +70,7 @@ const Item = memo(
       }
       function handleAddToCart() {
         clearState();
-        addToCart(id, name, count, price, calculatedExtras, comment);
+        addToCart(id, name, count, price, calculatedExtras, comment, menuId);
         onClose();
       }
       function handleClose() {

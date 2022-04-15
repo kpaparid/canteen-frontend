@@ -1,6 +1,12 @@
 import { useStore } from "react-redux";
 import Dashboard from "../components/OrderApp";
-import { fetchOrders, wrapper } from "../reducer/redux2";
+import {
+  fetchCategories,
+  fetchMeals,
+  fetchOrders,
+  fetchShop,
+  wrapper,
+} from "../reducer/redux2";
 
 export default function Home(props) {
   console.log("State on render", useStore().getState(), props);
@@ -10,7 +16,11 @@ export default function Home(props) {
 export const getServerSideProps = wrapper.getServerSideProps(
   (store) =>
     async ({ params }) => {
-      await store.dispatch(fetchOrders());
+      const promises = [
+        store.dispatch(fetchOrders()),
+        store.dispatch(fetchMeals()),
+      ];
+      await Promise.all(promises);
       return {
         props: {},
       };

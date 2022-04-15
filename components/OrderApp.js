@@ -3,6 +3,8 @@ import {
   faArrowDown,
   faArrowRight,
   faBell,
+  faClose,
+  faEllipsisVertical,
   faGlobe,
   faLongArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
@@ -104,7 +106,7 @@ export default function Dashboard() {
           setActiveKey={setActiveKey}
           activeKey={activeKey}
           pendingCount={orders.pending.length}
-        ></SideBar>
+        />
         <div className="dashboard-content">
           <Tab.Container activeKey={activeKey} className="w-100">
             <Tab.Content className="px-5 m-auto w-100">
@@ -171,7 +173,7 @@ const OrdersComponent = memo(({ orders, title, ...rest }) => {
 
 const OrderModal = memo(({ status, ...rest }) => {
   const variant = status === "finished" ? "ready" : status;
-  const { user, id, number, createdAt, onNext, price } = rest;
+  const { user, id, number, createdAt, onNext, price, items } = rest;
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -194,7 +196,7 @@ const OrderModal = memo(({ status, ...rest }) => {
           </div>
           <div>
             <div className="fw-bold">{moment(createdAt).format("HH:mm")}</div>
-            <div className="fw-bold">{formatPrice(price)}</div>
+            <div className="fw-bolder border border-dark">{items.length}</div>
           </div>
         </div>
       </Button>
@@ -266,25 +268,32 @@ const OrderOverview = memo(
   }) => {
     return (
       <>
-        <Modal.Header closeButton className="border-dark">
+        <Modal.Header className="border-dark">
           <div className="d-flex justify-content-between flex-nowrap flex-fill">
             <div>
               <div className="font-large fw-bolder">{user}</div>
               <div className="fw-bold">{number}</div>
             </div>
-            <div className="d-flex flex-wrap justify-content-end">
+            <div className="d-flex flex-wrap justify-content-end align-items-center">
               <div className="pe-2">
                 <div className="fw-bold">
                   {moment(createdAt).format("HH:mm")}
                 </div>
               </div>
-              {/* <WhiteButton onClick={() => setKey("2")} className="ms-3">
-                HELP
-                <FontAwesomeIcon
-                  className="ps-2"
-                  icon={faGlobe}
-                ></FontAwesomeIcon>
-              </WhiteButton> */}
+              <Button
+                variant="transparent"
+                onClick={() => setKey("2")}
+                className="dashboard-btn-settings"
+              >
+                <FontAwesomeIcon icon={faEllipsisVertical}></FontAwesomeIcon>
+              </Button>
+              <Button
+                variant="transparent"
+                onClick={() => setKey("2")}
+                className="dashboard-btn-close"
+              >
+                <FontAwesomeIcon icon={faClose}></FontAwesomeIcon>
+              </Button>
             </div>
           </div>
         </Modal.Header>
@@ -440,7 +449,16 @@ const HelpModal = memo(({ orderId, setKey }) => {
 }, isEqual);
 
 const Item = memo(
-  ({ title, count, price, calculatedPrice, extras, comment, length }) => {
+  ({
+    title,
+    count,
+    price,
+    calculatedPrice,
+    extras,
+    comment,
+    length,
+    menuId,
+  }) => {
     const calculatedSinglePrice = calculatedPrice / count;
     const [showPrice, setShowPrice] = useState(false);
     return (
@@ -452,13 +470,7 @@ const Item = memo(
             </WhiteButton>
           </div>
           <div className="px-4 flex-fill d-flex flex-column justify-content-center">
-            <TitleRow
-              showPrice={showPrice}
-              setShowPrice={setShowPrice}
-              calculatedPrice={calculatedPrice}
-              price={price}
-              title={title}
-            />
+            <TitleRow menuId={menuId} title={title} />
             {extras?.length !== 0 && (
               <>
                 <Extras
@@ -487,11 +499,12 @@ const Item = memo(
 );
 
 const TitleRow = memo(
-  ({ title }) => (
+  ({ title, menuId }) => (
     <>
-      <div className="flex-fill d-flex flex-nowrap fw-bolder px-1">
-        <div className="fw-bolder flex-fill d-flex align-items-center">
-          {title}
+      <div className="flex-fill d-flex flex-nowrap px-1">
+        <div className="flex-fill d-flex align-items-center">
+          <span className="fw-bolder">{title}</span>
+          <span className="bg-dark fw-bold ms-2 px-2 text-white">{menuId}</span>
         </div>
       </div>
     </>

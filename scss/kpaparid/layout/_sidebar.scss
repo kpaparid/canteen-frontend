@@ -55,27 +55,6 @@
   display: flex;
   flex-direction: column;
 }
-.dashboard-sidebar-btn-group {
-  display: flex;
-  flex-direction: column;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  flex: 1 1 auto;
-  min-height: 80%;
-}
-.dashboard-sidebar-btn {
-  // w-100 h-100 rounded-0 shadow-none
-  height: 100%;
-  border-radius: 0;
-  box-shadow: none;
-  width: 60px !important;
-  padding: 0;
-  svg {
-    height: 22px;
-    width: 22px;
-  }
-}
-
 .dashboard-content {
   height: 100%;
   display: flex;
@@ -90,7 +69,7 @@
   background-color: $darker-nonary;
   @include media-breakpoint-down(sm) {
     .dashboard-sidebar {
-      position: absolute;
+      position: fixed;
       bottom: 0;
       flex-direction: row;
       height: 60px;
@@ -116,6 +95,7 @@
     .dashboard-sidebar-btn {
       width: auto;
       height: 60px;
+      border: 0;
     }
   }
 }

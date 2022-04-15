@@ -1,7 +1,7 @@
 import { data } from "autoprefixer";
 import { merge } from "lodash";
 
-export const shopToState = ({ categories, meals }) => {
+export const shopToState = (categories, meals) => {
   const mappedCategories = Object.keys(categories).map((c) => {
     return {
       ...categories[c],

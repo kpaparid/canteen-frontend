@@ -60,3 +60,47 @@
     box-shadow: none;
   }
 }
+.accordion-item-order:first-of-type {
+  border-radius: 0;
+  .accordion-button {
+    border-radius: 0;
+  }
+}
+.accordion-item-order {
+  border: 0;
+}
+.accordion-item-order .accordion-button {
+  background-color: white;
+  box-shadow: none;
+  // border: 1px solid $gray-100;
+  &:focus {
+    border-color: $gray-100;
+  }
+  &:not(.collapsed) {
+    // border-color: $primary;
+    // border: 1px solid;
+    // border-bottom: 0;
+  }
+}
+.accordion-item-order .accordion-collapse.collapse.show {
+  // border-bottom: 1px solid $gray-100;
+}
+.accordion-item-order {
+  .order-status-tab,
+  .order-list,
+  .order-details {
+    padding-left: 0rem;
+    padding-right: 0rem;
+  }
+}
+.accordion-item-order {
+  border-bottom: 2px solid $gray-100;
+}
+.accordion-order-list {
+  max-height: 85vh;
+  overflow: auto;
+}
+.accordion-item:last-of-type {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}

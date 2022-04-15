@@ -42,60 +42,43 @@ const Orders = memo((props) => {
 
 export const OrdersBody = memo(({ orders }) => {
   const sortedOrders = [...orders].sort((a, b) =>
-    moment(a.timestamp).isBefore(b.createdAt) ? 1 : -1
+    moment(a.createdAt).isBefore(b.createdAt) ? 1 : -1
   );
-  const [order, setOrder] = useState(orders.length === 1 ? orders[0] : null);
-  const [activeKey, setActiveKey] = useState(
-    orders.length === 1 ? "overview" : "orders"
-  );
-  const handleOrderClick = useCallback((o) => {
-    setOrder(o);
-    setActiveKey("overview");
-  }, []);
   return (
     <div className="w-100">
-      <Tab.Container activeKey={activeKey}>
-        <Tab.Content>
-          {activeKey === "orders" && (
-            <Tab.Pane eventKey="orders" className="pane-order-list ">
-              {sortedOrders?.map((o) => {
-                return (
-                  <Button
-                    variant="quinary"
-                    onClick={() => handleOrderClick(o)}
-                    className="d-flex justify-content-between px-2 my-1 mx-3 flex-nowrap align-items-center"
+      {orders.length === 1 ? (
+        <OrderOverview {...sortedOrders[0]} />
+      ) : (
+        <Accordion
+          className="accordion-order-list"
+          defaultActiveKey={sortedOrders[0].id}
+        >
+          {sortedOrders?.map((o) => (
+            <Accordion.Item
+              eventKey={o.id}
+              key={o.id}
+              className="accordion-item-order"
+            >
+              <Accordion.Header className="p-0 my-0 align-items-center">
+                <div className="flex-fill d-flex flex-nowrap justify-content-between text-dark pe-3">
+                  <div className="d-flex flex-column align-items-start font-small fw-bolder">
+                    <span>{o.number}</span>
+                    <span>{moment(o.createdAt).format("HH:mm")}</span>
+                  </div>
+                  <div
+                    className={`text-align-middle font-small fw-bold rounded p-2 bg-${o.status}`}
                   >
-                    <div className="d-flex flex-column align-items-start font-small fw-bold">
-                      <span>Bestellnummer: {o.number}</span>
-                      <span>Uhr: {moment(o.createdAt).format("HH:mm")}</span>
-                    </div>
-                    <div
-                      className={`text-align-middle font-small fw-bold rounded p-2 bg-${o.status}`}
-                    >
-                      {o.status}
-                    </div>
-                  </Button>
-                );
-              })}
-            </Tab.Pane>
-          )}
-          {activeKey === "overview" && (
-            <Tab.Pane eventKey="overview">
-              <OrderOverview {...order} />
-              {orders.length !== 1 && (
-                <div className="d-flex py-2 border-top">
-                  <Button
-                    className="m-auto header-text"
-                    onClick={() => setActiveKey("orders")}
-                  >
-                    View Orders
-                  </Button>
+                    {o.status}
+                  </div>
                 </div>
-              )}
-            </Tab.Pane>
-          )}
-        </Tab.Content>
-      </Tab.Container>
+              </Accordion.Header>
+              <Accordion.Body className="m-1 py-0">
+                <OrderOverview {...o} />
+              </Accordion.Body>
+            </Accordion.Item>
+          ))}
+        </Accordion>
+      )}
     </div>
   );
 }, isEqual);
@@ -144,12 +127,13 @@ const OrderStatus = memo(({ status }) => {
   return (
     <div className="order-status-tab pt-3">
       <Tab.Container activeKey={status}>
-        <Nav className="w-100 py-2">
-          {status !== "canceled" &&
-            statusVariants.map((s, index) => (
+        {status !== "canceled" && (
+          <Nav className="w-100 py-2">
+            {statusVariants.map((s, index) => (
               <CustomNav eventKey={s} index={index} />
             ))}
-        </Nav>
+          </Nav>
+        )}
         <Tab.Content>
           <CustomPane
             eventKey="pending"
@@ -253,7 +237,7 @@ const Order = ({
       <CustomToggle eventKey={index}>
         <div className="d-flex justify-content-around align-items-end pe-1">
           <div className="flex-fill text-start d-flex flex-nowrap font-small fw-bold">
-            <div className="text-end pe-2" style={{ minWidth: "30px" }}>
+            <div className="text-start" style={{ minWidth: "23px" }}>
               {count}x
             </div>
             <div className="ps-1 flex-fill text-break break-wrap">{title}</div>
@@ -269,7 +253,7 @@ const Order = ({
             <div className="col-12">
               {extras?.map((e) => (
                 <div className="col-12 d-flex flex-nowrap">
-                  <div style={{ minWidth: "25px" }}></div>
+                  <div style={{ minWidth: "23px" }}></div>
                   <div className="ps-2 flex-fill">+ {e.text}</div>
                 </div>
               ))}
@@ -325,7 +309,8 @@ export const OrdersModal = ({ orders }) => {
         <Modal.Header closeVariant="white" className="bg-primary" closeButton>
           <span>Bestellungen</span>
         </Modal.Header>
-        <div className="w-100 modal-body-wrapper">
+        <OrdersBody orders={orders} />
+        {/* <div className="w-100 modal-body-wrapper">
           <Tab.Container activeKey={activeKey}>
             <Tab.Content>
               {activeKey === "orders" && (
@@ -376,7 +361,7 @@ export const OrdersModal = ({ orders }) => {
               )}
             </Tab.Content>
           </Tab.Container>
-        </div>
+        </div> */}
       </Modal>
     </>
   );

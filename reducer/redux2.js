@@ -9,12 +9,17 @@ import {
 } from "@reduxjs/toolkit";
 import { isEqual, sample } from "lodash";
 import { createWrapper, HYDRATE } from "next-redux-wrapper";
-import { shopToState } from "../utilities/dataMapper";
+import {
+  mapSettingsToCategories,
+  shopToState,
+  shopToState2,
+} from "../utilities/dataMapper";
 
 const mealsAdapter = createEntityAdapter();
 const categoriesAdapter = createEntityAdapter();
 const cartItemsAdapter = createEntityAdapter();
 const ordersAdapter = createEntityAdapter();
+const settingsAdapter = createEntityAdapter();
 
 export const fetchMeals = createAsyncThunk("data/fetchMeals", async () => {
   const url = process.env.BACKEND_URI;
@@ -31,12 +36,44 @@ export const fetchCategories = createAsyncThunk(
     );
   }
 );
+export const fetchSettings = createAsyncThunk(
+  "data/fetchSettings",
+  async (props) => {
+    const suffix = props?.suffix || "";
+    const url = process.env.BACKEND_URI;
+    return await fetch(url + "settings" + suffix).then((res) =>
+      res.json().then((r) => r.data)
+    );
+  }
+);
 export const fetchOrders = createAsyncThunk(
   "data/fetchOrders",
-  async (props = "") => {
-    const url = process.env.BACKEND_URI;
-    return await fetch(url + "orders").then((res) =>
-      res.json().then((r) => r.data)
+  async ({ suffix = "" }) => {
+    const url = process.env.BACKEND_URI + "orders" + suffix;
+    return await fetch(url).then((res) => res.json().then((r) => r.data));
+  }
+);
+export const openCloseShop = createAsyncThunk(
+  "data/openCloseShop",
+  async (props) => {
+    const body = {
+      uid: "shopIsOpen",
+      entity: {
+        value: props,
+        id: "value",
+      },
+    };
+    const url = process.env.BACKEND_URI + "settings";
+    const options = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    };
+    return await fetch(url, options).then((res) =>
+      res.json().then((r) => {
+        console.log("hi");
+        return r.data;
+      })
     );
   }
 );
@@ -73,6 +110,7 @@ export const subjectSlice = createSlice({
     categories: categoriesAdapter.getInitialState(),
     cart: { items: cartItemsAdapter.getInitialState() },
     orders: ordersAdapter.getInitialState(),
+    settings: ordersAdapter.getInitialState(),
   },
   reducers: {
     addCommentCart: (state, action) => {
@@ -141,8 +179,15 @@ export const subjectSlice = createSlice({
       mealsAdapter.upsertMany(state.meals, payload);
     },
     [fetchCategories.fulfilled](state, { payload, meta: { arg } }) {
-      const { categories } = shopToState(payload, arg);
+      const categories = mapSettingsToCategories({
+        entities: payload,
+        meals: arg,
+      });
       categoriesAdapter.upsertMany(state.categories, categories);
+    },
+    [fetchSettings.fulfilled](state, { payload, meta }) {
+      const settings = shopToState(payload);
+      settingsAdapter.upsertMany(state.settings, settings);
     },
     [fetchOrders.fulfilled](state, { payload }) {
       ordersAdapter.upsertMany(state.orders, payload);
@@ -204,9 +249,15 @@ export const subjectSlice = createSlice({
       ordersAdapter.upsertMany(state.orders, orders);
     },
     [postOrders.fulfilled](state, { payload }) {
-      const items = cartItemsSelectors.selectAll(state);
       ordersAdapter.upsertMany(state.orders, payload);
       cartItemsAdapter.removeAll(state.cart.items);
+    },
+
+    [openCloseShop.fulfilled](state, { meta: { arg } }) {
+      settingsAdapter.upsertOne(state.settings, {
+        id: "shopIsOpen",
+        value: arg,
+      });
     },
     [changeOrderStatus.fulfilled](state, { payload, meta }) {
       const {
@@ -257,27 +308,25 @@ export const cartItemsSelectors = cartItemsAdapter.getSelectors(
   (state) => state.cart.items
 );
 
-export const ordersSelectors = ordersAdapter.getSelectors((state) => {
-  return state.orders;
-});
-export const mealsSelectors = mealsAdapter.getSelectors((state) => {
-  return state.orders;
-});
+export const ordersSelectors = ordersAdapter.getSelectors(
+  (state) => state.orders
+);
+
+export const mealsSelectors = mealsAdapter.getSelectors((state) => state.meals);
+export const settingsSelectors = settingsAdapter.getSelectors(
+  (state) => state.settings
+);
 
 export const categoriesSelectors = categoriesAdapter.getSelectors(
   (state) => state.categories
 );
-export const mealsSelector = mealsAdapter.getSelectors((state) => state.meals);
-export const selectAllMeals = (state) => mealsSelector.selectAll(state.shop);
 
-export const categoriesSelector = categoriesAdapter.getSelectors(
-  (state) => state.categories
-);
+export const selectAllMeals = (state) => mealsSelectors.selectAll(state.shop);
 
 export const selectAllCategories = (state) =>
-  categoriesSelector.selectAll(state.shop);
+  categoriesSelectors.selectAll(state.shop);
 export const selectAllActiveCategories = (state) => {
-  return categoriesSelector
+  return categoriesSelectors
     .selectAll(state.shop)
     .filter((category) => category.itemIds.length);
 };
@@ -297,12 +346,13 @@ export const selectAllMealsByCategory = createSelector(
 );
 export const selectCart = (state) => cartItemsSelectors.selectAll(state.shop);
 export const selectOrders = (state) => ordersSelectors.selectAll(state.shop);
+export const selectSettings = (state) =>
+  settingsSelectors.selectAll(state.shop);
 export const selectCategories = (state) =>
   categoriesSelectors.selectAll(state.shop);
-export const selectMeals = (state) => mealsSelectors.selectAll(state.shop);
 export const selectAllOrdersByCategory = createSelector(
-  [selectOrders, selectMeals],
-  (orders, meals) => {
+  [selectOrders],
+  (orders) => {
     return ["pending", "confirmed", "ready", "archived"].reduce(
       (a, status) => ({
         ...a,
@@ -316,3 +366,21 @@ export const selectAllOrdersByCategory = createSelector(
     );
   }
 );
+export const selectShopIsOpen = createSelector(
+  [selectSettings],
+  (settings) => settings?.find((e) => e.id === "shopIsOpen")?.value
+);
+
+// export const selectSettings = createSelector([selectOrders], (orders) => {
+//   return ["pending", "confirmed", "ready", "archived"].reduce(
+//     (a, status) => ({
+//       ...a,
+//       [status]: orders.filter((o) =>
+//         status !== "archived"
+//           ? o.status === status
+//           : o.status === "canceled" || o.status === "finished"
+//       ),
+//     }),
+//     {}
+//   );
+// });

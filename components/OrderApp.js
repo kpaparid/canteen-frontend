@@ -22,38 +22,35 @@ import {
   selectAllOrdersByCategory,
 } from "../reducer/redux2";
 import { formatPrice } from "../utilities/utils";
+import OpenClosed from "./OpenClosed";
 import SideBar from "./Sidebar";
 
-const StyledWhiteButton = styled(Button)`
-  border-radius: 0;
-  font-weight: 700;
-  border-color: black;
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: 700;
-`;
-
-const WhiteButton = ({ className = "", children, ...rest }) => (
-  <StyledWhiteButton
-    id="dashboard-btn"
-    className={className}
-    variant="white"
-    {...rest}
-  >
-    {children}
-  </StyledWhiteButton>
-);
-
 export default function Dashboard() {
-  const socket = useSocket();
-  const [activeKey, setActiveKey] = useState("pending");
-  const orders = useSelector(selectAllOrdersByCategory);
-  const [show, setShow] = useState(false);
+  // const shopEnabled = useSelector((state) => state.shop.enabled);
+  const shopEnabled = true;
+  const [activeKey, setActiveKey] = useState("home");
 
+  return (
+    <>
+      <div className="dashboard">
+        <SideBar
+          setActiveKey={setActiveKey}
+          activeKey={activeKey}
+          shopEnabled={shopEnabled}
+        />
+        <DashboardContent activeKey={activeKey} shopEnabled={shopEnabled} />
+      </div>
+    </>
+  );
+}
+
+const DashboardContent = memo(({ activeKey, shopEnabled }) => {
+  const socket = useSocket();
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
+  const orders = useSelector(selectAllOrdersByCategory);
+  const [show, setShow] = useState(false);
   const dispatch = useDispatch();
   const handleStatusChange = useCallback((id, body) => {
     dispatch(changeOrderStatus({ id, body }));
@@ -83,80 +80,104 @@ export default function Dashboard() {
       });
     }
   }, [socket]);
-
   return (
     <>
-      <Modal
-        show={show}
-        onHide={handleClose}
-        centered
-        fullscreen
-        contentClassName="d-flex justify-content-center align-items-center bg-pulse-nonary-pending"
-      >
-        <div className="h-100 w-100 d-flex" onClick={handleClose}>
-          <FontAwesomeIcon
-            className="swing m-auto"
-            icon={faBell}
-            size="9x"
-          ></FontAwesomeIcon>
-        </div>
-      </Modal>
-      <div className="dashboard">
-        <SideBar
-          setActiveKey={setActiveKey}
-          activeKey={activeKey}
-          pendingCount={orders.pending.length}
-        />
-        <div className="dashboard-content">
-          <Tab.Container activeKey={activeKey} className="w-100">
-            <Tab.Content className="px-5 m-auto w-100">
-              {activeKey === "pending" && (
-                <Tab.Pane eventKey="pending">
-                  <OrdersComponent
-                    orders={orders?.pending}
-                    title="New"
-                    onNext={handleNext}
-                    cancel={true}
-                  />
-                </Tab.Pane>
-              )}
-              {activeKey === "confirmed" && (
-                <Tab.Pane eventKey="confirmed">
-                  <OrdersComponent
-                    orders={orders?.confirmed}
-                    title="In Progress"
-                    onNext={handleReady}
-                    acceptText="Ready"
-                  />
-                </Tab.Pane>
-              )}
-              {activeKey === "ready" && (
-                <Tab.Pane eventKey="ready">
-                  <OrdersComponent
-                    orders={orders?.ready}
-                    title="Ready"
-                    onNext={handleFinish}
-                    acceptText="Finish"
-                  />
-                </Tab.Pane>
-              )}
-              {activeKey === "archived" && (
-                <Tab.Pane eventKey="archived">
-                  <OrdersComponent
-                    orders={orders?.archived}
-                    title="Archived"
-                    onNext={handleNew}
-                    acceptText="PLACEHOLDER"
-                  />
-                </Tab.Pane>
-              )}
-            </Tab.Content>
-          </Tab.Container>
-        </div>
+      {shopEnabled && (
+        <Modal
+          show={show}
+          onHide={handleClose}
+          centered
+          fullscreen
+          contentClassName="d-flex justify-content-center align-items-center bg-pulse-nonary-pending"
+        >
+          <div className="h-100 w-100 d-flex" onClick={handleClose}>
+            <FontAwesomeIcon
+              className="swing m-auto"
+              icon={faBell}
+              size="9x"
+            ></FontAwesomeIcon>
+          </div>
+        </Modal>
+      )}
+      <div className="dashboard-content">
+        <Tab.Container activeKey={activeKey} className="w-100">
+          <Tab.Content className="px-5 m-auto w-100">
+            {activeKey === "home" && (
+              <Tab.Pane eventKey="home">
+                <Home></Home>
+              </Tab.Pane>
+            )}
+            {shopEnabled && activeKey === "pending" && (
+              <Tab.Pane eventKey="pending">
+                <OrdersComponent
+                  orders={orders?.pending}
+                  title="New"
+                  onNext={handleNext}
+                  cancel={true}
+                />
+              </Tab.Pane>
+            )}
+            {shopEnabled && activeKey === "confirmed" && (
+              <Tab.Pane eventKey="confirmed">
+                <OrdersComponent
+                  orders={orders?.confirmed}
+                  title="In Progress"
+                  onNext={handleReady}
+                  acceptText="Ready"
+                />
+              </Tab.Pane>
+            )}
+            {shopEnabled && activeKey === "ready" && (
+              <Tab.Pane eventKey="ready">
+                <OrdersComponent
+                  orders={orders?.ready}
+                  title="Ready"
+                  onNext={handleFinish}
+                  acceptText="Finish"
+                />
+              </Tab.Pane>
+            )}
+            {shopEnabled && activeKey === "archived" && (
+              <Tab.Pane eventKey="archived">
+                <OrdersComponent
+                  orders={orders?.archived}
+                  title="Archived"
+                  onNext={handleNew}
+                  acceptText="PLACEHOLDER"
+                />
+              </Tab.Pane>
+            )}
+          </Tab.Content>
+        </Tab.Container>
       </div>
     </>
   );
-}
+}, isEqual);
+
+const Home = memo(({ shopEnabled }) => {
+  return <OpenClosed value={shopEnabled} />;
+}, isEqual);
+
+const StyledWhiteButton = styled(Button)`
+  border-radius: 0;
+  font-weight: 700;
+  border-color: black;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+`;
+
+const WhiteButton = ({ className = "", children, ...rest }) => (
+  <StyledWhiteButton
+    id="dashboard-btn"
+    className={className}
+    variant="white"
+    {...rest}
+  >
+    {children}
+  </StyledWhiteButton>
+);
 
 const OrdersComponent = memo(({ orders, title, ...rest }) => {
   return (

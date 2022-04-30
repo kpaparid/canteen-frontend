@@ -10,6 +10,7 @@ import { SSRProvider } from "react-bootstrap";
 const WrappedApp = ({ Component, pageProps }) => {
   return (
     <SSRProvider>
+      <Head><meta name="color-scheme" content="light dark"/></Head>
       <Component {...pageProps} />
     </SSRProvider>
   );

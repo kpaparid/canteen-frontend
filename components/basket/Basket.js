@@ -26,10 +26,13 @@ const Basket = memo((props) => {
           {...{ orders, ordersExist, summa, cartExists, items, sendOrder }}
         />
       ) : (
-        <div className="cart-toggle d-flex flex-nowrap justify-content-around">
-          <CartModal {...{ summa, cartExists, items, onSend: sendOrder }} />
-          <OrdersModal {...{ orders, ordersExist }} />
-        </div>
+        cartExists ||
+        (ordersExist && (
+          <div className="cart-toggle d-flex flex-nowrap justify-content-around">
+            <CartModal {...{ summa, cartExists, items, onSend: sendOrder }} />
+            <OrdersModal {...{ orders, ordersExist }} />
+          </div>
+        ))
       )}
     </>
   );

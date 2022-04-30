@@ -78,7 +78,11 @@ $colors: (
   "gray": $gray-600,
   "gray-dark": $gray-800,
 );
+// @media (prefers-color-scheme: dark) {
+// @use "themes/variables-dark" as v;
+// }
 
+// $primary: v.$primary;
 $inverse-primary: #fff;
 $primary: #d40811;
 $darker-primary: #340006;
@@ -108,18 +112,13 @@ $quinary: #ffd365;
 $denary: #ffd124;
 $duodenary: #9bdcf4;
 $darker-senary: #c95848;
-$default: $primary;
-
-// $ready: #6bcb77;
-// $confirmed: #ff8e00;
-// $pending: #ffe400;
-// $declined: #f6a9a9;
-
 $pending: #ffc24d;
 $confirmed: #f58634;
 $ready: #81b214;
 $declined: #f05945;
 $canceled: #f05945;
+
+$default: $primary;
 
 $light-tertiary: lighten($tertiary, 15%);
 $very-light-tertiary: lighten($tertiary, 25%);
@@ -139,6 +138,7 @@ $ct-series-colors: (
   #17a5ce
 );
 
+
 // Mobile landing color scheme
 $primary-app: #ebf4f6;
 $secondary-app: #424aa0;
@@ -152,7 +152,7 @@ $lighten: $gray-300;
 $soft: $gray-200;
 $dark: $dark;
 
-// Brands colors
+// // Brands colors
 $facebook: #3b5999;
 $twitter: #1da1f2;
 $google: #db4337;
@@ -191,6 +191,7 @@ $brand-colors: map-merge(
 );
 
 // Theme colors
+
 $theme-colors: ();
 $theme-colors: map-merge(
   (

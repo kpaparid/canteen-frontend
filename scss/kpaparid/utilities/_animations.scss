@@ -264,3 +264,18 @@
   -webkit-animation: fadeIn 5s ease-out;
   animation: fadeIn 5s ease-out;
 }
+@keyframes accumulator-expand {
+  0% {
+    width: 0;
+    display: flex;
+    opacity: 0;
+  }
+  75% {
+    width: 25px;
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+    width: 25px;
+  }
+}

@@ -41,9 +41,11 @@ const Item = memo(
       const calculatedPrice = data
         ? Object.keys(data).reduce((a, b) => a + data[b].price, price)
         : price;
-      const calculatedExtras =
-        data &&
-        Object.keys(data).reduce((a, b) => [...a, ...data[b].options], []);
+      // const calculatedExtras =
+      //   data && Object.keys(data).reduce((a, b) => [...a, ...data[b]], []);
+
+      // const calculatedExtras =
+      //   data && Object.keys(data).reduce((a, b) => {}, []);
       const formattedPrice = formatPrice(calculatedPrice * count);
       const clearState = () => {
         setCount(initialCount);
@@ -70,6 +72,9 @@ const Item = memo(
       }
       function handleAddToCart() {
         clearState();
+        const calculatedExtras = Object.values(data).filter(
+          (e) => e.options?.length !== 0
+        );
         addToCart(id, name, count, price, calculatedExtras, comment, menuId);
         onClose();
       }
@@ -89,7 +94,10 @@ const Item = memo(
               />
             </div>
           )}
-          <Modal.Header closeButton={false} className="p-0">
+          <Modal.Header
+            closeButton={false}
+            className="p-0 border-bottom border-gray-100"
+          >
             <Button
               variant="white"
               style={{ height: "27px", width: "27px" }}
@@ -100,20 +108,18 @@ const Item = memo(
               <FontAwesomeIcon icon={faX}></FontAwesomeIcon>
             </Button>
             <div className="p-3 w-100">
-              <div className="font-medium fw-bolder">{name}</div>
-              {description && (
-                <div className="font-small text-septenary">{description}</div>
-              )}
-              <div className="mt-2 font-medium fw-bolder">
+              <div className="font-big fw-bolder">{name}</div>
+              {description && <div className="font-small">{description}</div>}
+              <div className="mt-2 text-primary fw-bolder">
                 {formatPrice(price)}
               </div>
             </div>
           </Modal.Header>
-          <Modal.Body className="bg-octonary">
+          <Modal.Body className="bg-white">
             <Form.Group className="d-flex flex-column">
               {extras?.map((e, index) => (
-                <Fragment key={e.title}>
-                  <Form.Label className="pt-1 text-dark font-small fw-bold">
+                <div key={e.title} className="pb-3">
+                  <Form.Label className="font-small fw-bolder m-0">
                     {e.title}
                   </Form.Label>
                   <FormComponent
@@ -121,7 +127,7 @@ const Item = memo(
                     {...e}
                     onChange={(e) => handleChange(e, index)}
                   />
-                </Fragment>
+                </div>
               ))}
               <FormTextarea text={comment || ""} onChange={setComment} />
             </Form.Group>
@@ -133,11 +139,12 @@ const Item = memo(
               count={count}
             />
             <Button
-              className="m-0 header-text"
+              className="m-0 header-text flex-fill ms-2 justify-content-between d-flex"
               variant="primary"
               onClick={handleAddToCart}
             >
-              {formattedPrice}
+              <span>Zum Warenkorb</span>
+              <span>{formattedPrice}</span>
             </Button>
           </Modal.Footer>
         </Modal>
@@ -153,20 +160,18 @@ export function FormTextarea({ text, onChange }) {
   const handleChange = (e) => onChange(e.target.value);
   return (
     <>
-      <Form.Label className="pt-3 text-dark font-small fw-bold">
+      <Form.Label className="font-small fw-bolder">
         Anmerkung hinzufügen
       </Form.Label>
-      <div className="px-2">
-        <Form.Control
-          className="border-0 font-small"
-          onChange={handleChange}
-          as="textarea"
-          rows={3}
-          resize={false}
-          maxLength={160}
-          value={text}
-        />
-      </div>
+      <Form.Control
+        className="font-small"
+        onChange={handleChange}
+        as="textarea"
+        rows={3}
+        resize={false}
+        maxLength={160}
+        value={text}
+      />
       <div className="m-auto mt-1 me-2 font-small">{length}</div>
     </>
   );
@@ -182,7 +187,7 @@ function FormSelect({ options, onChange }) {
   }
   return (
     <>
-      <div className="px-2">
+      <div className="px-2 pt-1">
         <Form.Select className="border-0" onChange={handleChange}>
           {options?.map((o) => (
             <option key={o.text} value={JSON.stringify(o)}>
@@ -194,24 +199,28 @@ function FormSelect({ options, onChange }) {
     </>
   );
 }
-function FormMultiCheckbox({ options, onChange }) {
-  function getText({ text, price }) {
-    const formattedPrice = formatPrice(price);
-    return price ? text + " (+" + formattedPrice + " )" : text;
-  }
+
+function FormRadio({ options, onChange }) {
+  const [clicked, setClicked] = useState();
   function handleClick(e, o) {
     onChange(o.price, o.text, e.target.checked);
+    setClicked(o.text);
   }
   return (
     <>
       <div className="px-2 d-flex flex-wrap w-100">
         {options?.map((o) => (
-          <div className="w-100 font-small checkbox-wrapper mb-2" key={o.text}>
+          <div className="w-100 font-small checkbox-wrapper" key={o.text}>
             <Form.Check className="fw-light w-100" type="checkbox" onC>
-              <div className="p-2 bg-white d-flex flex-nowrap align-items-center">
-                <Form.Check.Input onClick={(e) => handleClick(e, o)} />
-                <Form.Check.Label className="ps-2 fw-normal text-dark">
-                  {getText(o)}
+              <div className="pt-2 d-flex flex-nowrap align-items-center">
+                <Form.Check.Input
+                  type="radio"
+                  onClick={(e) => handleClick(e, o)}
+                  checked={clicked === o.text}
+                />
+                <Form.Check.Label className="ps-3 fw-normal d-flex justify-content-between flex-fill">
+                  <span className="fw-bold">{o.text}</span>
+                  {o.price && <span>+{formatPrice(o.price)}</span>}
                 </Form.Check.Label>
               </div>
             </Form.Check>
@@ -222,10 +231,35 @@ function FormMultiCheckbox({ options, onChange }) {
   );
 }
 
-function FormComponent({ type, onChange, ...rest }) {
+function FormMultiCheckbox({ options, onChange }) {
+  function handleClick(e, o) {
+    onChange(o.price, o.text, e.target.checked);
+  }
+  return (
+    <>
+      <div className="px-2 d-flex flex-wrap w-100">
+        {options?.map((o) => (
+          <div className="w-100 font-small checkbox-wrapper" key={o.text}>
+            <Form.Check className="fw-light w-100" type="checkbox" onC>
+              <div className="pt-2 d-flex flex-nowrap align-items-center">
+                <Form.Check.Input onClick={(e) => handleClick(e, o)} />
+                <Form.Check.Label className="ps-3 fw-normal d-flex justify-content-between flex-fill">
+                  <span className="fw-bold">{o.text}</span>
+                  {o.price && <span>+{formatPrice(o.price)}</span>}
+                </Form.Check.Label>
+              </div>
+            </Form.Check>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function FormComponent({ type, onChange, title, ...rest }) {
   const [_, setState] = useState({ price: 0, options: [] });
   function handleSelectChange(price, option) {
-    const obj = { price, options: [{ text: option, price }] };
+    const obj = { price, title, options: [{ text: option, price }] };
     setState(obj);
     onChange && onChange(obj);
   }
@@ -235,6 +269,7 @@ function FormComponent({ type, onChange, ...rest }) {
           const newState = {
             price: old.price + price,
             options: [...old.options, { text, price }],
+            title,
           };
           onChange && onChange(newState);
           return newState;
@@ -243,6 +278,7 @@ function FormComponent({ type, onChange, ...rest }) {
           const newState = {
             price: old.price - price,
             options: old.options.filter((o) => o.text !== text),
+            title,
           };
           onChange && onChange(newState);
           return newState;
@@ -251,7 +287,7 @@ function FormComponent({ type, onChange, ...rest }) {
 
   switch (type) {
     case "selection":
-      return <FormSelect {...rest} onChange={handleSelectChange} />;
+      return <FormRadio {...rest} onChange={handleSelectChange} />;
     case "multi-checkbox":
       return <FormMultiCheckbox {...rest} onChange={handleMultiCheckbox} />;
     default:

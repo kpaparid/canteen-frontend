@@ -26,13 +26,19 @@ const Basket = memo((props) => {
           {...{ orders, ordersExist, summa, cartExists, items, sendOrder }}
         />
       ) : (
-        cartExists ||
-        (ordersExist && (
-          <div className="cart-toggle d-flex flex-nowrap justify-content-around">
-            <CartModal {...{ summa, cartExists, items, onSend: sendOrder }} />
+        (cartExists || ordersExist) && (
+          <div
+            className={`cart-toggle ${
+              cartExists && ordersExist ? "double" : ""
+            }`}
+          >
+            {/* <div className="d-flex flex-nowrap justify-content-between align-items-center flex-fill"> */}
             <OrdersModal {...{ orders, ordersExist }} />
+            {cartExists && ordersExist && <div className="divider"></div>}
+            <CartModal {...{ summa, cartExists, items, onSend: sendOrder }} />
+            {/* </div> */}
           </div>
-        ))
+        )
       )}
     </>
   );
@@ -58,7 +64,7 @@ const BasketTabs = ({
     <div>
       <Tab.Container activeKey={activeKey}>
         <div className="basket basket-card d-flex flex-column">
-          <div className="basket-header">
+          <div className="basket-header w-100">
             <Nav>
               {cartIsVisible && (
                 <Nav.Item className="flex-fill">

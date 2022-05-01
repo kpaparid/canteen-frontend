@@ -6,6 +6,7 @@ import {
   faEnvelopeOpenText,
   faFileSignature,
   faKitchenSet,
+  faList,
   faThumbsUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -271,30 +272,27 @@ const Order = ({
 };
 export const OrdersModal = ({ orders }) => {
   const [show, setShow] = useState(false);
-
   const handleClose = () => {
     setShow(false);
-    setActiveKey(orders.length === 1 ? "overview" : "orders");
   };
   const handleShow = () => setShow(true);
 
-  const sortedOrders = [...orders].sort((a, b) =>
-    moment(a.timestamp).isBefore(b.createdAt) ? 1 : -1
-  );
-  const [order, setOrder] = useState(orders.length === 1 ? orders[0] : null);
-  const [activeKey, setActiveKey] = useState(
-    orders.length === 1 ? "overview" : "orders"
-  );
-  const handleOrderClick = useCallback((o) => {
-    setOrder(o);
-    setActiveKey("overview");
-  }, []);
   return (
     <>
       {orders?.length !== 0 && (
-        <Button className="header-text basket-toggle-btn" onClick={handleShow}>
-          <FontAwesomeIcon icon={faFileSignature} />
-          <span className="px-4 basket-toggle-title">Bestellungen</span>
+        <Button
+          className="orders basket-toggle-btn d-flex justify-content-between align-items-center"
+          onClick={handleShow}
+        >
+          <div className="d-flex align-items-center">
+            <FontAwesomeIcon icon={faList} className="pe-2" />
+            <span className="header-text basket-toggle-title">
+              Bestellungen
+            </span>
+          </div>
+          <span className="basket-toggle-title bg-white rounded-circle px-2 text-primary fw-bolder">
+            {orders.length}
+          </span>
         </Button>
       )}
 
@@ -310,58 +308,6 @@ export const OrdersModal = ({ orders }) => {
           <span>Bestellungen</span>
         </Modal.Header>
         <OrdersBody orders={orders} />
-        {/* <div className="w-100 modal-body-wrapper">
-          <Tab.Container activeKey={activeKey}>
-            <Tab.Content>
-              {activeKey === "orders" && (
-                <Tab.Pane eventKey="orders" className="d-flex flex-column">
-                  <Modal.Body>
-                    {sortedOrders?.map((o) => {
-                      return (
-                        <Button
-                          variant="quinary"
-                          onClick={() => handleOrderClick(o)}
-                          className="d-flex justify-content-between px-2 my-1 mx-3 flex-nowrap align-items-center"
-                        >
-                          <div className="d-flex flex-column align-items-start font-small fw-bold">
-                            <span>Bestellnummer: {o.number}</span>
-                            <span>
-                              Uhr: {moment(o.createdAt).format("HH:mm")}
-                            </span>
-                          </div>
-                          <div
-                            className={`text-align-middle font-small fw-bold rounded p-2 bg-${o.status}`}
-                          >
-                            {o.status}
-                          </div>
-                        </Button>
-                      );
-                    })}
-                  </Modal.Body>
-                </Tab.Pane>
-              )}
-              {activeKey === "overview" && (
-                <Tab.Pane eventKey="overview">
-                  <Modal.Body>
-                    <OrderOverview {...order} />
-                  </Modal.Body>
-                  {orders.length !== 1 && (
-                    <Modal.Footer>
-                      <div className="d-flex pt-2">
-                        <Button
-                          className="m-auto header-text"
-                          onClick={() => setActiveKey("orders")}
-                        >
-                          View Orders
-                        </Button>
-                      </div>
-                    </Modal.Footer>
-                  )}
-                </Tab.Pane>
-              )}
-            </Tab.Content>
-          </Tab.Container>
-        </div> */}
       </Modal>
     </>
   );

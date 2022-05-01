@@ -263,6 +263,7 @@
 }
 .comment {
   .textarea-wrapper {
+    margin: 0 !important;
     height: 0;
     visibility: hidden;
     transition: all 0.5s linear 0s;
@@ -271,14 +272,17 @@
     height: auto;
     transition: all 0.5s linear 0s;
   }
+  textarea {
+    border: 2px solid lighten($primary, 45%);
+  }
 }
 
 .comment.open {
   .textarea-wrapper {
     visibility: visible;
-    height: 150px;
-    box-shadow: inset 0px 3px 8px 0 rgb(0 0 0 / 5%),
-      inset 0px -3px 9px 0 rgb(0 0 0 / 5%);
+    height: 116px;
+    // box-shadow: inset 0px 3px 8px 0 rgb(0 0 0 / 5%),
+    //   inset 0px -3px 9px 0 rgb(0 0 0 / 5%);
   }
   .comment-text {
     transition: all 0.5s linear 0s, opacity 0.1s linear 0s;

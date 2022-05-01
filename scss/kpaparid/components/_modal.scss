@@ -89,8 +89,8 @@
   textarea,
   select,
   .checkbox-wrapper {
-    box-shadow: rgb(0 0 0 / 15%) 0px 0px 7px 0px;
-    color: $dark;
+    // box-shadow: rgb(0 0 0 / 15%) 0px 0px 7px 0px;
+    // color: $dark;
     font-size: small;
   }
   .form-check-input {
@@ -121,17 +121,59 @@
     box-shadow: none;
   }
 }
+
 .count-wrapper {
+  transition: all ease 1s;
   align-items: center;
   display: flex;
   flex-wrap: nowrap;
   justify-content: space-between;
   margin: 0;
-  width: 90px;
+  // width: 35px;
+  // padding: 0.55rem 0.75rem;
+  background-color: transparent;
+  border-radius: 0.5rem;
   button {
-    height: 30px;
-    width: 30px;
+    border: 0;
+    height: 25px;
+    width: 0px;
+    display: none;
+    opacity: 0;
+    margin: 0;
   }
+  svg {
+    margin: 0;
+    opacity: 0;
+    width: 0px;
+  }
+  span {
+    border: 2px solid lighten($primary, 45%);
+    border-radius: 0.5rem;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+.count-wrapper.expanded {
+  background-color: lighten($primary, 50%) !important;
+  span {
+    border-color: transparent !important;
+    margin: 0 0.25rem;
+  }
+  svg,
+  button {
+    -webkit-animation: accumulator-expand 1s forwards;
+    animation: accumulator-expand 1s forwards;
+    margin: 0;
+    display: flex;
+  }
+  button {
+    margin: 0 0.5rem;
+  }
+}
+
+.basket .count-wrapper span {
+  padding: 0.25rem 0.75rem;
 }
 
 .modal-dialog.order {

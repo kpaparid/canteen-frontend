@@ -20,7 +20,7 @@ import {
 } from "../../reducer/redux2";
 import { formatPrice } from "../../utilities/utils";
 import { useSocket } from "../../hooks/orderHooks";
-import Accumulator from "../Accumulator";
+import { ExpandableAccumulator } from "../Accumulator";
 // eslint-disable-next-line react/display-name
 export const useCart = () => {
   const socket = useSocket();
@@ -67,19 +67,30 @@ export const CartModal = ({ items, summa, onSend }) => {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const formattedSumma = formatPrice(summa);
+
+  const number = items.reduce((a, b) => a + b.count, 0);
   return (
     <>
       {items.length !== 0 && (
         // <div className="cart-toggle">
-        <Button className="header-text basket-toggle-btn" onClick={handleShow}>
-          <FontAwesomeIcon icon={faCartShopping} />
-          <span
-            className="px-4 basket-toggle-title
+        <Button
+          className="basket-toggle-btn d-flex flex-nowrap justify-content-between align-items-center"
+          onClick={handleShow}
+        >
+          <div className="d-flex flex-nowrap">
+            <span className="bg-white fw-bolder px-2 text-primary rounded-circle">
+              {number}
+            </span>
+            <span
+              className="ps-2 basket-toggle-title header-text
             "
-          >
-            Warenkorb
+            >
+              Warenkorb
+            </span>
+          </div>
+          <span className="basket-toggle-price header-text">
+            {formattedSumma}
           </span>
-          <span className="basket-toggle-price">{formattedSumma}</span>
         </Button>
         // </div>
       )}
@@ -98,7 +109,7 @@ export const CartModal = ({ items, summa, onSend }) => {
         </Modal.Body>
         {items.length !== 0 && (
           <Modal.Footer>
-            <CartFooter summa={summa} onSend={onSend} />
+            <CartFooter number={number} summa={summa} onSend={onSend} />
           </Modal.Footer>
         )}
       </Modal>
@@ -107,6 +118,7 @@ export const CartModal = ({ items, summa, onSend }) => {
 };
 
 const CartCard = ({ items, summa, onSend }) => {
+  const number = items.reduce((a, b) => a + b.count, 0);
   return (
     <div className="cart">
       <Card.Body>
@@ -114,7 +126,7 @@ const CartCard = ({ items, summa, onSend }) => {
       </Card.Body>
       {items.length !== 0 && (
         <Card.Footer>
-          <CartFooter summa={summa} onSend={onSend} />
+          <CartFooter number={number} summa={summa} onSend={onSend} />
         </Card.Footer>
       )}
     </div>
@@ -141,12 +153,22 @@ const CartBody = ({ items }) => {
     </>
   );
 };
-const CartFooter = ({ summa, onSend }) => {
+const CartFooter = ({ number, summa, onSend }) => {
   const formattedSumma = formatPrice(summa);
   return (
     <>
-      <div className="d-flex w-100 pt-2">
-        <Button variant="primary" onClick={onSend} className="m-auto">
+      <div className="d-flex w-100">
+        <Button
+          variant="primary"
+          onClick={onSend}
+          className="flex-fill d-flex justify-content-between"
+        >
+          <div className="d-flex flex-nowrap">
+            <span className="me-2 fw-bolder px-2 rounded-circle bg-white text-primary">
+              {number}
+            </span>
+            <span className="header-text">Bestellen</span>
+          </div>
           <span className="header-text">{formattedSumma}</span>
         </Button>
       </div>
@@ -157,7 +179,10 @@ const CartFooter = ({ summa, onSend }) => {
 const CartItem = memo(
   ({ count: count = 1, extras, id, calculatedPrice, title, comment }) => {
     const dispatch = useDispatch();
-    const extrasText = extras.map(({ text }) => text)?.join(", ");
+    const extrasText = extras.map(({ title, options }) => ({
+      title,
+      options: options.map((o) => o.text)?.join(", "),
+    }));
     const handleIncrease = (v) =>
       dispatch(updateItemCountCart({ id, add: true }));
     const handleDecrease = (v) =>
@@ -168,11 +193,11 @@ const CartItem = memo(
     };
 
     return (
-      <div className="d-flex w-100 flex-wrap">
-        <div className="ps-4 col-8 m-0 font-small fw-bolder text-gray-900">
+      <div className="cart-item">
+        <div className="flex-fill m-0 font-small fw-bolder text-gray-900">
           {title}
         </div>
-        <div className="col-4 pe-4 text-end d-flex justify-content-end">
+        <div className="text-end d-flex justify-content-end">
           <Button
             variant="transparent"
             className="p-1 rounded-circle d-flex"
@@ -182,23 +207,28 @@ const CartItem = memo(
             <FontAwesomeIcon className="m-auto" icon={faClose} />
           </Button>
         </div>
-        {extras.length !== 0 && (
-          <div className="px-4 col-11 font-small text-gray-700">
-            Extras: {extrasText}
-          </div>
-        )}
+        <div className="w-100">
+          {extrasText.length !== 0 &&
+            extrasText.map((e) => (
+              <div className="font-small text-gray-700 d-flex flex-nowrap">
+                <div style={{ whiteSpace: "nowrap" }}>{e.title}:</div>
+                <div className="ps-1 flex-fill text-break text-wrap">
+                  {e.options}
+                </div>
+              </div>
+            ))}
+        </div>
         <Comment text={comment} onChange={handleCommentChange} />
-        <div className="col-8 pt-1 ps-4">
-          <Accumulator
+        <div className="flex-fill d-flex flex-nowrap justify-content-between">
+          <ExpandableAccumulator
             count={count}
             onIncrease={handleIncrease}
             onDecrease={handleDecrease}
           />
+          <div className="fw-bold font-small text-end d-flex align-items-end justify-content-end">
+            {formatPrice(calculatedPrice)}
+          </div>
         </div>
-        <div className="pe-4 font-small fw-bold col-4 m-0 text-end d-flex align-items-end justify-content-end">
-          {formatPrice(calculatedPrice)}
-        </div>
-        <div className="border-bottom w-100 m-3"></div>
       </div>
     );
   },
@@ -230,14 +260,14 @@ const Comment = ({ text: initialText, onChange }) => {
     <div className={`col-12 comment ${!show ? "" : "open"}`}>
       <Form.Label
         onClick={() => setShow((old) => !old)}
-        className="px-4 m-0 py-2 text-light-blue font-small fw-bold"
+        className="m-0 py-2 text-light-blue font-small fw-bold"
       >
         Anmerkung {!show && text ? "bearbeiten" : "hinzufügen"}
       </Form.Label>
-      <div className={`textarea-wrapper bg-octonary overflow-hidden `}>
-        <div className={`h-100 p-4 w-100`}>
+      <div className={`textarea-wrapper overflow-hidden`}>
+        <div className={`h-100 p-1 w-100`}>
           <Form.Control
-            className={`border-1 font-small w-100 border-gray-400`}
+            className={`border-1 font-small w-100`}
             onChange={handleDirectChange}
             as="textarea"
             rows={3}

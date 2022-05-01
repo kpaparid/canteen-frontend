@@ -85,12 +85,11 @@
   textarea {
     height: fit-content;
     resize: none;
+    border: 2px solid lighten($primary, 45%);
   }
   textarea,
   select,
   .checkbox-wrapper {
-    // box-shadow: rgb(0 0 0 / 15%) 0px 0px 7px 0px;
-    // color: $dark;
     font-size: small;
   }
   .form-check-input {

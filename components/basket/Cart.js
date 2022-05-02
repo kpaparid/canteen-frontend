@@ -20,7 +20,7 @@ import {
 } from "../../reducer/redux2";
 import { formatPrice } from "../../utilities/utils";
 import { useSocket } from "../../hooks/orderHooks";
-import { ExpandableAccumulator } from "../Accumulator";
+import Accumulator, { ExpandableAccumulator } from "../Accumulator";
 // eslint-disable-next-line react/display-name
 export const useCart = () => {
   const socket = useSocket();
@@ -164,7 +164,10 @@ const CartFooter = ({ number, summa, onSend }) => {
           className="flex-fill d-flex justify-content-between"
         >
           <div className="d-flex flex-nowrap">
-            <span className="me-2 fw-bolder px-2 rounded-circle bg-white text-primary">
+            <span
+              className="me-2 fw-bolder px-2 bg-white text-primary"
+              style={{ borderRadius: "35%" }}
+            >
               {number}
             </span>
             <span className="header-text">Bestellen</span>
@@ -177,7 +180,15 @@ const CartFooter = ({ number, summa, onSend }) => {
 };
 // eslint-disable-next-line react/display-name
 const CartItem = memo(
-  ({ count: count = 1, extras, id, calculatedPrice, title, comment }) => {
+  ({
+    count: count = 1,
+    extras,
+    id,
+    calculatedPrice,
+    title,
+    menuId,
+    comment,
+  }) => {
     const dispatch = useDispatch();
     const extrasText = extras.map(({ title, options }) => ({
       title,
@@ -194,7 +205,8 @@ const CartItem = memo(
 
     return (
       <div className="cart-item">
-        <div className="flex-fill m-0 font-small fw-bolder text-gray-900">
+        <div className="flex-fill m-0 d-flex align-items-end fw-bolder text-gray-900">
+          {menuId + ". "}
           {title}
         </div>
         <div className="text-end d-flex justify-content-end">
@@ -210,22 +222,22 @@ const CartItem = memo(
         <div className="w-100">
           {extrasText.length !== 0 &&
             extrasText.map((e) => (
-              <div className="font-small text-gray-700 d-flex flex-nowrap">
-                <div style={{ whiteSpace: "nowrap" }}>{e.title}:</div>
-                <div className="ps-1 flex-fill text-break text-wrap">
-                  {e.options}
-                </div>
+              <div className="font-small text-gray-700">
+                <span style={{ whiteSpace: "nowrap" }} className="fw-bold">
+                  {e.title}:
+                </span>
+                <div className="ms-4 text-break text-wrap">{e.options}</div>
               </div>
             ))}
         </div>
         <Comment text={comment} onChange={handleCommentChange} />
         <div className="flex-fill d-flex flex-nowrap justify-content-between">
-          <ExpandableAccumulator
+          <Accumulator
             count={count}
             onIncrease={handleIncrease}
             onDecrease={handleDecrease}
           />
-          <div className="fw-bold font-small text-end d-flex align-items-end justify-content-end">
+          <div className="flex-fill fw-bold text-end d-flex align-items-end justify-content-end">
             {formatPrice(calculatedPrice)}
           </div>
         </div>
@@ -260,12 +272,12 @@ const Comment = ({ text: initialText, onChange }) => {
     <div className={`col-12 comment ${!show ? "" : "open"}`}>
       <Form.Label
         onClick={() => setShow((old) => !old)}
-        className="m-0 py-2 text-light-blue font-small fw-bold"
+        className="m-0 p-0 text-light-blue font-small fw-bold"
       >
         Anmerkung {!show && text ? "bearbeiten" : "hinzufügen"}
       </Form.Label>
       <div className={`textarea-wrapper overflow-hidden`}>
-        <div className={`h-100 p-1 w-100`}>
+        <div className={`h-100 pt-1 ps-4 w-100`}>
           <Form.Control
             className={`border-1 font-small w-100`}
             onChange={handleDirectChange}

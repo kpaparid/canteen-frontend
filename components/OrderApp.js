@@ -166,6 +166,7 @@ const StyledWhiteButton = styled(Button)`
   padding-bottom: 0.25rem;
   font-size: 0.875rem;
   font-weight: 700;
+  min-width: 75px;
 `;
 
 const WhiteButton = ({ className = "", children, ...rest }) => (
@@ -525,7 +526,9 @@ const TitleRow = memo(
       <div className="flex-fill d-flex flex-nowrap px-1">
         <div className="flex-fill d-flex align-items-center">
           <span className="fw-bolder">{title}</span>
-          <span className="bg-dark fw-bold ms-2 px-2 text-white">{menuId}</span>
+          <span className="bg-dark fw-bold ms-2 px-2 text-white rounded">
+            {menuId}
+          </span>
         </div>
       </div>
     </>
@@ -539,8 +542,21 @@ const Extras = memo(
       <>
         <div className="flex-fill">
           {extras?.map((e) => (
-            <div className="col-12 d-flex flex-nowrap px-1">
-              <div className="flex-fill">{e.text}</div>
+            <div className="col-12 d-flex flex-column px-1">
+              <div className="fw-bold font-small">{e.title}:</div>
+              <div className="ps-3 flex-fill">
+                {e.options.map((o) => (
+                  <div
+                    style={{
+                      lineHeight: "16px",
+                      fontSize: "15px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    +{o.text}
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>

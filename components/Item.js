@@ -203,7 +203,7 @@ function FormSelect({ options, onChange }) {
 function FormRadio({ options, onChange }) {
   const [clicked, setClicked] = useState();
   function handleClick(e, o) {
-    onChange(o.price, o.text, e.target.checked);
+    onChange(o.price || 0, o.text, e.target.checked);
     setClicked(o.text);
   }
   return (
@@ -258,12 +258,14 @@ function FormMultiCheckbox({ options, onChange }) {
 
 function FormComponent({ type, onChange, title, ...rest }) {
   const [_, setState] = useState({ price: 0, options: [] });
-  function handleSelectChange(price, option) {
-    const obj = { price, title, options: [{ text: option, price }] };
+  function handleSelectChange(initialPrice, option) {
+    const price = initialPrice === null ? 0 : initialPrice;
+    const obj = { price, title, options: [{ text: option, price: price }] };
     setState(obj);
     onChange && onChange(obj);
   }
-  function handleMultiCheckbox(price, text, checked) {
+  function handleMultiCheckbox(initialPrice, text, checked) {
+    const price = initialPrice === null ? 0 : initialPrice;
     checked
       ? setState((old) => {
           const newState = {

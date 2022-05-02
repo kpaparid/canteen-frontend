@@ -195,7 +195,7 @@ const OrderOverview = memo(
           <Detail left="Preis:" right={formatPrice(price)} />
         </div>
         <div className="order-list">
-          <Accordion defaultActiveKey="0">
+          <Accordion defaultActiveKey="0" flush>
             {items.map((i, index) => (
               <Order
                 {...i}
@@ -211,8 +211,11 @@ const OrderOverview = memo(
   },
   isEqual
 );
-function CustomToggle({ children, eventKey }) {
-  const decoratedOnClick = useAccordionButton(eventKey);
+function CustomToggle({ children, eventKey, setActive }) {
+  const handleClick = () => {
+    setActive(eventKey);
+  };
+  const decoratedOnClick = useAccordionButton(eventKey, handleClick);
 
   return (
     <Button
@@ -232,32 +235,45 @@ const Order = ({
   extras,
   comment,
   calculatedPrice,
+  active,
+  setActive,
 }) => {
   return (
     <>
-      <CustomToggle eventKey={index}>
-        <div className="d-flex justify-content-around align-items-end pe-1">
-          <div className="flex-fill text-start d-flex flex-nowrap font-small fw-bold">
-            <div className="text-start" style={{ minWidth: "23px" }}>
-              {count}x
+      <Accordion.Item eventKey={index}>
+        <Accordion.Header>
+          <div
+            className={`d-flex justify-content-around align-items-end pe-1 ${
+              active === index ? "text-primary" : ""
+            }`}
+          >
+            <div className="flex-fill text-start d-flex flex-nowrap font-small fw-bold">
+              <div className="text-start" style={{ minWidth: "23px" }}>
+                {count}x
+              </div>
+              <div className="ps-1 flex-fill text-break break-wrap">
+                {title}
+              </div>
             </div>
-            <div className="ps-1 flex-fill text-break break-wrap">{title}</div>
+            {(extras?.length !== 0 || comment) && (
+              <FontAwesomeIcon
+                icon={faAngleDown}
+                className="px-3"
+              ></FontAwesomeIcon>
+            )}
           </div>
-          {(extras.length !== 0 || comment) && (
-            <FontAwesomeIcon icon={faAngleDown}></FontAwesomeIcon>
-          )}
-        </div>
-      </CustomToggle>
-      <Accordion.Collapse eventKey={index} className="font-small">
-        <>
+        </Accordion.Header>
+        <Accordion.Body>
           {extras?.length !== 0 && (
             <div className="col-12">
-              {extras?.map((e) => (
-                <div className="col-12 d-flex flex-nowrap">
-                  <div style={{ minWidth: "23px" }}></div>
-                  <div className="ps-2 flex-fill">+ {e.text}</div>
-                </div>
-              ))}
+              {extras
+                ?.reduce((a, b) => [...a, ...b.options], [])
+                ?.map((e) => (
+                  <div className="col-12 d-flex flex-nowrap">
+                    <div style={{ minWidth: "23px" }}></div>
+                    <div className="ps-2 flex-fill">+ {e.text}</div>
+                  </div>
+                ))}
             </div>
           )}
           {comment && (
@@ -265,8 +281,8 @@ const Order = ({
               <i>{comment}</i>
             </div>
           )}
-        </>
-      </Accordion.Collapse>
+        </Accordion.Body>
+      </Accordion.Item>
     </>
   );
 };

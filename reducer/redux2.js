@@ -24,7 +24,9 @@ const settingsAdapter = createEntityAdapter();
 export const fetchMeals = createAsyncThunk("data/fetchMeals", async () => {
   const url = process.env.BACKEND_URI;
   return await fetch(url + "meals").then((res) =>
-    res.json().then((r) => r.data)
+    res.json().then((r) => {
+      return r.data;
+    })
   );
 });
 export const fetchCategories = createAsyncThunk(
@@ -50,7 +52,11 @@ export const fetchOrders = createAsyncThunk(
   "data/fetchOrders",
   async ({ suffix = "" }) => {
     const url = process.env.BACKEND_URI + "orders" + suffix;
-    return await fetch(url).then((res) => res.json().then((r) => r.data));
+    return await fetch(url).then((res) =>
+      res.json().then((r) => {
+        return r.data;
+      })
+    );
   }
 );
 export const openCloseShop = createAsyncThunk(
@@ -71,7 +77,6 @@ export const openCloseShop = createAsyncThunk(
     };
     return await fetch(url, options).then((res) =>
       res.json().then((r) => {
-        console.log("hi");
         return r.data;
       })
     );
@@ -85,7 +90,9 @@ export const postOrders = createAsyncThunk("data/postOrders", async (body) => {
     body: JSON.stringify(body),
   };
   return await fetch(url + "orders", options).then((res) =>
-    res.json().then((r) => r.data)
+    res.json().then((r) => {
+      return r.data;
+    })
   );
 });
 export const changeOrderStatus = createAsyncThunk(

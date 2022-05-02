@@ -74,13 +74,20 @@
 }
 
 .modal-dashboard .dashboard-btn-close {
-  position: fixed;
-  top: 10px;
-  right: 10px;
+  // position: relative;
+  // top: -26px;
+  // right: -20px;
   &:hover,
   &:focus {
     box-shadow: 0 0 0 0.2rem rgb(0 0 0 / 25%) !important;
   }
+  // @include media-breakpoint-down(sm) {
+  //   .dashboard-btn-close {
+  //     top: 5px;
+  //     right: 10px;
+  //     padding: 0;
+  //   }
+  // }
 }
 .dashboard-sidebar-btn-group {
   display: flex;

@@ -232,7 +232,7 @@ const OrderModal = memo(({ status, ...rest }) => {
         backdropClassName="opacity-0"
         fullscreen
       >
-        <OrderContent {...rest} onNext={handleNext} />
+        <OrderContent {...rest} onNext={handleNext} onClose={handleClose} />
       </Modal>
     </>
   );
@@ -287,11 +287,22 @@ const OrderOverview = memo(
     cancel,
     acceptText = "Accept Order",
     cancelText = "Cancel Order",
+    onClose,
   }) => {
     return (
       <>
-        <Modal.Header className="border-dark">
-          <div className="d-flex justify-content-between flex-nowrap flex-fill">
+        <Modal.Header className="border-dark d-block pt-0 px-0">
+          <div className="flex-fill d-flex justify-content-end">
+            <Button
+              variant="transparent"
+              onClick={onClose}
+              className="dashboard-btn-close p-0 px-2"
+              style={{ height: "fit-content" }}
+            >
+              <FontAwesomeIcon icon={faClose}></FontAwesomeIcon>
+            </Button>
+          </div>
+          <div className="d-flex justify-content-between flex-nowrap flex-fill px-4">
             <div>
               <div className="font-large fw-bolder">{user}</div>
               <div className="fw-bold">{number}</div>
@@ -309,13 +320,6 @@ const OrderOverview = memo(
               >
                 <FontAwesomeIcon icon={faEllipsisVertical}></FontAwesomeIcon>
               </Button>
-              <Button
-                variant="transparent"
-                onClick={() => setKey("2")}
-                className="dashboard-btn-close"
-              >
-                <FontAwesomeIcon icon={faClose}></FontAwesomeIcon>
-              </Button>
             </div>
           </div>
         </Modal.Header>
@@ -329,7 +333,7 @@ const OrderOverview = memo(
             <WhiteButton variant="dark">{formatPrice(price)}</WhiteButton>
           </div>
         </Modal.Body>
-        <Modal.Footer className="d-flex px-0 pb-4 justify-content-center align-items-center border-dark flex-wrap">
+        <Modal.Footer className="d-flex px-0 pb-2 justify-content-center align-items-center border-dark flex-wrap">
           {cancel && (
             <WhiteButton variant="white" onClick={onCancel}>
               {cancelText}
@@ -487,8 +491,8 @@ const Item = memo(
       <>
         <div className="item-row">
           <div className="d-flex justify-content-center align-items-center">
-            <WhiteButton>
-              <div style={{ minWidth: "25px" }}>{count}x</div>
+            <WhiteButton style={{ minWidth: "25px" }}>
+              <div>{count}x</div>
             </WhiteButton>
           </div>
           <div className="px-4 flex-fill d-flex flex-column justify-content-center">
@@ -507,7 +511,7 @@ const Item = memo(
             {comment && <Comment comment={comment} />}
           </div>
           {length > 1 && (
-            <div className="item-price">
+            <div className="item-price my-2">
               <WhiteButton variant="white">
                 {formatPrice(calculatedPrice)}
               </WhiteButton>
@@ -526,7 +530,10 @@ const TitleRow = memo(
       <div className="flex-fill d-flex flex-nowrap px-1">
         <div className="flex-fill d-flex align-items-center">
           <span className="fw-bolder">{title}</span>
-          <span className="bg-dark fw-bold ms-2 px-2 text-white rounded">
+          <span
+            className="bg-dark fw-bold ms-2 px-2 text-white rounded"
+            style={{ height: "fit-content" }}
+          >
             {menuId}
           </span>
         </div>

@@ -2,15 +2,15 @@ import Head from "next/head";
 import "../scss/kpaparid.scss";
 import "../styles/globals.css";
 
-import { Provider } from "react-redux";
-// import { createStore } from "../reducer/store";
 import { wrapper } from "../reducer/redux2";
 import { SSRProvider } from "react-bootstrap";
 
 const WrappedApp = ({ Component, pageProps }) => {
   return (
     <SSRProvider>
-      <Head><meta name="color-scheme" content="light dark"/></Head>
+      <Head>
+        <meta name="color-scheme" content="light dark" />
+      </Head>
       <Component {...pageProps} />
     </SSRProvider>
   );

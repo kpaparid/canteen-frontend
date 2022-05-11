@@ -34,10 +34,6 @@ export default function Menu({}) {
   const [activeCategory, setActiveCategory] = useState();
 
   useEffect(() => {
-    console.log(activeCategory);
-  }, [activeCategory]);
-
-  useEffect(() => {
     itemsRef.current = itemsRef.current.slice(0, categories.length);
   }, [categories]);
 

@@ -6,19 +6,15 @@ const { useEffect, useState } = require("react");
 
 export function useSocket() {
   const [socket, setSocket] = useState(null);
-
-  useEffect(() => {
-    const k = process.env.BACKEND_URI;
-    console.log(k);
+  const connect = () => {
     const socketIo = io(process.env.BACKEND_URI).connect();
-
+    console.log("connected", socketIo);
     setSocket(socketIo);
-    console.log("setting socket", socketIo);
-    function cleanup() {
-      socketIo.disconnect();
-    }
-    return cleanup;
+    return socketIo;
+  };
+  useEffect(() => {
+    return socket?.disconnect();
   }, []);
 
-  return socket;
+  return { socket, connect };
 }

@@ -131,7 +131,7 @@ const OrderStatus = memo(({ status }) => {
         {status !== "canceled" && (
           <Nav className="w-100 py-2">
             {statusVariants.map((s, index) => (
-              <CustomNav eventKey={s} index={index} />
+              <CustomNav eventKey={s} key={s} index={index} />
             ))}
           </Nav>
         )}
@@ -197,12 +197,7 @@ const OrderOverview = memo(
         <div className="order-list">
           <Accordion defaultActiveKey="0" flush>
             {items.map((i, index) => (
-              <Order
-                {...i}
-                index={index}
-                key={i.itemId}
-                length={items.length}
-              />
+              <Order {...i} index={index} key={i.id} length={items.length} />
             ))}
           </Accordion>
         </div>
@@ -269,7 +264,7 @@ const Order = ({
               {extras
                 ?.reduce((a, b) => [...a, ...b.options], [])
                 ?.map((e) => (
-                  <div className="col-12 d-flex flex-nowrap">
+                  <div className="col-12 d-flex flex-nowrap" key={e.text}>
                     <div style={{ minWidth: "23px" }}></div>
                     <div className="ps-2 flex-fill">+ {e.text}</div>
                   </div>

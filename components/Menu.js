@@ -1,3 +1,5 @@
+import { faBurger } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { debounce, isEqual } from "lodash";
 import Image from "next/image";
 import React, {
@@ -11,27 +13,32 @@ import React, {
 } from "react";
 import { Button } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
+import styledComponents from "styled-components";
+import { useAuth } from "../contexts/AuthContext";
 // import { menu } from "../data/menu";
 import {
   itemAddedCart,
   selectAllActiveCategories,
-  selectAllCategories,
   selectAllMealsByCategory,
 } from "../reducer/redux2";
 import { formatPrice } from "../utilities/utils";
 import Basket from "./basket/Basket";
-import Cart from "./basket/Cart";
 import Header from "./Header";
 import Item from "./Item";
+import useApi from "../hooks/useAPI";
 
-export default function Menu({}) {
+export default function Menu(props) {
   const itemsRef = useRef([]);
   const ref = useRef();
-
   const dispatch = useDispatch();
+  const [activeCategory, setActiveCategory] = useState();
   const categories = useSelector(selectAllActiveCategories);
   const menu = useSelector(selectAllMealsByCategory);
-  const [activeCategory, setActiveCategory] = useState();
+  const { fetchUserTodaysOrders } = useApi();
+
+  useEffect(() => {
+    dispatch(fetchUserTodaysOrders());
+  }, []);
 
   useEffect(() => {
     itemsRef.current = itemsRef.current.slice(0, categories.length);
@@ -49,8 +56,6 @@ export default function Menu({}) {
     (id) => {
       itemsRef.current[id].scrollIntoView({
         behavior: "smooth",
-        // top: itemsRef.current[id].offsetTop + 80,
-        // alignToTop: true,
         block: "start",
         inline: "nearest",
       });
@@ -99,7 +104,7 @@ export default function Menu({}) {
     <div className="h-100 overflow-auto" ref={ref} onScroll={debouncedCallback}>
       <Header />
       <div className="menu-banner">Speisekarte</div>
-      <div className="d-flex bg-white">
+      <div className="d-flex bg-octonary">
         <div className="h-100 m-auto flex-column flex-fill">
           <div className="menu-wrapper">
             <CategoriesNavbar
@@ -157,9 +162,9 @@ const SubCategory = forwardRef(({ items, category, onClick, ...rest }, ref) => {
         photoURL={items.photoURL}
         title={items.title}
       />
-      <div className="bg-white rounded meal-list">
+      <div className="rounded meal-list">
         {items?.data.map((i) => (
-          <ItemModal key={i.id} {...i} {...rest} />
+          <DetailsItem key={i.id} {...i} {...rest} />
         ))}
       </div>
     </div>
@@ -205,7 +210,7 @@ function CategoryTitle({ title, text, photoURL }) {
   );
 }
 
-function ItemModal(props) {
+function DetailsItem(props) {
   const { name, description, photoURL, price, uid, withFoto = false } = props;
 
   const formattedPrice = formatPrice(price);
@@ -259,3 +264,73 @@ function ItemModal(props) {
     </>
   );
 }
+
+function BoxItem(props) {
+  const { name, description, photoURL, price, uid } = props;
+
+  const formattedPrice = formatPrice(price);
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+  return (
+    <>
+      <StyledBoxItem onClick={handleShow} className="col-5">
+        <div className="box-wrapper">
+          {photoURL ? (
+            <div className="image-wrapper">
+              <Image src={photoURL} alt="error" layout="fill" />
+            </div>
+          ) : (
+            <div className="image-wrapper">
+              <div className="p-5 w-100 h-100">
+                <FontAwesomeIcon
+                  className="w-100 h-100 text-primary"
+                  icon={faBurger}
+                />
+              </div>
+            </div>
+          )}
+          <div className="p-2 d-flex flex-nowrap justify-content-between align-items-center">
+            <span className="fw-bolder text-gray-900 meal-title">
+              {uid}. {name}
+            </span>
+            <span className="d-flex font-bolder text-white p-2 meal-price bg-primary rounded">
+              {formattedPrice}
+            </span>
+          </div>
+        </div>
+      </StyledBoxItem>
+
+      <Item {...props} show={show} onClose={handleClose} onShow={handleShow} />
+    </>
+  );
+}
+
+const StyledBoxItem = styledComponents.div`
+display: flex;
+justify-content: center;
+align-items: center;
+flex-wrap: nowrap;
+margin: 1rem;
+.box-wrapper{
+  width: 100%;
+  background-color: white;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+.image-wrapper{
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  height: 100%;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  img {
+    width: 100%;
+    height: 100%;
+    position: relative !important;
+    object-fit: cover;
+  }
+}
+`;

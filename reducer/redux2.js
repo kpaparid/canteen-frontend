@@ -21,7 +21,7 @@ const cartItemsAdapter = createEntityAdapter();
 const ordersAdapter = createEntityAdapter();
 const settingsAdapter = createEntityAdapter();
 
-export const fetchMeals = createAsyncThunk("data/fetchMeals", async () => {
+export const fetchMeals = createAsyncThunk("data/fetchMeals", async (props) => {
   const url = process.env.BACKEND_URI;
   return await fetch(url + "meals").then((res) =>
     res.json().then((r) => {
@@ -50,9 +50,9 @@ export const fetchSettings = createAsyncThunk(
 );
 export const fetchOrders = createAsyncThunk(
   "data/fetchOrders",
-  async ({ suffix = "" }) => {
+  async ({ suffix = "", customFetch = fetch }) => {
     const url = process.env.BACKEND_URI + "orders" + suffix;
-    return await fetch(url).then((res) =>
+    return await customFetch(url).then((res) =>
       res.json().then((r) => {
         return r.data;
       })
@@ -183,7 +183,7 @@ export const subjectSlice = createSlice({
       };
     },
     [fetchMeals.fulfilled](state, { payload }) {
-      mealsAdapter.upsertMany(state.meals, payload);
+      mealsAdapter.upsertMany(state.meals, payload || []);
     },
     [fetchCategories.fulfilled](state, { payload, meta: { arg } }) {
       const categories = mapSettingsToCategories({
@@ -197,7 +197,7 @@ export const subjectSlice = createSlice({
       settingsAdapter.upsertMany(state.settings, settings);
     },
     [fetchOrders.fulfilled](state, { payload }) {
-      ordersAdapter.upsertMany(state.orders, payload);
+      payload && ordersAdapter.upsertMany(state.orders, payload);
     },
     [fetchOrders.rejected](state, { payload }) {
       const orders = [

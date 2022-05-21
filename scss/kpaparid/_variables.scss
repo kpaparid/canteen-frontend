@@ -121,6 +121,8 @@ $canceled: #f05945;
 $default: $primary;
 
 $light-tertiary: lighten($tertiary, 15%);
+$light-nonary: lighten($nonary, 5%);
+$very-light-nonary: lighten($nonary, 15%);
 $very-light-tertiary: lighten($tertiary, 25%);
 $light-senary: lighten($senary, 15%);
 $very-light-senary: lighten($senary, 20%);
@@ -137,7 +139,6 @@ $ct-series-colors: (
   #ffffff,
   #17a5ce
 );
-
 
 // Mobile landing color scheme
 $primary-app: #ebf4f6;
@@ -208,6 +209,8 @@ $theme-colors: map-merge(
     "secondary-app": $secondary-app,
     "very-light-blue": $very-light-blue,
     "light-blue": $light-blue,
+    "very-light-nonary": $very-light-nonary,
+    "light-nonary": $light-nonary,
     "light-tertiary": $light-tertiary,
     "very-light-tertiary": $very-light-tertiary,
     "light-senary": $light-senary,

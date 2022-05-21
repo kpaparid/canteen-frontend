@@ -21,9 +21,11 @@ import {
 import { formatPrice } from "../../utilities/utils";
 import { useSocket } from "../../hooks/orderHooks";
 import Accumulator, { ExpandableAccumulator } from "../Accumulator";
+import { useAuth } from "../../contexts/AuthContext";
 // eslint-disable-next-line react/display-name
 export const useCart = () => {
-  const socket = useSocket();
+  const { socket, connect } = useSocket();
+  const { currentUser } = useAuth();
   const items = useSelector(selectCart);
   const cartExists = items?.length !== 0;
   const empty = !items?.length !== 0;
@@ -31,19 +33,17 @@ export const useCart = () => {
   const summa = items && items?.reduce((a, b) => a + b.calculatedPrice, 0);
 
   const handleSendOrder = useCallback(async () => {
-    dispatch(postOrders({ items: items, user: "kostas" })).then(() =>
-      socket.emit("send_order", { test: "hi" })
-    );
+    dispatch(
+      postOrders({
+        items: items,
+        user: currentUser,
+      })
+    ).then(() => {
+      !socket
+        ? connect().emit("send_order", { test: "hi" })
+        : socket.emit("send_order", { test: "hi" });
+    });
   }, [socket, items]);
-
-  useEffect(() => {
-    function handleEvent(payload) {
-      console.log(payload);
-    }
-    if (socket) {
-      socket.on("updated_order", handleEvent);
-    }
-  }, [socket]);
 
   return {
     summa,

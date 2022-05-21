@@ -41,11 +41,6 @@ const Item = memo(
       const calculatedPrice = data
         ? Object.keys(data).reduce((a, b) => a + data[b].price, price)
         : price;
-      // const calculatedExtras =
-      //   data && Object.keys(data).reduce((a, b) => [...a, ...data[b]], []);
-
-      // const calculatedExtras =
-      //   data && Object.keys(data).reduce((a, b) => {}, []);
       const formattedPrice = formatPrice(calculatedPrice * count);
       const clearState = () => {
         setCount(initialCount);

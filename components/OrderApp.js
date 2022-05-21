@@ -16,18 +16,16 @@ import { Button, Modal, Tab } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { useSocket } from "../hooks/orderHooks";
-import {
-  changeOrderStatus,
-  fetchOrders,
-  selectAllOrdersByCategory,
-} from "../reducer/redux2";
+import useAPI from "../hooks/useAPI";
+import { changeOrderStatus } from "../reducer/redux2";
 import { formatPrice } from "../utilities/utils";
+import BellAlertModal from "./BellAlertModal";
 import OpenClosed from "./OpenClosed";
 import SideBar from "./Sidebar";
 
-export default function Dashboard() {
-  // const shopEnabled = useSelector((state) => state.shop.enabled);
+export default function Dashboard({ orders, socket }) {
   const shopEnabled = true;
+  // const shopEnabled = useSelector((state) => state.shop.enabled);
   const [activeKey, setActiveKey] = useState("home");
 
   return (
@@ -38,20 +36,24 @@ export default function Dashboard() {
           activeKey={activeKey}
           shopEnabled={shopEnabled}
         />
-        <DashboardContent activeKey={activeKey} shopEnabled={shopEnabled} />
+        <DashboardContent
+          activeKey={activeKey}
+          shopEnabled={shopEnabled}
+          orders={orders}
+          socket={socket}
+        />
       </div>
     </>
   );
 }
 
-const DashboardContent = memo(({ activeKey, shopEnabled }) => {
-  const socket = useSocket();
+const DashboardContent = memo(({ activeKey, shopEnabled, orders, socket }) => {
+  const dispatch = useDispatch();
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-
-  const orders = useSelector(selectAllOrdersByCategory);
   const [show, setShow] = useState(false);
-  const dispatch = useDispatch();
+  const { fetchTodaysOrders } = useAPI();
+
   const handleStatusChange = useCallback((id, body) => {
     dispatch(changeOrderStatus({ id, body }));
   }, []);
@@ -76,35 +78,19 @@ const DashboardContent = memo(({ activeKey, shopEnabled }) => {
     if (socket) {
       socket.on("received_order", (data) => {
         console.log(`received order in admin ${data}`);
-        dispatch(fetchOrders()).then(() => setShow(true));
+        dispatch(fetchTodaysOrders()).then(() => handleShow());
       });
     }
   }, [socket]);
   return (
     <>
-      {shopEnabled && (
-        <Modal
-          show={show}
-          onHide={handleClose}
-          centered
-          fullscreen
-          contentClassName="d-flex justify-content-center align-items-center bg-pulse-nonary-pending"
-        >
-          <div className="h-100 w-100 d-flex" onClick={handleClose}>
-            <FontAwesomeIcon
-              className="swing m-auto"
-              icon={faBell}
-              size="9x"
-            ></FontAwesomeIcon>
-          </div>
-        </Modal>
-      )}
+      {shopEnabled && <BellAlertModal show={show} onClose={handleClose} />}
       <div className="dashboard-content">
         <Tab.Container activeKey={activeKey} className="w-100">
           <Tab.Content className="px-5 m-auto w-100">
             {activeKey === "home" && (
               <Tab.Pane eventKey="home">
-                <Home></Home>
+                <Home />
               </Tab.Pane>
             )}
             {shopEnabled && activeKey === "pending" && (
@@ -213,7 +199,7 @@ const OrderModal = memo(({ status, ...rest }) => {
       >
         <div className="d-flex py-2 px-4 justify-content-between align-items-center">
           <div className="text-start">
-            <div className="fw-bolder">{user}</div>
+            <div className="fw-bolder">{user.displayName || user.email}</div>
             <div className="text-truncate">{number}</div>
           </div>
           <div>
@@ -296,7 +282,7 @@ const OrderOverview = memo(
             <Button
               variant="transparent"
               onClick={onClose}
-              className="dashboard-btn-close p-0 px-2"
+              className="dashboard-btn-close p-0 px-2 m-1 rounded-circle"
               style={{ height: "fit-content" }}
             >
               <FontAwesomeIcon icon={faClose}></FontAwesomeIcon>
@@ -304,7 +290,9 @@ const OrderOverview = memo(
           </div>
           <div className="d-flex justify-content-between flex-nowrap flex-fill px-4">
             <div>
-              <div className="font-large fw-bolder">{user}</div>
+              <div className="font-large fw-bolder">
+                {user.displayName || user.email}
+              </div>
               <div className="fw-bold">{number}</div>
             </div>
             <div className="d-flex flex-wrap justify-content-end align-items-center">

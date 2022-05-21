@@ -8,13 +8,11 @@ import {
   fetchOrders,
   wrapper,
 } from "../reducer/redux2";
-import { addDays, format, formatISO } from "date-fns";
+import { format } from "date-fns";
 
 export default function Home(props) {
-  console.log("State on render", useStore().getState(), props);
   return (
     <div className="h-100 bg-white">
-      {/* <Header /> */}
       <Menu {...props} />
     </div>
   );
@@ -26,14 +24,14 @@ export const getServerSideProps = wrapper.getServerSideProps(
       const shop = store
         .dispatch(fetchMeals())
         .then(({ payload }) => store.dispatch(fetchCategories(payload)));
-      const date = format(new Date(), "yyyy-MM-dd") + "T00:00:00.000Z";
-      const user = "kostas";
+      // const date = format(new Date(), "yyyy-MM-dd") + "T00:00:00.000Z";
+      // const user = "kostas";
       const promises = [
-        store.dispatch(
-          fetchOrders({
-            suffix: `?createdAt_gte=${date}&user=${user}`,
-          })
-        ),
+        // store.dispatch(
+        //   fetchOrders({
+        //     suffix: `?createdAt_gte=${date}&user=${user}`,
+        //   })
+        // ),
         shop,
       ];
       await Promise.all(promises);

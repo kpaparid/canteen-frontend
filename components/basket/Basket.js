@@ -1,6 +1,6 @@
 import { isEqual } from "lodash";
 import { memo, useEffect, useState } from "react";
-import { Col, Nav, Tab, Modal, Row } from "react-bootstrap";
+import { Col, Nav, Tab } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import { useMediaQuery } from "react-responsive";
 import Cart, { CartModal, useCart } from "./Cart";
@@ -32,11 +32,9 @@ const Basket = memo((props) => {
               cartExists && ordersExist ? "double" : ""
             }`}
           >
-            {/* <div className="d-flex flex-nowrap justify-content-between align-items-center flex-fill"> */}
             <OrdersModal {...{ orders, ordersExist }} />
             {cartExists && ordersExist && <div className="divider"></div>}
             <CartModal {...{ summa, cartExists, items, onSend: sendOrder }} />
-            {/* </div> */}
           </div>
         )
       )}
@@ -58,7 +56,7 @@ const BasketTabs = ({
 
   useEffect(() => {
     cartIsVisible ? setActiveKey("cart") : setActiveKey("orders");
-  }, [items, cartExists]);
+  }, [items, cartIsVisible]);
 
   return (
     <div>

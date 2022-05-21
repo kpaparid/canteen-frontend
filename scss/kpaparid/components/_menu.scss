@@ -51,6 +51,7 @@
 }
 .meal-item {
   cursor: pointer;
+  box-shadow: 2px 2px 4px 3px rgb(0 0 0 / 13%);
 }
 .meal-title {
 }
@@ -325,7 +326,7 @@
 }
 .basket {
   height: fit-content;
-  box-shadow: 4px 3px 9px 4px rgb(0 0 0 / 13%);
+  box-shadow: 2px 2px 4px 3px rgb(0 0 0 / 13%);
   border-radius: 0.4375rem;
   min-width: 300px;
   overflow: hidden;

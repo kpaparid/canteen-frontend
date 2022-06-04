@@ -1,8 +1,10 @@
 import { isEqual } from "lodash";
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { Col, Nav, Tab } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import { useMediaQuery } from "react-responsive";
+import { useAuth } from "../../contexts/AuthContext";
+import { useSocket } from "../../contexts/SocketContext";
 import Cart, { CartModal, useCart } from "./Cart";
 import Orders, { OrdersModal, useOrders } from "./Orders";
 // eslint-disable-next-line react/display-name
@@ -15,15 +17,22 @@ export const useRightSideBar = () => {
 
 const Basket = memo((props) => {
   const isBigScreen = useMediaQuery({ query: "(min-width: 992px)" });
-
   const { orders, ordersExist } = useOrders();
-  const { summa, cartExists, items, sendOrder } = useCart();
+  const { summa, cartExists, items, sendOrder, addTime } = useCart();
 
   return (
     <>
       {isBigScreen ? (
         <BasketTabs
-          {...{ orders, ordersExist, summa, cartExists, items, sendOrder }}
+          {...{
+            orders,
+            ordersExist,
+            summa,
+            cartExists,
+            items,
+            sendOrder,
+            addTime,
+          }}
         />
       ) : (
         (cartExists || ordersExist) && (
@@ -34,7 +43,9 @@ const Basket = memo((props) => {
           >
             <OrdersModal {...{ orders, ordersExist }} />
             {cartExists && ordersExist && <div className="divider"></div>}
-            <CartModal {...{ summa, cartExists, items, onSend: sendOrder }} />
+            <CartModal
+              {...{ summa, cartExists, items, onSend: sendOrder, addTime }}
+            />
           </div>
         )
       )}
@@ -49,6 +60,7 @@ const BasketTabs = ({
   cartExists,
   items,
   sendOrder,
+  addTime,
 }) => {
   const cartIsVisible = !(ordersExist && !cartExists);
   const defaultKey = !cartIsVisible ? "orders" : "cart";
@@ -65,44 +77,41 @@ const BasketTabs = ({
           <div className="basket-header w-100">
             <Nav>
               {cartIsVisible && (
-                <Nav.Item className="flex-fill">
-                  <Nav.Link
-                    className="basket-tab"
-                    as={Button}
-                    eventKey="cart"
-                    onClick={() => setActiveKey("cart")}
-                  >
-                    Warenkorb
-                  </Nav.Link>
-                </Nav.Item>
+                <Button
+                  className="basket-tab flex-fill"
+                  variant={
+                    activeKey === "cart" ? "primary header-text" : "white"
+                  }
+                  onClick={() => setActiveKey("cart")}
+                >
+                  Warenkorb
+                </Button>
               )}
               {ordersExist && (
-                <Nav.Item className="flex-fill">
-                  <Nav.Link
-                    className="basket-tab"
-                    as={Button}
-                    eventKey="orders"
-                    onClick={() => setActiveKey("orders")}
-                  >
-                    Orders
-                  </Nav.Link>
-                </Nav.Item>
+                <Button
+                  className="basket-tab flex-fill"
+                  variant={
+                    activeKey === "orders" ? "primary header-text" : "white"
+                  }
+                  onClick={() => setActiveKey("orders")}
+                >
+                  Orders
+                </Button>
               )}
             </Nav>
           </div>
           <Col sm={12}>
-            <Tab.Content>
-              {cartIsVisible && activeKey === "cart" && (
-                <Tab.Pane eventKey="cart">
-                  <Cart items={items} summa={summa} onSend={sendOrder} />
-                </Tab.Pane>
-              )}
-              {ordersExist && activeKey === "orders" && (
-                <Tab.Pane eventKey="orders">
-                  <Orders orders={orders} />
-                </Tab.Pane>
-              )}
-            </Tab.Content>
+            {cartIsVisible && activeKey === "cart" && (
+              <Cart
+                items={items}
+                summa={summa}
+                onSend={sendOrder}
+                addTime={addTime}
+              />
+            )}
+            {ordersExist && activeKey === "orders" && (
+              <Orders orders={orders} />
+            )}
           </Col>
         </div>
       </Tab.Container>

@@ -18,7 +18,7 @@ import styled from "styled-components";
 import { useSocket } from "../hooks/orderHooks";
 import useAPI from "../hooks/useAPI";
 import { changeOrderStatus } from "../reducer/redux2";
-import { formatPrice } from "../utilities/utils";
+import { formatPrice } from "../utilities/utils.mjs";
 import BellAlertModal from "./BellAlertModal";
 import OpenClosed from "./OpenClosed";
 import SideBar from "./Sidebar";

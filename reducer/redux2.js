@@ -115,11 +115,14 @@ export const subjectSlice = createSlice({
   initialState: {
     meals: mealsAdapter.getInitialState(),
     categories: categoriesAdapter.getInitialState(),
-    cart: { items: cartItemsAdapter.getInitialState() },
+    cart: { items: cartItemsAdapter.getInitialState(), time: null },
     orders: ordersAdapter.getInitialState(),
     settings: ordersAdapter.getInitialState(),
   },
   reducers: {
+    addTime: (state, action) => {
+      state.cart.time = action.payload;
+    },
     addCommentCart: (state, action) => {
       const alreadyExists = cartItemsAdapter
         .getSelectors()
@@ -258,6 +261,7 @@ export const subjectSlice = createSlice({
     [postOrders.fulfilled](state, { payload }) {
       ordersAdapter.upsertMany(state.orders, payload);
       cartItemsAdapter.removeAll(state.cart.items);
+      state.cart.time = null;
     },
 
     [openCloseShop.fulfilled](state, { meta: { arg } }) {
@@ -267,12 +271,9 @@ export const subjectSlice = createSlice({
       });
     },
     [changeOrderStatus.fulfilled](state, { payload, meta }) {
-      const {
-        body: { status },
-        id,
-      } = meta.arg;
+      const { body, id } = meta.arg;
       // const items = cartItemsSelectors.selectAll(state);
-      ordersAdapter.upsertOne(state.orders, { id, status });
+      ordersAdapter.upsertOne(state.orders, { id, ...body });
       // cartItemsAdapter.removeAll(state.cart.items);
     },
   },
@@ -284,6 +285,7 @@ export const {
   removeItemCart,
   updateItemCountCart,
   addCommentCart,
+  addTime,
 } = actions;
 const makeStore = () =>
   configureStore({
@@ -373,6 +375,12 @@ export const selectAllOrdersByCategory = createSelector(
     );
   }
 );
+export const selectAllUserIDs = createSelector([selectOrders], (orders) => {
+  return orders?.map((o) => o.user.uid);
+});
+export const selectAllCustomers = createSelector([selectAllUserIDs], (ids) => {
+  return [...new Set(ids)];
+});
 export const selectShopIsOpen = createSelector(
   [selectSettings],
   (settings) => settings?.find((e) => e.id === "shopIsOpen")?.value

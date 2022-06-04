@@ -1,39 +1,73 @@
 import {
   faAngleDown,
-  faCartShopping,
   faCheckCircle,
   faCircleXmark,
   faEnvelopeOpenText,
-  faFileSignature,
   faKitchenSet,
   faList,
   faThumbsUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { isEqual } from "lodash";
+import _, { isEqual } from "lodash";
 import moment from "moment";
-import { memo, useCallback, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import {
   Accordion,
-  Badge,
   Modal,
   Nav,
   Tab,
   useAccordionButton,
 } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useMediaQuery } from "react-responsive";
+import { useAuth } from "../../contexts/AuthContext";
+import { useSocket } from "../../contexts/SocketContext";
+import useAPI from "../../hooks/useAPI";
 import { selectOrders } from "../../reducer/redux2";
-import { formatPrice } from "../../utilities/utils";
+import {
+  calcInterval,
+  formatPrice,
+  getDuration,
+  useDurationHook,
+} from "../../utilities/utils.mjs";
 // eslint-disable-next-line react/display-name
-
+import {
+  buildStyles,
+  CircularProgressbar,
+  CircularProgressbarWithChildren,
+} from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
+import styledComponents from "styled-components";
+import { formatDuration, parse } from "date-fns";
+import OrderTracker from "../OrderTracker";
 export const useOrders = () => {
+  const { socket } = useSocket();
+  const dispatch = useDispatch();
+  const { currentUser } = useAuth();
+  const { fetchUserTodaysOrders } = useAPI();
   const orders = useSelector(selectOrders);
   const ordersExist = orders?.length !== 0;
+
+  useEffect(() => {
+    ordersExist &&
+      currentUser &&
+      (!socket
+        ? connect().emit("join_room", currentUser.uid)
+        : socket.emit("join_room", currentUser.uid));
+  }, [orders]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("updated_order", (data) => {
+        console.log(`received updated order`);
+        dispatch(fetchUserTodaysOrders());
+      });
+    }
+  }, [socket]);
+
   return { orders, ordersExist };
 };
-
 const Orders = memo((props) => {
   const isBigScreen = useMediaQuery({ query: "(min-width: 992px)" });
   return (
@@ -67,7 +101,7 @@ export const OrdersBody = memo(({ orders }) => {
                     <span>{moment(o.createdAt).format("HH:mm")}</span>
                   </div>
                   <div
-                    className={`text-align-middle font-small fw-bold rounded p-2 bg-${o.status}`}
+                    className={`status text-align-middle font-small fw-bold rounded p-2 bg-${o.status}`}
                   >
                     {o.status}
                   </div>
@@ -84,7 +118,7 @@ export const OrdersBody = memo(({ orders }) => {
   );
 }, isEqual);
 
-const OrderStatus = memo(({ status }) => {
+const OrderStatus = memo(({ status, time, updatedAt }) => {
   const statusVariants = [
     "pending",
     "confirmed",
@@ -92,12 +126,13 @@ const OrderStatus = memo(({ status }) => {
     "finished",
     // "canceled",
   ];
+
   const CustomNav = memo(({ eventKey, index }) => {
     const activeIndex = statusVariants.indexOf(status);
     return (
       <Nav.Item>
         <div
-          eventKey={eventKey}
+          // eventKey={eventKey}
           className={`p-bar ${
             (eventKey === "finished" && index === activeIndex) ||
             index < activeIndex
@@ -110,21 +145,29 @@ const OrderStatus = memo(({ status }) => {
       </Nav.Item>
     );
   }, isEqual);
-  const CustomPane = memo(({ eventKey, icon, text }) => {
+
+  const CustomPane = memo(({ eventKey, icon, text, children }) => {
     return (
       <>
         {status === eventKey && (
           <Tab.Pane eventKey={eventKey}>
-            <div className="font-small fw-bolder">{text}</div>
-            <FontAwesomeIcon
-              className="w-25 h-25 text-primary py-4"
-              icon={icon}
-            />
+            {text && <div className="font-small fw-bolder">{text}</div>}
+            {icon && (
+              <FontAwesomeIcon
+                className="w-25 h-25 text-primary py-4"
+                icon={icon}
+              />
+            )}
+            {children}
           </Tab.Pane>
         )}
       </>
     );
   }, isEqual);
+
+  CustomNav.displayName = "CustomNav";
+  CustomPane.displayName = "CustomPane";
+
   return (
     <div className="order-status-tab pt-3">
       <Tab.Container activeKey={status}>
@@ -143,9 +186,11 @@ const OrderStatus = memo(({ status }) => {
           />
           <CustomPane
             eventKey="confirmed"
-            text="Order Accepted. We are working on it..."
-            icon={faKitchenSet}
-          />
+            // text="Order Accepted. We are working on it..."
+            // icon={faKitchenSet}
+          >
+            <CircularProgress time={time} updatedAt={updatedAt} />
+          </CustomPane>
           <CustomPane
             eventKey="ready"
             text="Order is ready to pick up!"
@@ -165,21 +210,54 @@ const OrderStatus = memo(({ status }) => {
       </Tab.Container>
     </div>
   );
-}, []);
+}, isEqual);
+const StyledCircularProgressBar = styledComponents.div`
+    svg{
+      height: 150px !important;
+    }
+    position: relative;
+    .CircularProgressbar-path{
+      stroke: var(--bs-primary) !important;
+      // stroke-width: 10px;
+    }
+    .CircularProgressbar-trail{
+      stroke: var(--bs-gray-100) !important;
+    }
+    text{
+      fill: var(--bs-body-color) !important;
+      font-weight: 700;
+      font-size: 0.875rem !important;
+    }
+`;
 
+const CircularProgress = memo(({ time, updatedAt }) => {
+  const duration = useDurationHook(time);
+  const pickupTime = parse(time, "HH:mm", new Date());
+  const maxDuration = calcInterval(new Date(updatedAt), pickupTime);
+  const maxMinutes = Math.max(
+    parseInt(maxDuration?.hours * 60 || 0) + maxDuration?.minutes,
+    5
+  );
+  const currentMinutes =
+    duration?.minutes?.value + parseInt(duration?.hours?.value * 60 || 0) || 0;
+  const percentage = parseInt(
+    (100 * (maxMinutes - currentMinutes)) / maxMinutes
+  );
+  return (
+    <StyledCircularProgressBar className="py-4">
+      <CircularProgressbar
+        value={percentage}
+        text={`${currentMinutes} min`}
+        styles={buildStyles({
+          strokeLinecap: "butt",
+        })}
+        strokeWidth={5}
+      ></CircularProgressbar>
+    </StyledCircularProgressBar>
+  );
+}, isEqual);
 const OrderOverview = memo(
-  ({
-    createdAt,
-    status,
-    pickupTime,
-    user,
-    price,
-    id,
-    number,
-    items,
-    onNext,
-    setKey,
-  }) => {
+  ({ time, status, updatedAt, price, number, items }) => {
     const Detail = ({ left, right }) => (
       <div>
         <span className="font-small fw-bold">{left}</span>
@@ -188,40 +266,30 @@ const OrderOverview = memo(
     );
     return (
       <div className="order-overview">
-        <OrderStatus status={status} />
+        <OrderTracker status={status} time={time} updatedAt={updatedAt} />
+        {/* <OrderStatus status={status} time={time} updatedAt={updatedAt} />
         <div className="order-details">
           <Detail left="Bestellnummer:" right={number} />
-          <Detail left="Uhr:" right={moment(createdAt).format("HH:mm")} />
+          {time && <Detail left="Abholung:" right={time} />}
           <Detail left="Preis:" right={formatPrice(price)} />
         </div>
         <div className="order-list">
           <Accordion defaultActiveKey="0" flush>
             {items.map((i, index) => (
-              <Order {...i} index={index} key={i.id} length={items.length} />
+              <Order
+                {...i}
+                index={index}
+                key={i.itemId}
+                length={items.length}
+              />
             ))}
           </Accordion>
-        </div>
+        </div> */}
       </div>
     );
   },
   isEqual
 );
-function CustomToggle({ children, eventKey, setActive }) {
-  const handleClick = () => {
-    setActive(eventKey);
-  };
-  const decoratedOnClick = useAccordionButton(eventKey, handleClick);
-
-  return (
-    <Button
-      variant="white"
-      className="p-0 w-100 shadow-none rounded-0"
-      onClick={decoratedOnClick}
-    >
-      {children}
-    </Button>
-  );
-}
 const Order = ({
   index,
   count,
@@ -235,7 +303,7 @@ const Order = ({
 }) => {
   return (
     <>
-      <Accordion.Item eventKey={index}>
+      <Accordion.Item eventKey={index} className="bg-transparent">
         <Accordion.Header>
           <div
             className={`d-flex justify-content-around align-items-end pe-1 ${
@@ -281,7 +349,7 @@ const Order = ({
     </>
   );
 };
-export const OrdersModal = ({ orders }) => {
+export const OrdersModal = memo(({ orders }) => {
   const [show, setShow] = useState(false);
   const handleClose = () => {
     setShow(false);
@@ -301,7 +369,7 @@ export const OrdersModal = ({ orders }) => {
               Bestellungen
             </span>
           </div>
-          <span className="basket-toggle-title bg-white rounded-circle px-2 text-primary fw-bolder">
+          <span className="basket-toggle-title bg-white rounded-2 px-2 text-primary fw-bolder">
             {orders.length}
           </span>
         </Button>
@@ -322,5 +390,13 @@ export const OrdersModal = ({ orders }) => {
       </Modal>
     </>
   );
-};
+}, isEqual);
 export default Orders;
+
+Orders.displayName = "Orders";
+OrdersBody.displayName = "OrdersBody";
+OrderStatus.displayName = "OrderStatus";
+OrderOverview.displayName = "OrderOverview";
+OrdersModal.displayName = "OrdersModal";
+
+CircularProgress.displayName = "CircularProgress";

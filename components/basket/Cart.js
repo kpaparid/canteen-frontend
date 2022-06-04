@@ -1,8 +1,5 @@
-import {
-  faBasketShopping,
-  faCartShopping,
-  faClose,
-} from "@fortawesome/free-solid-svg-icons";
+import { faClock } from "@fortawesome/free-regular-svg-icons";
+import { faBasketShopping, faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { debounce, isEqual } from "lodash";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
@@ -11,22 +8,25 @@ import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import { useDispatch, useSelector } from "react-redux";
 import { useMediaQuery } from "react-responsive";
+import { useAuth } from "../../contexts/AuthContext";
+import { useSocket } from "../../contexts/SocketContext";
 import {
   addCommentCart,
   postOrders,
   removeItemCart,
   selectCart,
   updateItemCountCart,
+  addTime,
 } from "../../reducer/redux2";
-import { formatPrice } from "../../utilities/utils";
-import { useSocket } from "../../hooks/orderHooks";
-import Accumulator, { ExpandableAccumulator } from "../Accumulator";
-import { useAuth } from "../../contexts/AuthContext";
+import { formatPrice } from "../../utilities/utils.mjs";
+import Accumulator from "../Accumulator";
+import PickupTimeModal from "../PickupTimerModal";
 // eslint-disable-next-line react/display-name
 export const useCart = () => {
-  const { socket, connect } = useSocket();
+  const { socket } = useSocket();
   const { currentUser } = useAuth();
   const items = useSelector(selectCart);
+  const time = useSelector((state) => state.shop.cart.time);
   const cartExists = items?.length !== 0;
   const empty = !items?.length !== 0;
   const dispatch = useDispatch();
@@ -37,13 +37,18 @@ export const useCart = () => {
       postOrders({
         items: items,
         user: currentUser,
+        time,
       })
     ).then(() => {
       !socket
         ? connect().emit("send_order", { test: "hi" })
         : socket.emit("send_order", { test: "hi" });
     });
-  }, [socket, items]);
+  }, [socket, items, time]);
+
+  const handleAddTime = useCallback((value) => {
+    dispatch(addTime(value));
+  }, []);
 
   return {
     summa,
@@ -51,6 +56,7 @@ export const useCart = () => {
     empty,
     sendOrder: handleSendOrder,
     cartExists,
+    addTime: handleAddTime,
   };
 };
 const Cart = memo((props) => {
@@ -61,7 +67,7 @@ const Cart = memo((props) => {
   );
 }, isEqual);
 
-export const CartModal = ({ items, summa, onSend }) => {
+export const CartModal = ({ items, summa, onSend, addTime }) => {
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
@@ -72,13 +78,12 @@ export const CartModal = ({ items, summa, onSend }) => {
   return (
     <>
       {items.length !== 0 && (
-        // <div className="cart-toggle">
         <Button
           className="basket-toggle-btn d-flex flex-nowrap justify-content-between align-items-center"
           onClick={handleShow}
         >
           <div className="d-flex flex-nowrap">
-            <span className="bg-white fw-bolder px-2 text-primary rounded-circle">
+            <span className="bg-white fw-bolder px-2 text-primary rounded-2">
               {number}
             </span>
             <span
@@ -92,7 +97,6 @@ export const CartModal = ({ items, summa, onSend }) => {
             {formattedSumma}
           </span>
         </Button>
-        // </div>
       )}
 
       <Modal
@@ -109,7 +113,12 @@ export const CartModal = ({ items, summa, onSend }) => {
         </Modal.Body>
         {items.length !== 0 && (
           <Modal.Footer>
-            <CartFooter number={number} summa={summa} onSend={onSend} />
+            <CartFooter
+              number={number}
+              summa={summa}
+              onSend={onSend}
+              addTime={addTime}
+            />
           </Modal.Footer>
         )}
       </Modal>
@@ -117,7 +126,7 @@ export const CartModal = ({ items, summa, onSend }) => {
   );
 };
 
-const CartCard = ({ items, summa, onSend }) => {
+const CartCard = ({ items, summa, onSend, addTime }) => {
   const number = items.reduce((a, b) => a + b.count, 0);
   return (
     <div className="cart">
@@ -125,8 +134,13 @@ const CartCard = ({ items, summa, onSend }) => {
         <CartBody items={items} />
       </Card.Body>
       {items.length !== 0 && (
-        <Card.Footer>
-          <CartFooter number={number} summa={summa} onSend={onSend} />
+        <Card.Footer className="p-3">
+          <CartFooter
+            number={number}
+            summa={summa}
+            onSend={onSend}
+            addTime={addTime}
+          />
         </Card.Footer>
       )}
     </div>
@@ -153,31 +167,34 @@ const CartBody = ({ items }) => {
     </>
   );
 };
-const CartFooter = ({ number, summa, onSend }) => {
+const CartFooter = ({ number, summa, onSend, addTime }) => {
   const formattedSumma = formatPrice(summa);
   return (
-    <>
-      <div className="d-flex w-100">
-        <Button
-          variant="primary"
-          onClick={onSend}
-          className="flex-fill d-flex justify-content-between"
-        >
-          <div className="d-flex flex-nowrap">
-            <span
-              className="me-2 fw-bolder px-2 bg-white text-primary"
-              style={{ borderRadius: "35%" }}
-            >
-              {number}
-            </span>
-            <span className="header-text">Bestellen</span>
-          </div>
-          <span className="header-text">{formattedSumma}</span>
-        </Button>
-      </div>
-    </>
+    <div className="w-100 d-flex flex-nowrap">
+      <PickupTimeModal onChange={addTime}>
+        <div className="px-3 d-flex align-items-center">
+          <FontAwesomeIcon icon={faClock} fontSize="20" />
+        </div>
+      </PickupTimeModal>
+      <Button
+        className="rounded-0 rounded-end w-100 d-flex justify-content-between"
+        onClick={onSend}
+      >
+        <div className="flex-fill d-flex flex-nowrap">
+          <span
+            className="me-2 fw-bolder px-2 bg-white text-primary"
+            style={{ borderRadius: "35%" }}
+          >
+            {number}
+          </span>
+          <span className="header-text">Bestellen</span>
+        </div>
+        <div className="header-text">{formattedSumma}</div>
+      </Button>
+    </div>
   );
 };
+
 // eslint-disable-next-line react/display-name
 const CartItem = memo(
   ({
@@ -283,7 +300,7 @@ const Comment = ({ text: initialText, onChange }) => {
             onChange={handleDirectChange}
             as="textarea"
             rows={3}
-            resize={"false"}
+            resize="false"
             maxLength={160}
             value={text}
             autoFocus

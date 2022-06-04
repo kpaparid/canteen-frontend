@@ -1,32 +1,69 @@
-import format from "date-fns/format";
-import { useEffect } from "react";
-import { useDispatch, useSelector, useStore } from "react-redux";
-import Dashboard from "../components/OrderApp";
+import { isEqual } from "lodash";
+import { memo, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import TwoColumnsOrders from "../components/TwoColumnsOrders";
-import { useSocket } from "../hooks/orderHooks";
+import { useSocket } from "../contexts/SocketContext";
+// import { useSocket } from "../hooks/orderHooks";
 import useAPI from "../hooks/useAPI";
 import {
-  fetchCategories,
+  changeOrderStatus,
   fetchMeals,
-  fetchOrders,
   fetchSettings,
-  fetchShop,
   selectAllOrdersByCategory,
   wrapper,
 } from "../reducer/redux2";
 
-export default function Home() {
+const Home = memo(() => {
   const orders = useSelector(selectAllOrdersByCategory);
   const dispatch = useDispatch();
-  const { connect } = useSocket();
+  // const { connect, socket } = useSocket();
+  const { socket } = useSocket();
   const { fetchTodaysOrders } = useAPI();
+
+  const [loading, setLoading] = useState();
+
   useEffect(() => {
-    connect();
-    dispatch(fetchTodaysOrders());
-  }, []);
+    dispatch(fetchTodaysOrders()).then((r) => {
+      // const socket = connect();
+      socket?.emit("join_room", [
+        ...new Set(r?.payload?.map((p) => p.user.uid)),
+        "admin",
+      ]);
+    });
+  }, [socket]);
+
+  useEffect(() => {
+    console.log({ socket });
+    if (socket) {
+      socket.on("received_order", (data) => {
+        console.log(`received order in admin ${data}`);
+        dispatch(fetchTodaysOrders()).then((r) => {
+          socket?.emit("join_room", [
+            ...new Set(r?.payload?.map((p) => p.user.uid)),
+            "admin",
+          ]);
+        });
+      });
+    }
+  }, [socket]);
+  const onChangeOrderStatus = (userId, orderId, body) => {
+    setLoading(true);
+    console.log(socket);
+    dispatch(changeOrderStatus({ id: orderId, body })).then(async () => {
+      socket?.emit("update_order", { uid: userId });
+      setLoading(false);
+    });
+  };
   // return <Dashboard orders={orders} />;
-  return <TwoColumnsOrders orders={orders} />;
-}
+  return (
+    <TwoColumnsOrders
+      orders={orders}
+      socket={socket}
+      loading={loading}
+      onChangeOrderStatus={onChangeOrderStatus}
+    />
+  );
+}, isEqual);
 
 export const getServerSideProps = wrapper.getServerSideProps(
   (store) => async () => {
@@ -40,3 +77,4 @@ export const getServerSideProps = wrapper.getServerSideProps(
     };
   }
 );
+export default Home;

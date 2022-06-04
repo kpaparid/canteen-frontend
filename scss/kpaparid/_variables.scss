@@ -120,6 +120,7 @@ $canceled: #f05945;
 
 $default: $primary;
 
+$light-primary: lighten($primary, 50%);
 $light-tertiary: lighten($tertiary, 15%);
 $light-nonary: lighten($nonary, 5%);
 $very-light-nonary: lighten($nonary, 15%);
@@ -198,6 +199,7 @@ $theme-colors: map-merge(
   (
     "gray-white": $gray-white,
     "primary": $primary,
+    "light-primary": $light-primary,
     "darker-primary": $darker-primary,
     "inverse-primary": $inverse-primary,
     "inverse": $inverse,

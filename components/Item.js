@@ -1,13 +1,17 @@
-import { fa0, faCircleXmark, faX } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCartArrowDown,
+  faCartPlus,
+  faX,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import isEqual from "lodash/isEqual";
 import Image from "next/image";
-import { Fragment, memo, useState } from "react";
+import { memo, useState } from "react";
 import Button from "react-bootstrap/Button";
 // import Image from "react-bootstrap/Image";
 import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
-import { formatPrice } from "../utilities/utils";
+import { formatPrice } from "../utilities/utils.mjs";
 import Accumulator from "./Accumulator";
 // eslint-disable-next-line react/display-name
 const Item = memo(
@@ -138,7 +142,13 @@ const Item = memo(
               variant="primary"
               onClick={handleAddToCart}
             >
-              <span>Zum Warenkorb</span>
+              <div className="d-block d-sm-none">
+                {/* <FontAwesomeIcon icon={faCartArrowDown} /> */}
+                Hinzufügen
+              </div>
+              <div className="d-none d-sm-block d-flex align-items-center">
+                Zum Warenkorb
+              </div>
               <span>{formattedPrice}</span>
             </Button>
           </Modal.Footer>
@@ -163,7 +173,7 @@ export function FormTextarea({ text, onChange }) {
         onChange={handleChange}
         as="textarea"
         rows={3}
-        resize={false}
+        resize="false"
         maxLength={160}
         value={text}
       />

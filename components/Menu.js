@@ -21,7 +21,7 @@ import {
   selectAllActiveCategories,
   selectAllMealsByCategory,
 } from "../reducer/redux2";
-import { formatPrice } from "../utilities/utils";
+import { formatPrice } from "../utilities/utils.mjs";
 import Basket from "./basket/Basket";
 import Header from "./Header";
 import Item from "./Item";
@@ -105,7 +105,7 @@ export default function Menu(props) {
       <Header />
       <div className="menu-banner">Speisekarte</div>
       <div className="d-flex bg-octonary">
-        <div className="h-100 m-auto flex-column flex-fill">
+        <div className="h-100 w-100 m-auto flex-column">
           <div className="menu-wrapper">
             <CategoriesNavbar
               categories={categories}
@@ -124,16 +124,13 @@ export default function Menu(props) {
                   ))}
               </div>
             </div>
-            <RightSideBar />
+            <Basket />
           </div>
         </div>
       </div>
     </div>
   );
 }
-const RightSideBar = memo(({}) => {
-  return <Basket></Basket>;
-}, isEqual);
 const CategoriesNavbar = memo(({ categories, onClick }) => {
   return (
     <div className="categories-navbar">

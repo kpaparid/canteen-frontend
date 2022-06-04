@@ -210,9 +210,10 @@
       padding: 1.5rem;
     }
     .categories-navbar {
+      box-shadow: 0 0px 4px 3px rgb(0 0 0 / 13%);
       background-color: white;
       flex-direction: row;
-      width: 100vw;
+      width: 100%;
       padding-bottom: 5px;
       padding-top: 6px;
       top: -1px;
@@ -242,8 +243,10 @@
           display: none;
         }
       }
+
+      box-shadow: 0 0px 4px 3px rgb(0 0 0 / 13%);
       height: 60px;
-      position: fixed;
+      position: sticky;
       bottom: 0px;
       width: 100%;
       padding-bottom: 5px;
@@ -328,13 +331,13 @@
   height: fit-content;
   box-shadow: 2px 2px 4px 3px rgb(0 0 0 / 13%);
   border-radius: 0.4375rem;
-  min-width: 300px;
+  min-width: 320px;
   overflow: hidden;
   position: sticky;
   top: 40px;
   z-index: 900;
   // max-height: 90vh;
-  max-width: 300px;
+  max-width: 350px;
 }
 .basket-header {
   position: sticky;
@@ -345,37 +348,39 @@
     flex-wrap: nowrap;
   }
   .basket-tab {
+    &.btn-primary {
+      color: white !important;
+      border-color: $primary !important;
+      // text-shadow: 1px 1px 3px rgb(34 34 34 / 70%);
+      &:focus {
+        background-color: $primary !important;
+      }
+    }
+    &.btn-white {
+      &:hover,
+      &:focus {
+        color: $primary !important;
+        border-color: $primary !important;
+      }
+    }
     border: 0;
     margin: 0;
     width: 100%;
     border-radius: 0;
-    background-color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem 1.5rem 1rem 1.5rem;
     font-weight: 700;
-    text-shadow: none;
     text-transform: capitalize;
     color: $gray-900;
     border-bottom: 1px solid $gray-100;
     box-shadow: none;
     &:hover,
     &:focus {
-      background-color: white !important;
-      color: $primary;
+      // background-color: white !important;
+      // color: $primary;
       box-shadow: none;
-    }
-    &.active {
-      text-shadow: 1px 1px 3px rgba(34, 34, 34, 0.7);
-      background-color: $primary !important;
-      border-bottom: 1px solid $primary;
-      color: white;
-      &:hover,
-      &:focus {
-        background-color: $primary !important;
-        color: white;
-      }
     }
   }
 }
@@ -536,7 +541,7 @@
   }
 }
 .order-status-tab svg {
-  height: 70px !important;
+  height: 70px;
 }
 .basket-toggle-btn:first-child:nth-last-child(2),
 .basket-toggle-btn:first-child:nth-last-child(2) ~ .basket-toggle-btn {

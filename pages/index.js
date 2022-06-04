@@ -11,11 +11,7 @@ import {
 import { format } from "date-fns";
 
 export default function Home(props) {
-  return (
-    <div className="h-100 bg-white">
-      <Menu {...props} />
-    </div>
-  );
+  return <Menu {...props} />;
 }
 
 export const getServerSideProps = wrapper.getServerSideProps(

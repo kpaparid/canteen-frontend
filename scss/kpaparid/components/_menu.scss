@@ -14,7 +14,7 @@
 }
 .categories-navbar {
   position: sticky;
-  width: 200px;
+  width: 210px;
   z-index: 900;
   height: 90vh;
   top: 5%;
@@ -24,6 +24,7 @@
   flex-direction: column;
   .category {
     border: 0;
+    padding: 0 10px;
   }
   .category-text {
     text-align: start;
@@ -336,13 +337,13 @@
   }
 }
 .basket {
-  height: fit-content;
+  // height: fit-content;
   box-shadow: 2px 2px 4px 3px rgb(0 0 0 / 13%);
   border-radius: 0.4375rem;
   min-width: 320px;
-  overflow: hidden;
-  position: sticky;
-  top: 40px;
+  // overflow: hidden;
+  // position: sticky;
+  // top: 40px;
   z-index: 900;
   // max-height: 90vh;
   max-width: 320px;
@@ -563,9 +564,12 @@
   }
 }
 .basket-card {
+  
   .card-body {
-    max-height: calc(90vh - 130px);
+    // max-height: calc(90vh - 130px);
     min-height: 130px;
+    max-height: calc(100% - 77px);
+    overflow: auto;
   }
 
   .card-footer {

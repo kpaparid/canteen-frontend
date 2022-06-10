@@ -38,7 +38,7 @@ export default function Menu(props) {
 
   useEffect(() => {
     dispatch(fetchUserTodaysOrders());
-  }, []);
+  }, [fetchUserTodaysOrders, dispatch]);
 
   useEffect(() => {
     itemsRef.current = itemsRef.current.slice(0, categories.length);
@@ -187,6 +187,7 @@ function CategoryTitle({ title, text, photoURL }) {
             height: "200px",
             position: "relative",
             textShadow: "1px 1px 20px rgb(34 34 34)",
+            boxShadow: "2px 2px 4px 3px rgb(0 0 0 / 13%)",
           }}
         >
           <div

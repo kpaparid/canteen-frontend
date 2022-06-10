@@ -75,7 +75,7 @@ export const OrdersBody = memo(({ orders }) => {
     moment(a.createdAt).isBefore(b.createdAt) ? 1 : -1
   );
   return (
-    <div className="w-100">
+    <>
       {orders.length === 1 ? (
         <OrderOverview {...sortedOrders[0]} />
       ) : (
@@ -109,7 +109,7 @@ export const OrdersBody = memo(({ orders }) => {
           ))}
         </Accordion>
       )}
-    </div>
+    </>
   );
 }, isEqual);
 

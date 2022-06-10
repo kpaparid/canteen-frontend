@@ -12,7 +12,8 @@ const useAPI = () => {
   }, [authenticatedFetch]);
   const fetchUserTodaysOrders = useCallback(() => {
     const date = format(new Date(), "yyyy-MM-dd") + "T00:00:00.000+02:00";
-    const suffix = `?createdAt_gte=${date}&user.uid=${currentUser?.uid}`;
+    // const suffix = `?createdAt_gte=${date}&user.uid=${currentUser?.uid}`;
+    const suffix = `?user.uid=${currentUser?.uid}`;
     return fetchOrders({ suffix, authenticatedFetch });
   }, [authenticatedFetch, currentUser?.uid]);
 

@@ -117,12 +117,13 @@ export const CartModal = ({ items, summa, onSend, addTime, renderToggle }) => {
 
 const CartCard = ({ items, summa, onSend, addTime }) => {
   const number = items.reduce((a, b) => a + b.count, 0);
+  const footer = items.length !== 0;
   return (
-    <div className="cart">
+    <div className={`cart ${!footer ? "empty" : ""}`}>
       <Card.Body>
         <CartBody items={items} />
       </Card.Body>
-      {items.length !== 0 && (
+      {footer && (
         <Card.Footer className="p-3">
           <CartFooter
             number={number}

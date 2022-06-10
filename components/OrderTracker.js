@@ -49,6 +49,8 @@ bottom: 0;
 `;
 const RightSide = styledComponents.div`
 display: flex;
+// padding: 0 2rem;
+width: 100%;
 flex-direction: column;
 .item:first-child .bar:before{
     background-color: transparent;
@@ -71,7 +73,7 @@ const OrderTracker = memo(({ status, ...rest }) => {
   return (
     <div className="d-flex flex-column justify-content-center align-items-center bg-white">
       <Icon index={index} {...rest} />
-      <div className="d-flex">
+      <div className="d-flex w-100">
         <RightSide>
           <Item
             title="Order Placed"

@@ -23,9 +23,29 @@ display: flex;
 flex-direction: column;
 position: sticky;
 z-index: 900;
-height: 90vh;
-top: 5%;
+height: calc(100vh - 50px);
+top: 40px;
 justify-content: space-between;
+.basket{
+  max-height: calc(100% - 70px);
+  max-width: 350px;
+  min-width: 350px;
+  overflow: hidden;
+}
+.basket-body{
+  max-height: calc(100% - 57px);
+  overflow: auto;
+}
+.cart{
+  height: 100%;
+}
+.cart.empty .card-body{
+  max-height: 100% !important;
+}
+.accordion-order-list{
+  height: 100%;
+  overflow: auto;
+}
 
 `;
 const RightSide = memo(({ props }) => {
@@ -199,51 +219,45 @@ const BasketTabs = ({
   }, [items, cartIsVisible]);
 
   return (
-    <div>
-      <Tab.Container activeKey={activeKey}>
-        <div className="basket basket-card d-flex flex-column">
-          <div className="basket-header w-100">
-            <Nav>
-              {cartIsVisible && (
-                <Button
-                  className="basket-tab flex-fill"
-                  variant={
-                    activeKey === "cart" ? "primary header-text" : "white"
-                  }
-                  onClick={() => setActiveKey("cart")}
-                >
-                  Warenkorb
-                </Button>
-              )}
-              {ordersExist && (
-                <Button
-                  className="basket-tab flex-fill"
-                  variant={
-                    activeKey === "orders" ? "primary header-text" : "white"
-                  }
-                  onClick={() => setActiveKey("orders")}
-                >
-                  Orders
-                </Button>
-              )}
-            </Nav>
-          </div>
-          <Col sm={12}>
-            {cartIsVisible && activeKey === "cart" && (
-              <Cart
-                items={items}
-                summa={summa}
-                onSend={sendOrder}
-                addTime={addTime}
-              />
+    <Tab.Container activeKey={activeKey}>
+      <div className="basket basket-card d-flex flex-column">
+        <div className="basket-header w-100">
+          <Nav>
+            {cartIsVisible && (
+              <Button
+                className="basket-tab flex-fill"
+                variant={activeKey === "cart" ? "primary header-text" : "white"}
+                onClick={() => setActiveKey("cart")}
+              >
+                Warenkorb
+              </Button>
             )}
-            {ordersExist && activeKey === "orders" && (
-              <Orders orders={orders} />
+            {ordersExist && (
+              <Button
+                className="basket-tab flex-fill"
+                variant={
+                  activeKey === "orders" ? "primary header-text" : "white"
+                }
+                onClick={() => setActiveKey("orders")}
+              >
+                Orders
+              </Button>
             )}
-          </Col>
+          </Nav>
         </div>
-      </Tab.Container>
-    </div>
+        <Col sm={12} className="basket-body">
+          {cartIsVisible && activeKey === "cart" && (
+            <Cart
+              items={items}
+              summa={summa}
+              onSend={sendOrder}
+              addTime={addTime}
+            />
+          )}
+          {ordersExist && activeKey === "orders" && <Orders orders={orders} />}
+        </Col>
+      </div>
+    </Tab.Container>
   );
 };
 export default Basket;

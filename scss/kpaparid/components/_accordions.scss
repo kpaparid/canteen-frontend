@@ -97,8 +97,8 @@
   border-bottom: 2px solid $gray-100;
 }
 .accordion-order-list {
-  max-height: 85vh;
-  overflow: auto;
+  // max-height: 85vh;
+  // overflow: auto;
 }
 .accordion-item:last-of-type {
   border-bottom-right-radius: 0;

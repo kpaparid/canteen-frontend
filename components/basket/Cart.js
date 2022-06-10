@@ -1,5 +1,9 @@
 import { faClock } from "@fortawesome/free-regular-svg-icons";
-import { faBasketShopping, faClose } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBasketShopping,
+  faClose,
+  faShoppingBag,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { debounce, isEqual } from "lodash";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
@@ -67,7 +71,7 @@ const Cart = memo((props) => {
   );
 }, isEqual);
 
-export const CartModal = ({ items, summa, onSend, addTime }) => {
+export const CartModal = ({ items, summa, onSend, addTime, renderToggle }) => {
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
@@ -77,10 +81,11 @@ export const CartModal = ({ items, summa, onSend, addTime }) => {
   const number = items.reduce((a, b) => a + b.count, 0);
   return (
     <>
-      {items.length !== 0 && (
+      {/* {items.length !== 0 && (
         <Button
           className="basket-toggle-btn d-flex flex-nowrap justify-content-between align-items-center"
           onClick={handleShow}
+          style={{width:"fit-"}}
         >
           <div className="d-flex flex-nowrap">
             <span className="bg-white fw-bolder px-2 text-primary rounded-2">
@@ -97,8 +102,13 @@ export const CartModal = ({ items, summa, onSend, addTime }) => {
             {formattedSumma}
           </span>
         </Button>
-      )}
-
+      )} */}
+      {renderToggle({
+        icon: faShoppingBag,
+        text: "Warenkorb",
+        onClick: handleShow,
+        disabled: items.length !== 0,
+      })}
       <Modal
         show={show}
         onHide={handleClose}

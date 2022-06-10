@@ -388,29 +388,22 @@ const LeftItem = memo(
             className="d-flex justify-content-center"
             style={{ height: "fit-content" }}
           >
-            {duration && (
-              <div
-                className="border border-4 border-senary px-2 rounded-circle d-flex flex-column justify-content-center align-items-center"
-                style={{
-                  aspectRatio: "1",
-                  minWidth: "64px",
-                  height: "fit-content",
-                }}
-              >
-                {Object.keys(duration).map((k) => {
-                  const { value, unit } = duration[k];
-                  return (
-                    <div className="d-flex" key={k}>
-                      <div className="fw-bolder">{value}</div>
-                      {unit && <div className="fw-bolder">{unit}</div>}
-                    </div>
-                  );
-                })}
-                <span className="font-small fw-bold text-gray-800">
-                  {pickupTime}
-                </span>
+            <div
+              className="border border-4 border-senary px-2 rounded-circle d-flex flex-column justify-content-center align-items-center"
+              style={{
+                aspectRatio: "1",
+                minWidth: "64px",
+                height: "fit-content",
+              }}
+            >
+              <div className="d-flex">
+                <div className="fw-bolder">{duration ? duration : "now"}</div>
+                {duration !== 0 && <div className="fw-bolder">min</div>}
               </div>
-            )}
+              <span className="font-small fw-bold text-gray-800">
+                {pickupTime}
+              </span>
+            </div>
           </div>
         </div>
         <div className="mt-4 border-top border-gray-500">

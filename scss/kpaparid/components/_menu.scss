@@ -14,10 +14,11 @@
 }
 .categories-navbar {
   position: sticky;
-  top: 40px;
-  z-index: 900;
   width: 200px;
-  height: fit-content;
+  z-index: 900;
+  height: 90vh;
+  top: 5%;
+  overflow: auto;
   display: flex;
   flex-wrap: nowrap;
   flex-direction: column;
@@ -29,17 +30,22 @@
     width: 100%;
     font-weight: 700;
     text-transform: capitalize;
-    padding: 0.5rem 0.75rem 0.5rem 0.75rem !important;
+    // padding: 0.5rem 0.75rem 0.5rem 0.75rem !important;
     border-radius: 0.5rem;
-    box-shadow: none !important;
+    box-shadow: none;
+    padding: 0.55rem 1.25rem;
+    transition: text-shadow 0.2s linear;
+
+    &:active {
+      box-shadow: none;
+    }
+
     &.active {
       background-color: var(--bs-primary) !important;
+      border-radius: 1rem;
+      box-shadow: 2px 2px 4px 3px rgb(0 0 0 / 13%);
       color: white;
       text-shadow: 1px 1px 3px rgba(34, 34, 34, 0.7);
-      &:hover,
-      &:focus {
-        background-color: var(--bs-primary) !important;
-      }
     }
   }
 }
@@ -207,7 +213,8 @@
     flex-direction: column;
     padding: 0;
     .category-text {
-      padding: 1.5rem;
+      // padding: 1.5rem;
+      box-shadow: none !important;
     }
     .categories-navbar {
       box-shadow: 0 0px 4px 3px rgb(0 0 0 / 13%);
@@ -219,6 +226,7 @@
       top: -1px;
       border-bottom: 1px solid $gray-100;
       justify-content: space-around;
+      height: 56px;
     }
     .category {
       margin-left: 0.5rem;
@@ -245,12 +253,12 @@
       }
 
       box-shadow: 0 0px 4px 3px rgb(0 0 0 / 13%);
-      height: 60px;
-      position: sticky;
+      height: 55px;
+      position: fixed;
       bottom: 0px;
       width: 100%;
-      padding-bottom: 5px;
-      padding-top: 5px;
+      // padding-bottom: 5px;
+      // padding-top: 5px;
       display: flex;
       justify-content: center;
       background-color: white;
@@ -260,8 +268,8 @@
         display: none;
       }
       button {
-        flex: 1 1 auto;
-        margin: 0 1.5rem 0 1.5rem;
+        // flex: 1 1 auto;
+        // margin: 0 1.5rem 0 1.5rem;
       }
     }
     .cart-toggle.double {
@@ -337,7 +345,7 @@
   top: 40px;
   z-index: 900;
   // max-height: 90vh;
-  max-width: 350px;
+  max-width: 320px;
 }
 .basket-header {
   position: sticky;

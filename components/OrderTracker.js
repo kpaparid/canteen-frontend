@@ -3,7 +3,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isEqual } from "lodash";
 import { memo } from "react";
 import styledComponents from "styled-components";
+import { useDurationHook } from "../utilities/utils.mjs";
+import FinishedSvg from "./svg/FinishedSvg";
 import OrderSvg from "./svg/OrderSvg";
+import PendingSvg from "./svg/PendingSvg.js";
 import ProcessingSvg from "./svg/ProcessingSvg";
 import ProcessingSvg2 from "./svg/ProcessingSvg2";
 import ReadySvg from "./svg/ReadySvg";
@@ -54,7 +57,7 @@ flex-direction: column;
     background-color: transparent;
 }
 `;
-const OrderTracker = memo(({ status }) => {
+const OrderTracker = memo(({ status, ...rest }) => {
   const index =
     status === "pending"
       ? 0
@@ -66,8 +69,8 @@ const OrderTracker = memo(({ status }) => {
       ? 4
       : -1;
   return (
-    <div className="d-flex flex-column justify-content-center align-items-center py-4 bg-white">
-      <Icon index={index} />
+    <div className="d-flex flex-column justify-content-center align-items-center bg-white">
+      <Icon index={index} {...rest} />
       <div className="d-flex">
         <RightSide>
           <Item
@@ -129,40 +132,52 @@ const Item = memo(({ title, subtitle, icon, index, weight }) => {
   );
 }, isEqual);
 
-const Icon = memo(({ index }) => {
+const Icon = memo(({ index, time }) => {
   switch (index) {
     case 0:
       return (
         <>
           <div
-            style={{ height: "150px", width: "200px" }}
-            className="d-flex justify-content-center align-items-center"
+            style={{ height: "200px", width: "240px" }}
+            className="d-flex justify-content-center align-items-center p-1 my-2"
           >
-            <OrderSvg></OrderSvg>
+            {/* <OrderSvg></OrderSvg> */}
+            <PendingSvg></PendingSvg>
           </div>
         </>
       );
-    case 2:
+    case 1:
       return (
         <>
           <div
-            style={{ height: "250px", width: "250px" }}
-            className="d-flex justify-content-center align-items-center"
+            style={{ height: "200px", width: "240px" }}
+            className="d-flex justify-content-center align-items-center p-1 my-2"
           >
-            <ProcessingSvg2></ProcessingSvg2>
+            <ProcessingSvg2 time={time}></ProcessingSvg2>
           </div>
         </>
       );
     case 3:
       return (
+        <>
+          <div
+            style={{ height: "200px", width: "240px" }}
+            className="d-flex justify-content-center align-items-center p-1 my-2"
+          >
+            <ReadySvg />
+          </div>
+        </>
+      );
+    case 4: {
+      return (
         <div
-          style={{ height: "150px", width: "200px" }}
-          className="d-flex justify-content-center align-items-center"
+          style={{ height: "200px", width: "240px" }}
+          className="d-flex justify-content-center align-items-center p-1 mb-2"
         >
-          <ReadySvg />
+          <FinishedSvg />
         </div>
       );
-
+    }
     default:
       return <></>;
   }

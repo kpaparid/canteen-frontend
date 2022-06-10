@@ -349,7 +349,7 @@ const Order = ({
     </>
   );
 };
-export const OrdersModal = memo(({ orders }) => {
+export const OrdersModal = memo(({ orders, renderToggle }) => {
   const [show, setShow] = useState(false);
   const handleClose = () => {
     setShow(false);
@@ -358,7 +358,7 @@ export const OrdersModal = memo(({ orders }) => {
 
   return (
     <>
-      {orders?.length !== 0 && (
+      {/* {orders?.length !== 0 && (
         <Button
           className="orders basket-toggle-btn d-flex justify-content-between align-items-center"
           onClick={handleShow}
@@ -373,8 +373,20 @@ export const OrdersModal = memo(({ orders }) => {
             {orders.length}
           </span>
         </Button>
-      )}
-
+      )} */}
+      {/* <Button
+        className="d-flex flex-column justify-content-around align-items-center mx-2 p-0 h-100"
+        variant="white"
+        onClick={handleShow}
+      >
+        <FontAwesomeIcon icon={faList} />
+        <div className="font-small">Bestellungen</div>
+      </Button> */}
+      {renderToggle({
+        icon: faList,
+        text: "Bestellungen",
+        onClick: handleShow,
+      })}
       <Modal
         show={show}
         onHide={handleClose}

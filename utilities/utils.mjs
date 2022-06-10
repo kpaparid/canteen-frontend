@@ -39,18 +39,19 @@ export const calcInterval = (start, end) => {
 };
 export const getDuration = (start, end) => {
   const { hours, minutes } = calcInterval(start, end);
-  return hours === 0 && minutes === 0
-    ? { moment: { value: "now" } }
-    : hours === 0
-    ? { minutes: { value: minutes, unit: "min" } }
-    : minutes === 0
-    ? { hours: { value: hours, unit: "hours" } }
-    : hours >= 2
-    ? {
-        hours: { value: hours, unit: "hours" },
-        minutes: { value: minutes, unit: "min" },
-      }
-    : { minutes: { value: minutes + hours * 60, unit: "min" } };
+  return minutes + hours * 60;
+  // hours === 0 && minutes === 0
+  //   ? { moment: { value: "now" } }
+  //   : hours === 0
+  //   ? { minutes: { value: minutes, unit: "min" } }
+  //   : minutes === 0
+  //   ? { hours: { value: hours, unit: "hours" } }
+  //   : hours >= 2
+  //   ? {
+  //       hours: { value: hours, unit: "hours" },
+  //       minutes: { value: minutes, unit: "min" },
+  //     }
+  //   :
 };
 export const useDurationHook = (time) => {
   const endDate = time && parse(time, "HH:mm", new Date());

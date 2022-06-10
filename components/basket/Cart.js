@@ -249,7 +249,7 @@ const CartItem = memo(
         <div className="w-100">
           {extrasText.length !== 0 &&
             extrasText.map((e) => (
-              <div className="font-small text-gray-700">
+              <div className="font-small text-gray-700" key={e.title}>
                 <span style={{ whiteSpace: "nowrap" }} className="fw-bold">
                   {e.title}:
                 </span>

@@ -32,12 +32,7 @@ import {
   useDurationHook,
 } from "../../utilities/utils.mjs";
 // eslint-disable-next-line react/display-name
-import {
-  buildStyles,
-  CircularProgressbar,
-  CircularProgressbarWithChildren,
-} from "react-circular-progressbar";
-import "react-circular-progressbar/dist/styles.css";
+
 import styledComponents from "styled-components";
 import { formatDuration, parse } from "date-fns";
 import OrderTracker from "../OrderTracker";
@@ -188,9 +183,7 @@ const OrderStatus = memo(({ status, time, updatedAt }) => {
             eventKey="confirmed"
             // text="Order Accepted. We are working on it..."
             // icon={faKitchenSet}
-          >
-            <CircularProgress time={time} updatedAt={updatedAt} />
-          </CustomPane>
+          ></CustomPane>
           <CustomPane
             eventKey="ready"
             text="Order is ready to pick up!"
@@ -211,51 +204,7 @@ const OrderStatus = memo(({ status, time, updatedAt }) => {
     </div>
   );
 }, isEqual);
-const StyledCircularProgressBar = styledComponents.div`
-    svg{
-      height: 150px !important;
-    }
-    position: relative;
-    .CircularProgressbar-path{
-      stroke: var(--bs-primary) !important;
-      // stroke-width: 10px;
-    }
-    .CircularProgressbar-trail{
-      stroke: var(--bs-gray-100) !important;
-    }
-    text{
-      fill: var(--bs-body-color) !important;
-      font-weight: 700;
-      font-size: 0.875rem !important;
-    }
-`;
 
-const CircularProgress = memo(({ time, updatedAt }) => {
-  const duration = useDurationHook(time);
-  const pickupTime = parse(time, "HH:mm", new Date());
-  const maxDuration = calcInterval(new Date(updatedAt), pickupTime);
-  const maxMinutes = Math.max(
-    parseInt(maxDuration?.hours * 60 || 0) + maxDuration?.minutes,
-    5
-  );
-  const currentMinutes =
-    duration?.minutes?.value + parseInt(duration?.hours?.value * 60 || 0) || 0;
-  const percentage = parseInt(
-    (100 * (maxMinutes - currentMinutes)) / maxMinutes
-  );
-  return (
-    <StyledCircularProgressBar className="py-4">
-      <CircularProgressbar
-        value={percentage}
-        text={`${currentMinutes} min`}
-        styles={buildStyles({
-          strokeLinecap: "butt",
-        })}
-        strokeWidth={5}
-      ></CircularProgressbar>
-    </StyledCircularProgressBar>
-  );
-}, isEqual);
 const OrderOverview = memo(
   ({ time, status, updatedAt, price, number, items }) => {
     const Detail = ({ left, right }) => (
@@ -410,5 +359,3 @@ OrdersBody.displayName = "OrdersBody";
 OrderStatus.displayName = "OrderStatus";
 OrderOverview.displayName = "OrderOverview";
 OrdersModal.displayName = "OrdersModal";
-
-CircularProgress.displayName = "CircularProgress";

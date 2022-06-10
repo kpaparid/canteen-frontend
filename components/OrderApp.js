@@ -409,7 +409,7 @@ const CancelOrder = memo(({ id, setKey, oldKey }) => {
           <CustomButton>Kitchen closed</CustomButton>
           <CustomButton>Customer called to cancel</CustomButton>
           <CustomButton>Restaurant too busy</CustomButton>
-          <CustomButton>Can't complete customer note</CustomButton>
+          <CustomButton>Cannot complete customer note</CustomButton>
           <CustomButton>Other</CustomButton>
         </div>
         <CustomInput
@@ -537,11 +537,12 @@ const Extras = memo(
       <>
         <div className="flex-fill">
           {extras?.map((e) => (
-            <div className="col-12 d-flex flex-column px-1">
+            <div className="col-12 d-flex flex-column px-1" key={e.title}>
               <div className="fw-bold font-small">{e.title}:</div>
               <div className="ps-3 flex-fill">
                 {e.options.map((o) => (
                   <div
+                    key={o.text}
                     style={{
                       lineHeight: "16px",
                       fontSize: "15px",

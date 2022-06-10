@@ -81,33 +81,12 @@ export const CartModal = ({ items, summa, onSend, addTime, renderToggle }) => {
   const number = items.reduce((a, b) => a + b.count, 0);
   return (
     <>
-      {/* {items.length !== 0 && (
-        <Button
-          className="basket-toggle-btn d-flex flex-nowrap justify-content-between align-items-center"
-          onClick={handleShow}
-          style={{width:"fit-"}}
-        >
-          <div className="d-flex flex-nowrap">
-            <span className="bg-white fw-bolder px-2 text-primary rounded-2">
-              {number}
-            </span>
-            <span
-              className="ps-2 basket-toggle-title header-text
-            "
-            >
-              Warenkorb
-            </span>
-          </div>
-          <span className="basket-toggle-price header-text">
-            {formattedSumma}
-          </span>
-        </Button>
-      )} */}
       {renderToggle({
         icon: faShoppingBag,
         text: "Warenkorb",
         onClick: handleShow,
-        disabled: items.length !== 0,
+        disabled: number === 0,
+        number,
       })}
       <Modal
         show={show}

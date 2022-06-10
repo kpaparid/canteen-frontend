@@ -335,6 +335,9 @@ export const OrdersModal = memo(({ orders, renderToggle }) => {
         icon: faList,
         text: "Bestellungen",
         onClick: handleShow,
+        disabled: orders?.length === 0,
+        // number: orders?.length,
+        number: 0,
       })}
       <Modal
         show={show}

@@ -85,18 +85,49 @@ const StyledBar = styledComponents.div`
     .text{
       font-size: 12px;
     }
+    .icon-btn{
+      width: 100%;
+      color: var(--bs-gray-900);
+      position: relative;
+      height: 26px;
+      svg{
+        transform: translateX(-50%);
+        height: 16px;
+        position: absolute;
+        bottom: 0;
+      }
+    }
+    .number{
+      transform: translateX(-50%);
+      position: absolute;
+      top:0;
+      left: 60%;
+      color: var(--bs-white);
+      font-size: 12px;
+      line-height: 14px;
+      border-radius: 5rem;
+      background-color: var(--bs-primary);
+      height: 15px;
+      width: 15px;
+      text-align: center;
+    }
 }
 `;
 
-const ModalToggle = memo(({ icon, text, onClick, disabled }) => {
+const ModalToggle = memo(({ icon, text, onClick, disabled, number = 0 }) => {
   return (
     <Button
-      variant="white"
+      variant="transparent"
       disabled={disabled}
       onClick={onClick}
-      className="d-flex flex-column justify-content-around align-items-center mx-2 p-0 h-100 text-body-color"
+      className="toggle-btn d-flex flex-column justify-content-around align-items-center mx-2 p-0 h-100 text-body-color shadow-none"
     >
-      {icon && <FontAwesomeIcon className="icon" icon={icon} />}
+      <div className="icon-btn">
+        {icon && <FontAwesomeIcon icon={icon} />}
+        {number !== 0 && (
+          <div className="number font-small fw-bolder">{number}</div>
+        )}
+      </div>
       <div className="text font-small text-gray-800 fw-bold">{text}</div>
     </Button>
   );
@@ -123,27 +154,27 @@ const Basket = memo(() => {
         // />
         <RightSide />
       ) : (
-        (cartExists || ordersExist) && (
-          <StyledBar
-          // className={`cart-toggle ${
-          //   cartExists && ordersExist ? "double" : ""
-          // }`}
-          >
-            {renderToggle({ text: "User", icon: faUser })}
-            <OrdersModal {...{ orders, ordersExist, renderToggle }} />
-            {/* {cartExists && ordersExist && <div className="divider"></div>} */}
-            <CartModal
-              {...{
-                summa,
-                cartExists,
-                items,
-                onSend: sendOrder,
-                addTime,
-                renderToggle,
-              }}
-            />
-          </StyledBar>
-        )
+        // (cartExists || ordersExist) && (
+        <StyledBar
+        // className={`cart-toggle ${
+        //   cartExists && ordersExist ? "double" : ""
+        // }`}
+        >
+          {renderToggle({ text: "User", icon: faUser })}
+          <OrdersModal {...{ orders, ordersExist, renderToggle }} />
+          {/* {cartExists && ordersExist && <div className="divider"></div>} */}
+          <CartModal
+            {...{
+              summa,
+              cartExists,
+              items,
+              onSend: sendOrder,
+              addTime,
+              renderToggle,
+            }}
+          />
+        </StyledBar>
+        // )
       )}
     </>
   );

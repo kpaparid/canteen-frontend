@@ -6,7 +6,6 @@ import { isEqual } from "lodash";
 import Image from "next/image";
 import { memo, useCallback, useEffect, useState } from "react";
 import { Button, Form, Modal, Spinner } from "react-bootstrap";
-import Scrollbars from "react-custom-scrollbars-2";
 import { useDispatch, useSelector } from "react-redux";
 import styledComponents from "styled-components";
 import {
@@ -301,9 +300,12 @@ const OrdersList = memo(({ orders, title, renderItem }) => {
         <span className="count">{orders?.length}</span>
       </StyledTitle>
       <StyledOrderList className="orders-list">
-        <Scrollbars style={{ width: "100%", height: "100%" }}>
+        <div
+          className="overflow-auto"
+          style={{ width: "100%", height: "100%" }}
+        >
           {orders?.map((o) => renderItem(o))}
-        </Scrollbars>
+        </div>
       </StyledOrderList>
     </div>
   );

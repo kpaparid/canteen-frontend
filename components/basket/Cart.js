@@ -166,8 +166,9 @@ const CartFooter = ({ number, summa, onSend, addTime }) => {
         </div>
       </PickupTimeModal>
       <Button
-        className="rounded-0 rounded-end w-100 d-flex justify-content-between"
+        className="w-100 d-flex justify-content-between"
         onClick={onSend}
+        style={{ borderRadius: "0 1rem 1rem 0" }}
       >
         <div className="flex-fill d-flex flex-nowrap">
           <span

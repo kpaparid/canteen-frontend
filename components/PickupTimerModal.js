@@ -90,7 +90,8 @@ const PickupTimeModal = memo(({ children, onChange }) => {
     <>
       <StyledButton
         onClick={() => setShow(true)}
-        className="shadow-none rounded-0 rounded-start p-0 border-0 border-end border-white border-2"
+        className="shadow-none p-0 border-0 border-end border-white border-2"
+        style={{ borderRadius: "1rem 0 0 1rem" }}
       >
         {time ? <div className="px-2 header-text">{time}</div> : children}
       </StyledButton>

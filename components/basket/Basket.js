@@ -71,11 +71,9 @@ const StyledBar = styledComponents.div`
     background-color: white;
     flex-direction: row;
     width: 100%;
-    padding-bottom: 5px;
-    padding-top: 6px;
     bottom: -1px;
+    padding-bottom: 3px;
     border-top: 1px solid #eaeaea;
-    justify-content: space-around;
     height: 56px;
     position: fixed;
     width: 100%;
@@ -89,26 +87,29 @@ const StyledBar = styledComponents.div`
       width: 100%;
       color: var(--bs-gray-900);
       position: relative;
-      height: 26px;
+      height: 30px;
       svg{
         transform: translateX(-50%);
-        height: 16px;
+        height: 21px;
         position: absolute;
         bottom: 0;
       }
     }
     .number{
-      transform: translateX(-50%);
+      transform: translate(5%, 0%);
       position: absolute;
-      top:0;
-      left: 60%;
+      top: 2px;
+      left: 50%;
       color: var(--bs-white);
       font-size: 12px;
       line-height: 14px;
       border-radius: 5rem;
       background-color: var(--bs-primary);
-      height: 15px;
-      width: 15px;
+      height: 22px;
+      width: 22px;
+      display:flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
     }
 }
@@ -120,7 +121,7 @@ const ModalToggle = memo(({ icon, text, onClick, disabled, number = 0 }) => {
       variant="transparent"
       disabled={disabled}
       onClick={onClick}
-      className="toggle-btn d-flex flex-column justify-content-around align-items-center mx-2 p-0 h-100 text-body-color shadow-none"
+      className="toggle-btn d-flex flex-column justify-content-around align-items-around mx-2 p-0 h-100 text-body-color shadow-none"
     >
       <div className="icon-btn">
         {icon && <FontAwesomeIcon icon={icon} />}

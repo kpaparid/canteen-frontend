@@ -8,6 +8,7 @@ import { useMediaQuery } from "react-responsive";
 import styledComponents from "styled-components";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../contexts/SocketContext";
+import { UserDropdown } from "../User";
 import Cart, { CartModal, useCart } from "./Cart";
 import Orders, { OrdersModal, useOrders } from "./Orders";
 // eslint-disable-next-line react/display-name
@@ -65,7 +66,7 @@ const RightSide = memo(({ props }) => {
         }}
       ></BasketTabs>
       <div className="w-100 d-flex justify-content-center align-items-center">
-        <Button
+        {/* <Button
           className="w-100 header-text"
           style={{
             boxShadow: "2px 2px 4px 3px rgb(0 0 0 / 13%)",
@@ -80,7 +81,8 @@ const RightSide = memo(({ props }) => {
               <FontAwesomeIcon className="ps-2" icon={faUser} />
             </div>
           )}
-        </Button>
+        </Button> */}
+        <UserDropdown />
       </div>
     </StyledRightSide>
   );
@@ -102,6 +104,8 @@ const StyledBar = styledComponents.div`
     z-index: 900;
     .text{
       font-size: 12px;
+      color: var(--bs-gray-800);
+      font-weight: 600;
     }
     .icon-btn{
       width: 100%;
@@ -131,6 +135,19 @@ const StyledBar = styledComponents.div`
       align-items: center;
       justify-content: center;
       text-align: center;
+      font-weight: 700;
+
+    }
+    .toggle-btn{
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      // align-items: space-around;
+      margin: 0 1rem;
+      padding: 0;
+      height: 100%;
+      color: var(--bs-body-color);
+      box-shadow:none;
     }
 }
 `;
@@ -141,15 +158,13 @@ const ModalToggle = memo(({ icon, text, onClick, disabled, number = 0 }) => {
       variant="transparent"
       disabled={disabled}
       onClick={onClick}
-      className="toggle-btn d-flex flex-column justify-content-around align-items-around mx-2 p-0 h-100 text-body-color shadow-none"
+      className="toggle-btn"
     >
       <div className="icon-btn">
         {icon && <FontAwesomeIcon icon={icon} />}
-        {number !== 0 && (
-          <div className="number font-small fw-bolder">{number}</div>
-        )}
+        {number !== 0 && <div className="number">{number}</div>}
       </div>
-      <div className="text font-small text-gray-800 fw-bold">{text}</div>
+      <div className="text">{text}</div>
     </Button>
   );
 }, isEqual);
@@ -162,28 +177,11 @@ const Basket = memo(() => {
   return (
     <>
       {isBigScreen ? (
-        // <BasketTabs
-        //   {...{
-        //     orders,
-        //     ordersExist,
-        //     summa,
-        //     cartExists,
-        //     items,
-        //     sendOrder,
-        //     addTime,
-        //   }}
-        // />
         <RightSide />
       ) : (
-        // (cartExists || ordersExist) && (
-        <StyledBar
-        // className={`cart-toggle ${
-        //   cartExists && ordersExist ? "double" : ""
-        // }`}
-        >
-          {renderToggle({ text: "User", icon: faUser })}
+        <StyledBar>
+          <UserDropdown text="Account" icon={faUser} />
           <OrdersModal {...{ orders, ordersExist, renderToggle }} />
-          {/* {cartExists && ordersExist && <div className="divider"></div>} */}
           <CartModal
             {...{
               summa,
@@ -195,7 +193,6 @@ const Basket = memo(() => {
             }}
           />
         </StyledBar>
-        // )
       )}
     </>
   );

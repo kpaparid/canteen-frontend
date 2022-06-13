@@ -59,6 +59,7 @@ export const fetchOrders = createAsyncThunk(
     );
   }
 );
+
 export const openCloseShop = createAsyncThunk(
   "data/openCloseShop",
   async (props) => {
@@ -176,6 +177,9 @@ export const subjectSlice = createSlice({
         count,
       });
     },
+    clearOrders: (state) => {
+      ordersAdapter.removeAll(state.orders);
+    },
   },
 
   extraReducers: {
@@ -286,6 +290,7 @@ export const {
   updateItemCountCart,
   addCommentCart,
   addTime,
+  clearOrders,
 } = actions;
 const makeStore = () =>
   configureStore({

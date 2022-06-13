@@ -8,7 +8,7 @@ import { useMediaQuery } from "react-responsive";
 import styledComponents from "styled-components";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../contexts/SocketContext";
-import { UserDropdown } from "../User";
+import { UserDropdown, UserModal } from "../User";
 import Cart, { CartModal, useCart } from "./Cart";
 import Orders, { OrdersModal, useOrders } from "./Orders";
 // eslint-disable-next-line react/display-name
@@ -180,7 +180,7 @@ const Basket = memo(() => {
         <RightSide />
       ) : (
         <StyledBar>
-          <UserDropdown text="Account" icon={faUser} />
+          <UserModal renderToggle={renderToggle} />
           <OrdersModal {...{ orders, ordersExist, renderToggle }} />
           <CartModal
             {...{

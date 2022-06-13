@@ -31,6 +31,7 @@ export default function Menu(props) {
   const itemsRef = useRef([]);
   const ref = useRef();
   const dispatch = useDispatch();
+  const { currentUser } = useAuth();
   const [activeCategory, setActiveCategory] = useState();
   const categories = useSelector(selectAllActiveCategories);
   const menu = useSelector(selectAllMealsByCategory);
@@ -38,7 +39,7 @@ export default function Menu(props) {
 
   useEffect(() => {
     dispatch(fetchUserTodaysOrders());
-  }, [fetchUserTodaysOrders, dispatch]);
+  }, [fetchUserTodaysOrders, dispatch, currentUser]);
 
   useEffect(() => {
     itemsRef.current = itemsRef.current.slice(0, categories.length);

@@ -6,15 +6,23 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { current } from "@reduxjs/toolkit";
 import { isEqual } from "lodash";
-import { forwardRef, memo, useRef } from "react";
-import { Button, Dropdown, Form, InputGroup } from "react-bootstrap";
+import { forwardRef, memo, useRef, useState } from "react";
+import { Button, Dropdown, Form, InputGroup, Modal } from "react-bootstrap";
 import styledComponents from "styled-components";
 import { useAuth } from "../contexts/AuthContext";
 
 export const UserDropdown = memo(() => {
   const { currentUser } = useAuth();
+  const [show, setShow] = useState(false);
   return (
-    <Dropdown drop="start" className="d-flex">
+    <Dropdown
+      drop="start"
+      className="d-flex"
+      show={show}
+      onToggle={(props) => {
+        setShow(props);
+      }}
+    >
       <Dropdown.Toggle
         as={StyledToggle}
         id="dropdown-basic"
@@ -26,26 +34,41 @@ export const UserDropdown = memo(() => {
         </div>
       </Dropdown.Toggle>
 
-      <Dropdown.Menu as={CustomMenu}></Dropdown.Menu>
+      <Dropdown.Menu
+        as={CustomMenu}
+        onClose={() => setShow(false)}
+      ></Dropdown.Menu>
     </Dropdown>
   );
 }, isEqual);
 
 const CustomMenu = forwardRef(
-  ({ children, style, className, "aria-labelledby": labeledBy }, ref) => {
+  (
+    { children, style, className, "aria-labelledby": labeledBy, onClose },
+    ref
+  ) => {
     const { currentUser, login, logout, authenticatedFetch } = useAuth();
     const emailRef = useRef();
     const passwordRef = useRef();
-    async function handleSubmit(e) {
+    async function handleLogin(e) {
       e.preventDefault();
       try {
         await login(emailRef.current.value, passwordRef.current.value);
+        onClose();
       } catch (error) {
-        setError("Failed to log in");
+        console.log(error);
       }
-
-      // setLoading(false);
     }
+    async function handleLogout(e) {
+      e.preventDefault();
+      try {
+        await logout();
+        onClose();
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
     return (
       <StyledMenu
         ref={ref}
@@ -63,15 +86,15 @@ const CustomMenu = forwardRef(
               </div>
               <Button
                 variant="primary"
-                className="w-100"
-                onClick={() => logout()}
+                className="w-100 header-text"
+                onClick={handleLogout}
               >
                 Ausloggen
               </Button>
             </div>
           </>
         ) : (
-          <Form onSubmit={handleSubmit} className="p-0">
+          <Form onSubmit={handleLogin} className="p-0">
             <Form.Label className="header">Anmelden</Form.Label>
             <div className="p-3">
               <Form.Group id="email" className="mb-4">
@@ -104,7 +127,7 @@ const CustomMenu = forwardRef(
                   </InputGroup>
                 </Form.Group>
               </Form.Group>
-              <Button type="submit" className="w-100">
+              <Button type="submit" className="w-100 header-text">
                 Einloggen
               </Button>
             </div>
@@ -152,3 +175,118 @@ const StyledToggle = styledComponents(Button)`
     }
 
 `;
+
+export const UserModal = ({ renderToggle }) => {
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+  const { currentUser, login, logout, authenticatedFetch } = useAuth();
+  const emailRef = useRef();
+  const passwordRef = useRef();
+  async function handleLogin(e) {
+    e.preventDefault();
+    try {
+      await login(emailRef.current.value, passwordRef.current.value);
+      handleClose();
+    } catch (error) {
+      setError("Failed to log in");
+    }
+
+    // setLoading(false);
+  }
+  async function handleLogout(e) {
+    e.preventDefault();
+    try {
+      await logout();
+      handleClose();
+    } catch (error) {
+      setError("Failed to log out");
+    }
+  }
+  return (
+    <>
+      {renderToggle({
+        icon: faUser,
+        text: currentUser ? "Mein Konto" : "Anmelden",
+        onClick: handleShow,
+      })}
+      <Modal
+        show={show}
+        onHide={handleClose}
+        fullscreen
+        contentClassName="cart"
+      >
+        <Modal.Header closeVariant="white" className="bg-primary" closeButton>
+          <span>{currentUser ? "Mein Konto" : "Anmelden"}</span>
+        </Modal.Header>
+        <Modal.Body>
+          {currentUser ? (
+            <>
+              <div className="p-3">
+                <div className="pb-3 fw-bolder d-flex flex-column align-items-center">
+                  {currentUser.email}
+                  {currentUser.displayName}
+                </div>
+              </div>
+            </>
+          ) : (
+            <Form className="p-0">
+              <div className="p-3">
+                <Form.Group id="email" className="mb-4">
+                  <InputGroup>
+                    <InputGroup.Text>
+                      <FontAwesomeIcon icon={faEnvelope} />
+                    </InputGroup.Text>
+                    <Form.Control
+                      className="form-login bg-white"
+                      ref={emailRef}
+                      required
+                      type="email"
+                      placeholder="Email"
+                    />
+                  </InputGroup>
+                </Form.Group>
+                <Form.Group>
+                  <Form.Group id="password" className="mb-4">
+                    <InputGroup>
+                      <InputGroup.Text>
+                        <FontAwesomeIcon icon={faUnlockAlt} />
+                      </InputGroup.Text>
+                      <Form.Control
+                        className="form-login bg-white"
+                        ref={passwordRef}
+                        required
+                        type="password"
+                        placeholder="Passwort"
+                      />
+                    </InputGroup>
+                  </Form.Group>
+                </Form.Group>
+              </div>
+            </Form>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          {currentUser ? (
+            <Button
+              variant="primary"
+              className="w-100 header-text"
+              onClick={handleLogout}
+            >
+              Ausloggen
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              className="w-100 header-text"
+              onClick={handleLogin}
+            >
+              Einloggen
+            </Button>
+          )}
+        </Modal.Footer>
+      </Modal>
+    </>
+  );
+};

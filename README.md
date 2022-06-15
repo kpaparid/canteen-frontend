@@ -40,7 +40,7 @@ Install dependencies
   npm install
 ```
 
-Install canteen-backend by following the guilines in 
+Install canteen-backend by following the guidelines in 
 https://github.com/kpaparid/canteen-backend.
 
 Connect with Backend and Firebase by adding their paths as Environment Variables

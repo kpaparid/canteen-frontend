@@ -41,7 +41,7 @@ Install dependencies
 ```bash
   npm install
 ```
-Connect with Backend
+Connect with Backend and Firebase by adding their paths as Environment Variables
 
 Start the server
 

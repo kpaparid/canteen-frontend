@@ -1,9 +1,7 @@
 # Canteen
 
-Food ordering website for Canteen restaurant built using Next.js, Redux, Mongodb
+Food ordering website for Canteen restaurant built using Next.js, Redux, Socket.Io
 
-
-## Demo
 
 
 ## Screenshots
@@ -27,7 +25,7 @@ Food ordering website for Canteen restaurant built using Next.js, Redux, Mongodb
 Clone the project
 
 ```bash
-  git clone https://github.com/canteen-frontend.git
+  git clone https://github.com/kpaparid/canteen-frontend.git
 ```
 
 Go to the project directory

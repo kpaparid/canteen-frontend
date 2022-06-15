@@ -1,6 +1,16 @@
-import { faBurger } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowUp,
+  faBurger,
+  faCheck,
+  faChevronDown,
+  faChevronUp,
+  faEdit,
+  faFile,
+  faPlus,
+  faX,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { debounce, isEqual } from "lodash";
+import { debounce, indexOf, isEqual } from "lodash";
 import Image from "next/image";
 import React, {
   forwardRef,
@@ -11,7 +21,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Button } from "react-bootstrap";
+import { Button, Form, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import styledComponents from "styled-components";
 import { useAuth } from "../contexts/AuthContext";
@@ -24,18 +34,27 @@ import {
 import { formatPrice } from "../utilities/utils.mjs";
 import Basket from "./basket/Basket";
 import Header from "./Header";
-import Item from "./Item";
+import Item, { EditableItem } from "./Item";
 import useApi from "../hooks/useAPI";
 
 export default function Menu(props) {
   const itemsRef = useRef([]);
   const ref = useRef();
   const dispatch = useDispatch();
-  const { currentUser } = useAuth();
+  const { currentUser, currentRole } = useAuth();
+  const isAdmin = currentRole.includes("admin");
   const [activeCategory, setActiveCategory] = useState();
   const categories = useSelector(selectAllActiveCategories);
   const menu = useSelector(selectAllMealsByCategory);
   const { fetchUserTodaysOrders } = useApi();
+  const usedUIDs = useMemo(
+    () =>
+      Object.keys(menu).reduce(
+        (a, b) => [...a, ...menu[b].data.map((i) => i.uid)],
+        []
+      ),
+    [menu]
+  );
 
   useEffect(() => {
     dispatch(fetchUserTodaysOrders());
@@ -108,10 +127,17 @@ export default function Menu(props) {
       <div className="d-flex bg-octonary">
         <div className="h-100 w-100 m-auto flex-column">
           <div className="menu-wrapper">
-            <CategoriesNavbar
-              categories={categories}
-              onClick={handleCategoryClick}
-            />
+            {isAdmin ? (
+              <EditableCategoriesNavbar
+                categories={categories}
+                onClick={handleCategoryClick}
+              />
+            ) : (
+              <CategoriesNavbar
+                categories={categories}
+                onClick={handleCategoryClick}
+              />
+            )}
             <div className="menu">
               <div className="flex-fill">
                 {menu &&
@@ -119,8 +145,11 @@ export default function Menu(props) {
                     <SubCategory
                       key={i}
                       items={menu[i]}
+                      isAdmin={isAdmin}
                       addToCart={addToCart}
+                      categories={categories}
                       ref={(el) => (itemsRef.current[index] = el)}
+                      usedUIDs={usedUIDs}
                     />
                   ))}
               </div>
@@ -132,25 +161,410 @@ export default function Menu(props) {
     </div>
   );
 }
-const CategoriesNavbar = memo(({ categories, onClick }) => {
-  return (
-    <div className="categories-navbar">
-      {categories?.map(({ id }, index) => (
-        <div key={id} className="category">
-          <Button
-            variant="transparent"
-            className="category-text"
-            id={id}
-            onClick={() => onClick(index)}
-          >
-            {id}
-          </Button>
-        </div>
-      ))}
-    </div>
-  );
-}, isEqual);
+const CategoriesNavbar = memo(
+  ({ categories, onClick, isAdmin = { isAdmin } }) => {
+    return (
+      <div className="categories-navbar">
+        {categories?.map(({ id }, index) => (
+          <div key={id} className="category">
+            <Button
+              variant="transparent"
+              className="category-text"
+              id={id}
+              onClick={() => onClick(index)}
+            >
+              {id}
+            </Button>
+          </div>
+        ))}
+      </div>
+    );
+  },
+  isEqual
+);
+const EditableCategoriesNavbar = memo(
+  ({ categories: initialCategories, onClick }) => {
+    const menu = useSelector(selectAllMealsByCategory);
+    const { updateAllMeals } = useApi();
 
+    const [changedMenu, setChangedMenu] = useState(
+      Object.values(menu)?.reduce((a, b) => [...a, ...b.data], [])
+    );
+    const [categories, setCategories] = useState(initialCategories);
+    const [changedCategories, setChangedCategories] =
+      useState(initialCategories);
+    const [editMode, setEditMode] = useState(false);
+    const [active, setActive] = useState();
+    const handleSave = useCallback(() => {
+      updateAllMeals(
+        changedMenu.map(({ id }) => id),
+        changedMenu
+      );
+    }, [changedMenu, updateAllMeals]);
+
+    const handleCancel = useCallback(() => {
+      setChangedCategories(initialCategories);
+      setCategories(initialCategories);
+      setChangedMenu(menu);
+      setActive();
+      setEditMode(false);
+    }, [initialCategories, menu]);
+    const handleAdd = useCallback(() => {
+      setChangedCategories((old) => {
+        const newCategories = [
+          ...old,
+          { title: "", text: "", photoURL: "", itemIDs: [], id: "" },
+        ];
+        setCategories(newCategories);
+        return newCategories;
+      });
+    }, []);
+    const handleMove = useCallback(
+      (f, t) =>
+        setCategories((old) => {
+          const from = changedCategories[f];
+          const to = changedCategories[t];
+          const newCategories = [...changedCategories];
+          newCategories[f] = to;
+          newCategories[t] = from;
+
+          setChangedMenu((menu) => {
+            const oldMenu = handleMenuCategoryChange(
+              menu,
+              old,
+              changedCategories
+            );
+            const restMenu = oldMenu.filter(
+              ({ category }) => category !== from.id && category !== to.id
+            );
+            const fromMenu = oldMenu
+              .filter(({ category }) => category === from.id)
+              .map((meal) => ({
+                ...meal,
+                uid: (meal.uid % 100) + (t + 1) * 100,
+              }));
+            const toMenu = oldMenu
+              .filter(({ category }) => category === to.id)
+              .map((meal) => ({
+                ...meal,
+                uid: (meal.uid % 100) + (f + 1) * 100,
+              }));
+            const newMenu = [...toMenu, ...fromMenu, ...restMenu];
+            return newMenu;
+          });
+          setChangedCategories(newCategories);
+          setActive(t);
+
+          return newCategories;
+        }),
+
+      [changedCategories, handleMenuCategoryChange]
+    );
+
+    const handleMenuCategoryChange = useCallback((oldMenu, old, newCat) => {
+      const newKeys = newCat.map(({ id }) => id);
+      const oldKeys = old.map(({ id }) => id);
+      const newMenu = newKeys.reduce((a, b) => {
+        if (oldKeys.includes(b)) {
+          return [...a, ...oldMenu.filter((meal) => meal.category === b)];
+        } else {
+          const index = newKeys.indexOf(b);
+          const oldCategory = oldKeys[index];
+          return [
+            ...a,
+            ...oldMenu
+              .filter((meal) => meal.category === oldCategory)
+              .map((meal) => ({ ...meal, category: b })),
+          ];
+        }
+      }, []);
+      return newMenu;
+    }, []);
+
+    const handleActiveChange = useCallback(
+      (index) => {
+        setActive(index);
+        // const c = handleMenuCategoryChange(menu, changedCategories);
+        // setCategories((old) => {
+        //   changedCategories.map(({ id }, index) => {
+        //     if (id !== old[index].id) {
+        //       setChangedMenu((oldMenu) => {
+        //         return [
+        //           ...Object.keys(oldMenu).filter((k) => k !== old[index].id),
+        //           id,
+        //         ].reduce((a, b) => {
+        //           if (b === id) {
+        //             const newData = oldMenu[old[index].id].data?.map(
+        //               (meal) => ({
+        //                 ...meal,
+        //                 category: id,
+        //               })
+        //             );
+        //             return {
+        //               ...a,
+        //               [b]: { ...oldMenu[old[index].id], data: newData },
+        //             };
+        //           } else {
+        //             return { ...a, [b]: oldMenu[b] };
+        //           }
+        //         }, {});
+        //       });
+        //       return null;
+        //     }
+        //   });
+        //   return changedCategories;
+        // });
+      },
+      [changedCategories]
+    );
+
+    const handleTitleChange = useCallback(
+      (index, values) =>
+        setChangedCategories((old) => {
+          const newCategories = [...old];
+          newCategories[index] = {
+            ...newCategories[index],
+            ...values,
+          };
+          return newCategories;
+        }),
+      []
+    );
+
+    return (
+      <div className="d-flex flex-nowrap">
+        <div className="categories-navbar">
+          {categories?.map(({ title, id, ...rest }, index) => (
+            <div
+              key={id}
+              className="category d-flex flex-nowrap align-items-center"
+            >
+              {editMode && active === index && (
+                <div className="h-100 my-3 me-2 d-flex align-items-center flex-column justify-content-center">
+                  {index === active && (
+                    <Button
+                      variant="primary"
+                      className="p-0 my-2 text-center"
+                      disabled={index === 0}
+                      onClick={() => handleMove(index, index - 1)}
+                      style={{
+                        height: "30px",
+                        width: "30px",
+                        borderRadius: "1rem",
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faChevronUp} />
+                    </Button>
+                  )}
+                  <Button
+                    variant="light-primary"
+                    className="p-0 text-center"
+                    style={{
+                      height: "30px",
+                      width: "30px",
+                      borderRadius: "1rem",
+                    }}
+                  >
+                    {index}
+                  </Button>
+                  {index === active && (
+                    <Button
+                      variant="primary"
+                      className="p-0 my-2 text-center"
+                      disabled={index === categories.length - 1}
+                      onClick={() => handleMove(index, index + 1)}
+                      style={{
+                        height: "30px",
+                        width: "30px",
+                        borderRadius: "1rem",
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faChevronDown} />
+                    </Button>
+                  )}
+                </div>
+              )}
+              {editMode && active === index ? (
+                <FormInput
+                  title={title}
+                  id={id}
+                  {...rest}
+                  index={index}
+                  onChange={handleTitleChange}
+                ></FormInput>
+              ) : (
+                <Button
+                  variant={
+                    editMode ? "primary header-text my-2" : "transparent"
+                  }
+                  className="category-text"
+                  id={id}
+                  onClick={() =>
+                    editMode ? handleActiveChange(index) : onClick(index)
+                  }
+                  style={{ height: "44px", borderRadius: "1rem" }}
+                >
+                  {title}
+                </Button>
+              )}
+            </div>
+          ))}
+          {editMode && (
+            <>
+              <div className="w-100 d-flex justify-content-center pt-3">
+                <Button
+                  className="p-0 w-100 mx-2"
+                  style={{
+                    height: "44px",
+                    width: "44px",
+                    borderRadius: "1rem",
+                  }}
+                  onClick={handleAdd}
+                >
+                  <FontAwesomeIcon icon={faPlus} />
+                </Button>
+              </div>
+              <div className="pt-3 d-flex flex-nowrap mx-2">
+                <div className="w-100 d-flex justify-content-center pt-2 me-2">
+                  <Button
+                    className="p-0 w-100"
+                    style={{
+                      height: "44px",
+                      width: "44px",
+                      borderRadius: "1rem",
+                    }}
+                    onClick={handleSave}
+                  >
+                    <FontAwesomeIcon icon={faCheck} />
+                  </Button>
+                </div>
+                <div className="w-100 d-flex justify-content-center pt-2 ms-2">
+                  <Button
+                    className="p-0 w-100"
+                    style={{
+                      height: "44px",
+                      width: "44px",
+                      borderRadius: "1rem",
+                    }}
+                    onClick={handleCancel}
+                  >
+                    <FontAwesomeIcon icon={faX} />
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+        {!editMode && (
+          <div className="d-flex justify-content-end">
+            <Button
+              className="p-0"
+              style={{ height: "44px", width: "44px", borderRadius: "1rem" }}
+              onClick={() => setEditMode((old) => !old)}
+            >
+              <FontAwesomeIcon icon={faEdit} />
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  },
+  isEqual
+);
+const FormInput = memo(
+  ({
+    title: initialTitle,
+    index,
+    onChange,
+    text: initialText,
+    id: initialId,
+    photoURL: initialPhotoURL,
+  }) => {
+    const [title, setTitle] = useState(initialTitle);
+    const [text, setText] = useState(initialText);
+    const [id, setId] = useState(initialId);
+    const [photoUrl, setPhotoURL] = useState(initialPhotoURL);
+
+    const debouncedCallback = useMemo(
+      () => debounce(onChange, 500),
+      [onChange]
+    );
+
+    useEffect(() => {
+      debouncedCallback(index, { title, text, id, photoUrl });
+    }, [title, text, id, photoUrl, index, debouncedCallback]);
+
+    return (
+      <div className="d-flex flex-column">
+        <div>
+          <Form.Label className="font-small fw-bolder m-0">ID</Form.Label>
+          <Form.Control
+            style={{ height: "44px", borderRadius: "1rem" }}
+            value={id}
+            disabled
+            className="bg-white"
+          />
+        </div>
+        <div>
+          <Form.Label className="font-small fw-bolder m-0 mt-3">
+            Title
+          </Form.Label>
+          <Form.Control
+            style={{ height: "44px", borderRadius: "1rem" }}
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setId(e.target.value.toLowerCase());
+            }}
+          />
+        </div>
+        <div>
+          <Form.Label className="font-small fw-bolder m-0 mt-3">
+            Description
+          </Form.Label>
+          <Form.Control
+            as="textarea"
+            className="font-small"
+            rows="7"
+            style={{ borderRadius: "1rem" }}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+        </div>
+        <div className="d-flex justify-content-start flex-nowrap">
+          <Form.Label className="font-small fw-bolder m-0 mt-3">
+            photoURL
+          </Form.Label>
+          <OverlayTrigger
+            trigger={["hover", "focus"]}
+            overlay={
+              <Tooltip>
+                <a
+                  className="px-3 text-light-primary"
+                  href={photoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {photoUrl}
+                </a>
+              </Tooltip>
+            }
+          >
+            <Button
+              variant={photoUrl ? "primary" : "light-primary"}
+              size="sm"
+              className="m-2"
+            >
+              <FontAwesomeIcon icon={faFile} />
+            </Button>
+          </OverlayTrigger>
+        </div>
+        <Form.Control type="file" />
+      </div>
+    );
+  },
+  isEqual
+);
 CategoriesNavbar.displayName = "CategoriesNavbar";
 const SubCategory = forwardRef(({ items, category, onClick, ...rest }, ref) => {
   return (
@@ -161,9 +575,11 @@ const SubCategory = forwardRef(({ items, category, onClick, ...rest }, ref) => {
         title={items.title}
       />
       <div className="rounded meal-list">
-        {items?.data.map((i) => (
-          <DetailsItem key={i.id} {...i} {...rest} />
-        ))}
+        {[...items?.data]
+          .sort((a, b) => a.uid - b.uid)
+          .map((i) => (
+            <DetailsItem key={i.id} {...i} {...rest} />
+          ))}
       </div>
     </div>
   );
@@ -209,14 +625,23 @@ function CategoryTitle({ title, text, photoURL }) {
   );
 }
 
-function DetailsItem(props) {
-  const { name, description, photoURL, price, uid, withFoto = false } = props;
+const DetailsItem = memo((props) => {
+  const {
+    name,
+    description,
+    photoURL,
+    price,
+    uid,
+    withFoto = false,
+    isAdmin,
+  } = props;
 
   const formattedPrice = formatPrice(price);
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+
   return (
     <>
       <div className="item-modal-toggle meal-item my-4 bg-gray-100 rounded">
@@ -259,77 +684,21 @@ function DetailsItem(props) {
         </div>
       </div>
 
-      <Item {...props} show={show} onClose={handleClose} onShow={handleShow} />
+      {isAdmin ? (
+        <EditableItem
+          {...props}
+          show={show}
+          onClose={handleClose}
+          onShow={handleShow}
+        />
+      ) : (
+        <Item
+          {...props}
+          show={show}
+          onClose={handleClose}
+          onShow={handleShow}
+        />
+      )}
     </>
   );
-}
-
-function BoxItem(props) {
-  const { name, description, photoURL, price, uid } = props;
-
-  const formattedPrice = formatPrice(price);
-  const [show, setShow] = useState(false);
-
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-  return (
-    <>
-      <StyledBoxItem onClick={handleShow} className="col-5">
-        <div className="box-wrapper">
-          {photoURL ? (
-            <div className="image-wrapper">
-              <Image src={photoURL} alt="error" layout="fill" />
-            </div>
-          ) : (
-            <div className="image-wrapper">
-              <div className="p-5 w-100 h-100">
-                <FontAwesomeIcon
-                  className="w-100 h-100 text-primary"
-                  icon={faBurger}
-                />
-              </div>
-            </div>
-          )}
-          <div className="p-2 d-flex flex-nowrap justify-content-between align-items-center">
-            <span className="fw-bolder text-gray-900 meal-title">
-              {uid}. {name}
-            </span>
-            <span className="d-flex font-bolder text-white p-2 meal-price bg-primary rounded">
-              {formattedPrice}
-            </span>
-          </div>
-        </div>
-      </StyledBoxItem>
-
-      <Item {...props} show={show} onClose={handleClose} onShow={handleShow} />
-    </>
-  );
-}
-
-const StyledBoxItem = styledComponents.div`
-display: flex;
-justify-content: center;
-align-items: center;
-flex-wrap: nowrap;
-margin: 1rem;
-.box-wrapper{
-  width: 100%;
-  background-color: white;
-  border-radius: 1rem;
-  overflow: hidden;
-}
-.image-wrapper{
-  position: relative;
-  width: 100%;
-  max-width: 300px;
-  height: 100%;
-  aspect-ratio: 16/9;
-  overflow: hidden;
-  img {
-    width: 100%;
-    height: 100%;
-    position: relative !important;
-    object-fit: cover;
-  }
-}
-`;
+}, isEqual);

@@ -108,7 +108,7 @@ font-weight: 600;
 }
 `;
 const TwoColumnsOrders = memo(
-  ({ orders, loading, socket, onChangeOrderStatus }) => {
+  ({ orders, loading, onChangeOrderStatus, onChangeShopStatus }) => {
     // const dispatch = useDispatch();
     const leftColumn = orders?.pending;
     const middleColumn = orders?.confirmed;
@@ -175,7 +175,7 @@ const TwoColumnsOrders = memo(
             <Spinner animation="border" variant="darker-nonary" />
           </Modal.Body>
         </Modal>
-        <TopBar />
+        <TopBar onChangeShopStatus={onChangeShopStatus} />
         <ColumnsWrapper className="px-2">
           <OrdersList
             orders={leftColumn}
@@ -263,15 +263,12 @@ const TwoColumnsOrders = memo(
   },
   isEqual
 );
-const TopBar = memo(() => {
+const TopBar = memo(({ onChangeShopStatus }) => {
   const dispatch = useDispatch();
   const shopEnabled = useSelector(selectShopIsOpen);
   const handleClick = useCallback(
-    () =>
-      dispatch(openCloseShop(!shopEnabled)).then((r) =>
-        dispatch(fetchSettings({ suffix: "?uid=shopIsOpen" }))
-      ),
-    [shopEnabled]
+    () => onChangeShopStatus(!shopEnabled),
+    [onChangeShopStatus, shopEnabled]
   );
   return (
     <StyledNavBar className="px-4">

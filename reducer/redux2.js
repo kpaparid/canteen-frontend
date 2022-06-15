@@ -83,19 +83,22 @@ export const openCloseShop = createAsyncThunk(
     );
   }
 );
-export const postOrders = createAsyncThunk("data/postOrders", async (body) => {
-  const url = process.env.BACKEND_URI;
-  const options = {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  };
-  return await fetch(url + "orders", options).then((res) =>
-    res.json().then((r) => {
-      return r.data;
-    })
-  );
-});
+export const postOrders = createAsyncThunk(
+  "data/postOrders",
+  async (body, customFetch = fetch) => {
+    const url = process.env.BACKEND_URI;
+    const options = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    };
+    return await fetch(url + "orders", options).then((res) => {
+      return res.json().then((r) => {
+        return r.data;
+      });
+    });
+  }
+);
 export const changeOrderStatus = createAsyncThunk(
   "data/changeOrderStatus",
   async ({ id, body }) => {
@@ -179,6 +182,10 @@ export const subjectSlice = createSlice({
     },
     clearOrders: (state) => {
       ordersAdapter.removeAll(state.orders);
+    },
+    clearCart: (state) => {
+      cartItemsAdapter.removeAll(state.cart.items);
+      state.cart.time = null;
     },
   },
 
@@ -291,6 +298,7 @@ export const {
   addCommentCart,
   addTime,
   clearOrders,
+  clearCart,
 } = actions;
 const makeStore = () =>
   configureStore({

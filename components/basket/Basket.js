@@ -1,13 +1,12 @@
-import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isEqual } from "lodash";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Col, Nav, Tab } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
+import { useSelector } from "react-redux";
 import { useMediaQuery } from "react-responsive";
 import styledComponents from "styled-components";
-import { useAuth } from "../../contexts/AuthContext";
-import { useSocket } from "../../contexts/SocketContext";
+import { selectShopIsOpen } from "../../reducer/redux2";
 import { UserDropdown, UserModal } from "../User";
 import Cart, { CartModal, useCart } from "./Cart";
 import Orders, { OrdersModal, useOrders } from "./Orders";
@@ -16,7 +15,8 @@ import Orders, { OrdersModal, useOrders } from "./Orders";
 export const useRightSideBar = () => {
   const cart = useCart();
   const orders = useOrders();
-  return { cart, orders };
+  const shopEnabled = useSelector(selectShopIsOpen);
+  return { cart, orders, shopEnabled };
 };
 
 const StyledRightSide = styledComponents.div`
@@ -52,6 +52,7 @@ justify-content: space-between;
 const RightSide = memo(({ props }) => {
   const { orders, ordersExist } = useOrders();
   const { summa, cartExists, items, sendOrder, addTime } = useCart();
+  const shopEnabled = useSelector(selectShopIsOpen);
   return (
     <StyledRightSide>
       <BasketTabs
@@ -63,25 +64,10 @@ const RightSide = memo(({ props }) => {
           items,
           sendOrder,
           addTime,
+          shopEnabled,
         }}
       ></BasketTabs>
       <div className="w-100 d-flex justify-content-center align-items-center">
-        {/* <Button
-          className="w-100 header-text"
-          style={{
-            boxShadow: "2px 2px 4px 3px rgb(0 0 0 / 13%)",
-            borderRadius: "1rem",
-          }}
-        >
-          {false ? (
-            <div>Login</div>
-          ) : (
-            <div className="d-flex flex-nowrap justify-content-between px-2 align-items-center">
-              <div>Kostas Paparidis</div>
-              <FontAwesomeIcon className="ps-2" icon={faUser} />
-            </div>
-          )}
-        </Button> */}
         <UserDropdown />
       </div>
     </StyledRightSide>
@@ -206,21 +192,24 @@ const BasketTabs = ({
   items,
   sendOrder,
   addTime,
+  shopEnabled,
 }) => {
   const cartIsVisible = !(ordersExist && !cartExists);
   const defaultKey = !cartIsVisible ? "orders" : "cart";
   const [activeKey, setActiveKey] = useState(defaultKey);
 
   useEffect(() => {
-    cartIsVisible ? setActiveKey("cart") : setActiveKey("orders");
-  }, [items, cartIsVisible]);
+    cartIsVisible || !shopEnabled
+      ? setActiveKey("cart")
+      : setActiveKey("orders");
+  }, [items, cartIsVisible, shopEnabled]);
 
   return (
     <Tab.Container activeKey={activeKey}>
       <div className="basket basket-card d-flex flex-column">
         <div className="basket-header w-100">
           <Nav>
-            {cartIsVisible && (
+            {(cartIsVisible || !shopEnabled) && (
               <Button
                 className="basket-tab flex-fill"
                 variant={activeKey === "cart" ? "primary header-text" : "white"}
@@ -243,12 +232,13 @@ const BasketTabs = ({
           </Nav>
         </div>
         <Col sm={12} className="basket-body">
-          {cartIsVisible && activeKey === "cart" && (
+          {(cartIsVisible || !shopEnabled) && activeKey === "cart" && (
             <Cart
               items={items}
               summa={summa}
               onSend={sendOrder}
               addTime={addTime}
+              shopEnabled={shopEnabled}
             />
           )}
           {ordersExist && activeKey === "orders" && <Orders orders={orders} />}

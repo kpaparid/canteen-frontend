@@ -6,6 +6,7 @@ import {
   fetchCategories,
   fetchMeals,
   fetchOrders,
+  fetchSettings,
   wrapper,
 } from "../reducer/redux2";
 import { format } from "date-fns";
@@ -20,14 +21,9 @@ export const getServerSideProps = wrapper.getServerSideProps(
       const shop = store
         .dispatch(fetchMeals())
         .then(({ payload }) => store.dispatch(fetchCategories(payload)));
-      // const date = format(new Date(), "yyyy-MM-dd") + "T00:00:00.000Z";
-      // const user = "kostas";
+
       const promises = [
-        // store.dispatch(
-        //   fetchOrders({
-        //     suffix: `?createdAt_gte=${date}&user=${user}`,
-        //   })
-        // ),
+        store.dispatch(fetchSettings({ suffix: "?uid=shopIsOpen" })),
         shop,
       ];
       await Promise.all(promises);

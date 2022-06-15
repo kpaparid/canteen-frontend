@@ -1,5 +1,5 @@
 import { isEqual } from "lodash";
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import TwoColumnsOrders from "../components/TwoColumnsOrders";
 import { useSocket } from "../contexts/SocketContext";
@@ -9,6 +9,7 @@ import {
   changeOrderStatus,
   fetchMeals,
   fetchSettings,
+  openCloseShop,
   selectAllOrdersByCategory,
   wrapper,
 } from "../reducer/redux2";
@@ -28,6 +29,7 @@ const Home = memo(() => {
       socket?.emit("join_room", [
         ...new Set(r?.payload?.map((p) => p.user.uid)),
         "admin",
+        "shopIsOpen",
       ]);
     });
   }, [socket]);
@@ -38,7 +40,7 @@ const Home = memo(() => {
       socket.on("received_order", (data) => {
         console.log(`received order in admin ${data}`);
         dispatch(fetchTodaysOrders()).then((r) => {
-          socket?.emit("join_room", [
+          socket.emit("join_room", [
             ...new Set(r?.payload?.map((p) => p.user.uid)),
             "admin",
           ]);
@@ -54,6 +56,14 @@ const Home = memo(() => {
       setLoading(false);
     });
   };
+  const onChangeShopStatus = useCallback(
+    (value) => {
+      dispatch(openCloseShop(value))
+        .then((r) => dispatch(fetchSettings({ suffix: "?uid=shopIsOpen" })))
+        .then(() => socket?.emit("update_shop", value));
+    },
+    [dispatch, socket]
+  );
   // return <Dashboard orders={orders} />;
   return (
     <TwoColumnsOrders
@@ -61,6 +71,7 @@ const Home = memo(() => {
       socket={socket}
       loading={loading}
       onChangeOrderStatus={onChangeOrderStatus}
+      onChangeShopStatus={onChangeShopStatus}
     />
   );
 }, isEqual);

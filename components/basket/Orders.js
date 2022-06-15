@@ -3,38 +3,20 @@ import {
   faCheckCircle,
   faCircleXmark,
   faEnvelopeOpenText,
-  faKitchenSet,
   faList,
   faThumbsUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import _, { isEqual } from "lodash";
+import { isEqual } from "lodash";
 import moment from "moment";
 import { memo, useEffect, useState } from "react";
-import {
-  Accordion,
-  Modal,
-  Nav,
-  Tab,
-  useAccordionButton,
-} from "react-bootstrap";
-import Button from "react-bootstrap/Button";
+import { Accordion, Modal, Nav, Tab } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useMediaQuery } from "react-responsive";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../contexts/SocketContext";
 import useAPI from "../../hooks/useAPI";
-import { selectOrders } from "../../reducer/redux2";
-import {
-  calcInterval,
-  formatPrice,
-  getDuration,
-  useDurationHook,
-} from "../../utilities/utils.mjs";
-// eslint-disable-next-line react/display-name
-
-import styledComponents from "styled-components";
-import { formatDuration, parse } from "date-fns";
+import { clearCart, fetchSettings, selectOrders } from "../../reducer/redux2";
 import OrderTracker from "../OrderTracker";
 export const useOrders = () => {
   const { socket } = useSocket();
@@ -45,12 +27,9 @@ export const useOrders = () => {
   const ordersExist = orders?.length !== 0;
 
   useEffect(() => {
-    ordersExist &&
-      currentUser &&
-      (!socket
-        ? connect().emit("join_room", currentUser.uid)
-        : socket.emit("join_room", currentUser.uid));
-  }, [orders]);
+    socket?.emit("join_room", "shopIsOpen");
+    currentUser && socket?.emit("join_room", currentUser.uid);
+  }, [socket, currentUser]);
 
   useEffect(() => {
     if (socket) {
@@ -58,8 +37,13 @@ export const useOrders = () => {
         console.log(`received updated order`);
         dispatch(fetchUserTodaysOrders());
       });
+      socket.on("updated_shop", (data) => {
+        console.log(`received updated shop`);
+        !data && dispatch(clearCart());
+        dispatch(fetchSettings({ suffix: "?uid=shopIsOpen" }));
+      });
     }
-  }, [socket]);
+  }, [socket, fetchUserTodaysOrders, dispatch]);
 
   return { orders, ordersExist };
 };

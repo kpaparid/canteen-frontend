@@ -88,7 +88,7 @@ export function AuthProvider({ children }) {
       return fetch(url, options)
         .then((response) => {
           return response.json().then((res) => {
-            if (res.status !== 200) {
+            if (res.status !== 200 && res.status !== 201) {
               return Promise.reject(res);
             }
             return res;

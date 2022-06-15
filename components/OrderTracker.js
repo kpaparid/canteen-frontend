@@ -148,7 +148,7 @@ const Icon = memo(({ index, time }) => {
           </div>
         </>
       );
-    case 1:
+    case 2:
       return (
         <>
           <div

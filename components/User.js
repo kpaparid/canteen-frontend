@@ -6,7 +6,8 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { current } from "@reduxjs/toolkit";
 import { isEqual } from "lodash";
-import { forwardRef, memo, useRef, useState } from "react";
+import { useRouter } from "next/router";
+import { forwardRef, memo, useEffect, useRef, useState } from "react";
 import { Button, Dropdown, Form, InputGroup, Modal } from "react-bootstrap";
 import styledComponents from "styled-components";
 import { useAuth } from "../contexts/AuthContext";
@@ -176,12 +177,12 @@ const StyledToggle = styledComponents(Button)`
 
 `;
 
-export const UserModal = ({ renderToggle }) => {
+export const UserModal = ({ renderToggle, fullscreen = true }) => {
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  const { currentUser, login, logout, authenticatedFetch } = useAuth();
+  const { currentUser, login, logout } = useAuth();
   const emailRef = useRef();
   const passwordRef = useRef();
   async function handleLogin(e) {
@@ -204,6 +205,7 @@ export const UserModal = ({ renderToggle }) => {
       setError("Failed to log out");
     }
   }
+
   return (
     <>
       {renderToggle({
@@ -214,10 +216,14 @@ export const UserModal = ({ renderToggle }) => {
       <Modal
         show={show}
         onHide={handleClose}
-        fullscreen
-        contentClassName="cart"
+        fullscreen={fullscreen}
+        contentClassName="w-100"
       >
-        <Modal.Header closeVariant="white" className="bg-primary" closeButton>
+        <Modal.Header
+          closeVariant="white"
+          className="header-text bg-primary text-white"
+          closeButton
+        >
           <span>{currentUser ? "Mein Konto" : "Anmelden"}</span>
         </Modal.Header>
         <Modal.Body>

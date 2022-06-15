@@ -14,9 +14,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { useMediaQuery } from "react-responsive";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../contexts/SocketContext";
+import useAPI from "../../hooks/useAPI";
 import {
   addCommentCart,
-  postOrders,
   removeItemCart,
   selectCart,
   updateItemCountCart,
@@ -25,22 +25,24 @@ import {
 import { formatPrice } from "../../utilities/utils.mjs";
 import Accumulator from "../Accumulator";
 import PickupTimeModal from "../PickupTimerModal";
+import ClosedSvg from "../svg/ClosedSvg";
+import { UserModal } from "../User";
 // eslint-disable-next-line react/display-name
 export const useCart = () => {
   const { socket } = useSocket();
-  const { currentUser } = useAuth();
+  // const { currentUser } = useAuth();
   const items = useSelector(selectCart);
   const time = useSelector((state) => state.shop.cart.time);
   const cartExists = items?.length !== 0;
   const empty = !items?.length !== 0;
   const dispatch = useDispatch();
   const summa = items && items?.reduce((a, b) => a + b.calculatedPrice, 0);
+  const { postUserOrders } = useAPI();
 
   const handleSendOrder = useCallback(async () => {
     dispatch(
-      postOrders({
+      postUserOrders({
         items: items,
-        user: currentUser,
         time,
       })
     ).then(() => {
@@ -48,11 +50,14 @@ export const useCart = () => {
         ? connect().emit("send_order", { test: "hi" })
         : socket.emit("send_order", { test: "hi" });
     });
-  }, [socket, items, time]);
+  }, [socket, items, time, postUserOrders, dispatch]);
 
-  const handleAddTime = useCallback((value) => {
-    dispatch(addTime(value));
-  }, []);
+  const handleAddTime = useCallback(
+    (value) => {
+      dispatch(addTime(value));
+    },
+    [dispatch]
+  );
 
   return {
     summa,
@@ -81,13 +86,14 @@ export const CartModal = ({ items, summa, onSend, addTime, renderToggle }) => {
   const number = items.reduce((a, b) => a + b.count, 0);
   return (
     <>
-      {renderToggle({
-        icon: faShoppingBag,
-        text: "Warenkorb",
-        onClick: handleShow,
-        disabled: number === 0,
-        number,
-      })}
+      {renderToggle &&
+        renderToggle({
+          icon: faShoppingBag,
+          text: "Warenkorb",
+          onClick: handleShow,
+          disabled: number === 0,
+          number,
+        })}
       <Modal
         show={show}
         onHide={handleClose}
@@ -115,13 +121,13 @@ export const CartModal = ({ items, summa, onSend, addTime, renderToggle }) => {
   );
 };
 
-const CartCard = ({ items, summa, onSend, addTime }) => {
+const CartCard = ({ items, summa, onSend, addTime, shopEnabled }) => {
   const number = items.reduce((a, b) => a + b.count, 0);
   const footer = items.length !== 0;
   return (
     <div className={`cart ${!footer ? "empty" : ""}`}>
       <Card.Body>
-        <CartBody items={items} />
+        <CartBody items={items} shopEnabled={shopEnabled} />
       </Card.Body>
       {footer && (
         <Card.Footer className="p-3">
@@ -137,10 +143,17 @@ const CartCard = ({ items, summa, onSend, addTime }) => {
   );
 };
 
-const CartBody = ({ items }) => {
+const CartBody = ({ items, shopEnabled }) => {
   return (
     <>
-      {items.length ? (
+      {!shopEnabled ? (
+        <div className="p-5">
+          <ClosedSvg />
+          <div className="text-center font-small fw-bold pt-4">
+            Zurzeit sind wir geschlossen.
+          </div>
+        </div>
+      ) : items.length ? (
         items?.map((i) => <CartItem key={i.id} {...i} />)
       ) : (
         <div className="p-5 d-flex flex-column">
@@ -159,6 +172,9 @@ const CartBody = ({ items }) => {
 };
 const CartFooter = ({ number, summa, onSend, addTime }) => {
   const formattedSumma = formatPrice(summa);
+  const { currentUser } = useAuth();
+  // const shopEnabled = useSelector(selectShopIsOpen);
+
   return (
     <div className="w-100 d-flex flex-nowrap">
       <PickupTimeModal onChange={addTime}>
@@ -166,22 +182,37 @@ const CartFooter = ({ number, summa, onSend, addTime }) => {
           <FontAwesomeIcon icon={faClock} fontSize="20" />
         </div>
       </PickupTimeModal>
-      <Button
-        className="w-100 d-flex justify-content-between"
-        onClick={onSend}
-        style={{ borderRadius: "0 1rem 1rem 0" }}
-      >
-        <div className="flex-fill d-flex flex-nowrap">
-          <span
-            className="me-2 fw-bolder px-2 bg-white text-primary"
-            style={{ borderRadius: "35%" }}
-          >
-            {number}
-          </span>
-          <span className="header-text">Bestellen</span>
-        </div>
-        <div className="header-text">{formattedSumma}</div>
-      </Button>
+      {currentUser ? (
+        <Button
+          className="w-100 d-flex justify-content-between"
+          onClick={onSend}
+          style={{ borderRadius: "0 1rem 1rem 0" }}
+        >
+          <div className="flex-fill d-flex flex-nowrap align-items-center">
+            <span
+              className="me-2 fw-bolder px-2 bg-white text-primary"
+              style={{ borderRadius: "35%", height: "fit-content" }}
+            >
+              {number}
+            </span>
+            <span className="header-text">Bestellen</span>
+          </div>
+          <div className="header-text">{formattedSumma}</div>
+        </Button>
+      ) : (
+        <UserModal
+          fullscreen={false}
+          renderToggle={(props) => (
+            <Button
+              className="w-100 header-text"
+              style={{ borderRadius: "0 1rem 1rem 0" }}
+              {...props}
+            >
+              Anmelden um zu Bestellen
+            </Button>
+          )}
+        />
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
-# Zinger
+# Canteen
 
-Food ordering website for Zinger restaurant built using Next.js, TailwindCSS, Redux, Mongodb
+Food ordering website for Canteen restaurant built using Next.js, Redux, Mongodb
 
 
 ## Demo

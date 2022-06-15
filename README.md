@@ -1,4 +1,4 @@
-# Canteen
+# Canteen (Work in Progress)
 
 Food ordering website for Canteen restaurant built using Next.js, Redux, Socket.Io
 

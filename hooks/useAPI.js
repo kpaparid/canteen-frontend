@@ -6,6 +6,18 @@ import { fetchOrders, clearOrders, postOrders } from "../reducer/redux2";
 const useAPI = () => {
   const { authenticatedFetch, currentUser } = useAuth();
 
+  const updateSettings = useCallback(
+    (body) => {
+      const entities = body.reduce((a, b) => ({ ...a, [b.id]: { ...b } }), {});
+      const options = {
+        method: "PUT",
+        body: JSON.stringify(entities),
+      };
+      const url = process.env.BACKEND_URI + "settings/meal-category";
+      return authenticatedFetch(url, options);
+    },
+    [authenticatedFetch]
+  );
   const updateMeals = useCallback(
     (id, body) => {
       const options = {
@@ -58,6 +70,7 @@ const useAPI = () => {
     postUserOrders,
     updateMeals,
     updateAllMeals,
+    updateSettings,
   };
 };
 export default useAPI;

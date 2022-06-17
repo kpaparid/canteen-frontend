@@ -33,7 +33,7 @@ export const fetchCategories = createAsyncThunk(
   "data/fetchCategories",
   async () => {
     const url = process.env.BACKEND_URI;
-    return await fetch(url + "settings").then((res) =>
+    return await fetch(url + "settings?uid=meal-category").then((res) =>
       res.json().then((r) => r.data[0].entities)
     );
   }
@@ -204,6 +204,7 @@ export const subjectSlice = createSlice({
         entities: payload,
         meals: arg,
       });
+      categoriesAdapter.removeAll(state.categories);
       categoriesAdapter.upsertMany(state.categories, categories);
     },
     [fetchSettings.fulfilled](state, { payload, meta }) {
@@ -348,9 +349,8 @@ export const selectAllMeals = (state) => mealsSelectors.selectAll(state.shop);
 export const selectAllCategories = (state) =>
   categoriesSelectors.selectAll(state.shop);
 export const selectAllActiveCategories = (state) => {
-  return categoriesSelectors
-    .selectAll(state.shop)
-    .filter((category) => category.itemIds.length);
+  return categoriesSelectors.selectAll(state.shop);
+  // .filter((category) => category.itemIds.length);
 };
 export const selectAllMealsByCategory = createSelector(
   [selectAllCategories, selectAllMeals],

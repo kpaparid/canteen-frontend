@@ -27,6 +27,9 @@ import styledComponents from "styled-components";
 import { useAuth } from "../contexts/AuthContext";
 // import { menu } from "../data/menu";
 import {
+  fetchCategories,
+  fetchMeals,
+  fetchSettings,
   itemAddedCart,
   selectAllActiveCategories,
   selectAllMealsByCategory,
@@ -42,7 +45,7 @@ export default function Menu(props) {
   const ref = useRef();
   const dispatch = useDispatch();
   const { currentUser, currentRole } = useAuth();
-  const isAdmin = currentRole.includes("admin");
+  const isAdmin = currentRole?.includes("admin");
   const [activeCategory, setActiveCategory] = useState();
   const categories = useSelector(selectAllActiveCategories);
   const menu = useSelector(selectAllMealsByCategory);
@@ -59,10 +62,6 @@ export default function Menu(props) {
   useEffect(() => {
     dispatch(fetchUserTodaysOrders());
   }, [fetchUserTodaysOrders, dispatch, currentUser]);
-
-  useEffect(() => {
-    itemsRef.current = itemsRef.current.slice(0, categories.length);
-  }, [categories]);
 
   const addToCart = useCallback(
     (id, title, count, price, extras, comment, menuId) => {
@@ -85,26 +84,28 @@ export default function Menu(props) {
 
   const handleScroll = useCallback(() => {
     itemsRef.current.forEach((current) => {
-      const sectionId = current.getAttribute("id");
-      var rect = current.getBoundingClientRect();
-      var viewHeight = Math.max(
-        document.documentElement.clientHeight,
-        window.innerHeight
-      );
-      const viewable = !(
-        rect.bottom - viewHeight / 2 < 0 ||
-        rect.top + viewHeight / 2 - viewHeight >= 0
-      );
-      if (viewable && activeCategory !== sectionId) {
-        setActiveCategory((oldId) => {
-          document
-            .querySelector(".categories-navbar #" + oldId)
-            ?.classList.remove("active");
-          document
-            .querySelector(".categories-navbar #" + sectionId)
-            ?.classList.add("active");
-          return sectionId;
-        });
+      if (current) {
+        const sectionId = current.getAttribute("id");
+        var rect = current.getBoundingClientRect();
+        var viewHeight = Math.max(
+          document.documentElement.clientHeight,
+          window.innerHeight
+        );
+        const viewable = !(
+          rect.bottom - viewHeight / 2 < 0 ||
+          rect.top + viewHeight / 2 - viewHeight >= 0
+        );
+        if (viewable && activeCategory !== sectionId) {
+          setActiveCategory((oldId) => {
+            document
+              .querySelector(".categories-navbar #" + oldId)
+              ?.classList.remove("active");
+            document
+              .querySelector(".categories-navbar #" + sectionId)
+              ?.classList.add("active");
+            return sectionId;
+          });
+        }
       }
     });
   }, [activeCategory]);
@@ -113,13 +114,14 @@ export default function Menu(props) {
     [handleScroll]
   );
   useEffect(() => {
+    itemsRef.current = itemsRef.current.slice(0, categories.length);
     const ref = itemsRef.current[0];
     const sectionId = ref?.getAttribute("id");
     setActiveCategory(sectionId);
     document
       .querySelector(".categories-navbar #" + sectionId)
       ?.classList.add("active");
-  }, []);
+  }, [categories]);
   return (
     <div className="h-100 overflow-auto" ref={ref} onScroll={debouncedCallback}>
       <Header />
@@ -184,8 +186,9 @@ const CategoriesNavbar = memo(
 );
 const EditableCategoriesNavbar = memo(
   ({ categories: initialCategories, onClick }) => {
+    const { updateAllMeals, updateSettings } = useApi();
     const menu = useSelector(selectAllMealsByCategory);
-    const { updateAllMeals } = useApi();
+    const dispatch = useDispatch();
 
     const [changedMenu, setChangedMenu] = useState(
       Object.values(menu)?.reduce((a, b) => [...a, ...b.data], [])
@@ -195,12 +198,36 @@ const EditableCategoriesNavbar = memo(
       useState(initialCategories);
     const [editMode, setEditMode] = useState(false);
     const [active, setActive] = useState();
+
     const handleSave = useCallback(() => {
-      updateAllMeals(
-        changedMenu.map(({ id }) => id),
-        changedMenu
+      const menu = handleMenuCategoryChange(
+        changedMenu,
+        categories,
+        changedCategories
       );
-    }, [changedMenu, updateAllMeals]);
+
+      Promise.all([
+        updateSettings(changedCategories),
+        updateAllMeals(
+          menu.map(({ id }) => id),
+          menu
+        ),
+      ]).then(() => {
+        setEditMode(false);
+        setActive();
+        dispatch(fetchMeals()).then(({ payload }) =>
+          dispatch(fetchCategories(payload))
+        );
+      });
+    }, [
+      dispatch,
+      updateSettings,
+      changedMenu,
+      updateAllMeals,
+      handleMenuCategoryChange,
+      changedCategories,
+      categories,
+    ]);
 
     const handleCancel = useCallback(() => {
       setChangedCategories(initialCategories);
@@ -281,43 +308,6 @@ const EditableCategoriesNavbar = memo(
       return newMenu;
     }, []);
 
-    const handleActiveChange = useCallback(
-      (index) => {
-        setActive(index);
-        // const c = handleMenuCategoryChange(menu, changedCategories);
-        // setCategories((old) => {
-        //   changedCategories.map(({ id }, index) => {
-        //     if (id !== old[index].id) {
-        //       setChangedMenu((oldMenu) => {
-        //         return [
-        //           ...Object.keys(oldMenu).filter((k) => k !== old[index].id),
-        //           id,
-        //         ].reduce((a, b) => {
-        //           if (b === id) {
-        //             const newData = oldMenu[old[index].id].data?.map(
-        //               (meal) => ({
-        //                 ...meal,
-        //                 category: id,
-        //               })
-        //             );
-        //             return {
-        //               ...a,
-        //               [b]: { ...oldMenu[old[index].id], data: newData },
-        //             };
-        //           } else {
-        //             return { ...a, [b]: oldMenu[b] };
-        //           }
-        //         }, {});
-        //       });
-        //       return null;
-        //     }
-        //   });
-        //   return changedCategories;
-        // });
-      },
-      [changedCategories]
-    );
-
     const handleTitleChange = useCallback(
       (index, values) =>
         setChangedCategories((old) => {
@@ -330,7 +320,15 @@ const EditableCategoriesNavbar = memo(
         }),
       []
     );
-
+    useEffect(() => {
+      setCategories(initialCategories);
+      setChangedCategories(initialCategories);
+    }, [initialCategories]);
+    useEffect(() => {
+      setChangedMenu(
+        Object.values(menu)?.reduce((a, b) => [...a, ...b.data], [])
+      );
+    }, [menu]);
     return (
       <div className="d-flex flex-nowrap">
         <div className="categories-navbar">
@@ -344,7 +342,7 @@ const EditableCategoriesNavbar = memo(
                   {index === active && (
                     <Button
                       variant="primary"
-                      className="p-0 my-2 text-center"
+                      className="p-0 my-2 text-center category-text"
                       disabled={index === 0}
                       onClick={() => handleMove(index, index - 1)}
                       style={{
@@ -399,9 +397,7 @@ const EditableCategoriesNavbar = memo(
                   }
                   className="category-text"
                   id={id}
-                  onClick={() =>
-                    editMode ? handleActiveChange(index) : onClick(index)
-                  }
+                  onClick={() => (editMode ? setActive(index) : onClick(index))}
                   style={{ height: "44px", borderRadius: "1rem" }}
                 >
                   {title}

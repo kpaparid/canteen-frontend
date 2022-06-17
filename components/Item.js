@@ -16,10 +16,10 @@ import Button from "react-bootstrap/Button";
 // import Image from "react-bootstrap/Image";
 import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../contexts/AuthContext.js";
 import useAPI from "../hooks/useAPI.js";
-import { selectShopIsOpen } from "../reducer/redux2.js";
+import { fetchMeals, selectShopIsOpen } from "../reducer/redux2.js";
 import { formatPrice } from "../utilities/utils.mjs";
 import Accumulator from "./Accumulator";
 // eslint-disable-next-line react/display-name
@@ -201,6 +201,7 @@ export const EditableItem = memo(
     usedUIDs = [],
     ...rest
   }) => {
+    const dispatch = useDispatch();
     const { updateMeals } = useAPI();
     const [photoURL, setPhotoURL] = useState(initialPhotoURL);
     const [name, setName] = useState(initialName);
@@ -209,9 +210,14 @@ export const EditableItem = memo(
     const [menuId, setMenuId] = useState(initialMenuId);
     const [extras, setExtras] = useState(initialExtras);
     const [category, setCategory] = useState(initialCategory);
-    const menuIdOptions = Array.from(Array(100).keys())
-      .map((n) => n + (categories.map((c) => c.id).indexOf(category) + 1) * 100)
-      .filter((n) => !usedUIDs.includes(n));
+    const menuIdOptions = [
+      ...Array.from(Array(100).keys())
+        .map(
+          (n) => n + (categories.map((c) => c.id).indexOf(category) + 1) * 100
+        )
+        .filter((n) => !usedUIDs.includes(n)),
+      initialMenuId,
+    ].sort((a, b) => a - b);
 
     const target = useRef(null);
     const [editMode, setEditMode] = useState(false);
@@ -327,8 +333,12 @@ export const EditableItem = memo(
         category,
         id,
       };
-      updateMeals(id, body);
+      updateMeals(id, body)
+        .then(() => dispatch(fetchMeals()))
+        .then(() => clearState());
     }, [
+      clearState,
+      dispatch,
       extras,
       name,
       description,
@@ -371,10 +381,11 @@ export const EditableItem = memo(
                     </Form.Label>
                     <Form.Select
                       className="px-5"
+                      value={category}
                       onChange={(e) => setCategory(e.target.value)}
                     >
                       {categories.map((c) => (
-                        <option defaultValue key={c.id}>
+                        <option value={c.id} key={c.id}>
                           {c.id}
                         </option>
                       ))}
@@ -414,9 +425,14 @@ export const EditableItem = memo(
                   >
                     ID
                   </Form.Label>
-                  <Form.Select onChange={(e) => setMenuId(e.target.value)}>
+                  <Form.Select
+                    value={menuId}
+                    onChange={(e) => setMenuId(e.target.value)}
+                  >
                     {menuIdOptions.map((o) => (
-                      <option key={"menu-id-option-" + o}>{o}</option>
+                      <option value={o} key={"menu-id-option-" + o}>
+                        {o}
+                      </option>
                     ))}
                   </Form.Select>
                 </div>

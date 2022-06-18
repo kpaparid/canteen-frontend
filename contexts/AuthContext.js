@@ -26,10 +26,13 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState();
   const [currentRole, setCurrentRole] = useState();
 
-  const getRole = (user = currentUser) =>
-    user?.getIdTokenResult(true).then(({ claims }) => {
-      return claims?.roles;
-    });
+  const getRole = useCallback(
+    (user = currentUser) =>
+      user?.getIdTokenResult(true).then(({ claims }) => {
+        return claims?.roles;
+      }),
+    [currentUser]
+  );
 
   const claims = useCallback(
     () => currentUser?.getIdTokenResult(true),
@@ -106,7 +109,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
     return unsubscribe;
-  }, []);
+  }, [getRole]);
 
   const value = {
     claims,

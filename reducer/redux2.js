@@ -34,7 +34,7 @@ export const fetchCategories = createAsyncThunk(
   async () => {
     const url = process.env.BACKEND_URI;
     return await fetch(url + "settings?uid=meal-category").then((res) =>
-      res.json().then((r) => r.data[0].entities)
+      res.json().then((r) => r.data[0])
     );
   }
 );
@@ -201,7 +201,8 @@ export const subjectSlice = createSlice({
     },
     [fetchCategories.fulfilled](state, { payload, meta: { arg } }) {
       const categories = mapSettingsToCategories({
-        entities: payload,
+        entities: payload.entities,
+        ids: payload.ids,
         meals: arg,
       });
       categoriesAdapter.removeAll(state.categories);

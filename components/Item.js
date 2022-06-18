@@ -19,7 +19,11 @@ import Modal from "react-bootstrap/Modal";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../contexts/AuthContext.js";
 import useAPI from "../hooks/useAPI.js";
-import { fetchMeals, selectShopIsOpen } from "../reducer/redux2.js";
+import {
+  fetchMeals,
+  fetchCategories,
+  selectShopIsOpen,
+} from "../reducer/redux2.js";
 import { formatPrice } from "../utilities/utils.mjs";
 import Accumulator from "./Accumulator";
 // eslint-disable-next-line react/display-name
@@ -239,7 +243,7 @@ export const EditableItem = memo(
       ? Object.keys(data).reduce((a, b) => a + data[b].price, price)
       : price;
     const formattedPrice = formatPrice(calculatedPrice * count);
-    const clearState = () => {
+    const clearEditState = () => {
       setPhotoURL(initialPhotoURL);
       setName(initialName);
       setDescription(initialDescription);
@@ -248,7 +252,9 @@ export const EditableItem = memo(
       setExtras(initialExtras);
       setCategory(initialCategory);
       setEditMode(false);
-
+    };
+    const clearState = useCallback(() => {
+      setEditMode(false);
       setCount(initialCount);
       setComment("");
       setData(
@@ -261,7 +267,7 @@ export const EditableItem = memo(
           }))
           .reduce((a, b) => ({ ...a, ...b }), {})
       );
-    };
+    }, [extras, initialCount]);
     function handleIncrease() {
       setCount((old) => old + 1);
     }
@@ -284,6 +290,7 @@ export const EditableItem = memo(
       }
     }
     function handleClose() {
+      clearEditState();
       clearState();
       onClose();
     }
@@ -333,9 +340,11 @@ export const EditableItem = memo(
         category,
         id,
       };
-      updateMeals(id, body)
-        .then(() => dispatch(fetchMeals()))
-        .then(() => clearState());
+      updateMeals(id, body).then(() =>
+        dispatch(fetchMeals())
+          .then(({ payload }) => dispatch(fetchCategories(payload)))
+          .then(() => clearState())
+      );
     }, [
       clearState,
       dispatch,
@@ -349,7 +358,22 @@ export const EditableItem = memo(
       menuId,
       updateMeals,
     ]);
-
+    useEffect(() => {
+      setPhotoURL(initialPhotoURL);
+      setDescription(initialDescription);
+      setPrice(initialPrice);
+      setExtras(initialExtras);
+      setMenuId(initialMenuId);
+      setCategory(initialCategory);
+    }, [
+      initialPhotoURL,
+      initialName,
+      initialDescription,
+      initialPrice,
+      initialExtras,
+      initialMenuId,
+      initialCategory,
+    ]);
     return (
       <Modal show={show} onHide={handleClose} centered className="item-modal">
         {photoURL && (
@@ -386,7 +410,7 @@ export const EditableItem = memo(
                     >
                       {categories.map((c) => (
                         <option value={c.id} key={c.id}>
-                          {c.id}
+                          {c.title}
                         </option>
                       ))}
                     </Form.Select>

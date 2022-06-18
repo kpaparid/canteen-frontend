@@ -18,6 +18,29 @@ const useAPI = () => {
     },
     [authenticatedFetch]
   );
+  const updateCategoriesAndMeals = useCallback(
+    (body) => {
+      const entities = body.reduce(
+        (a, b) => ({
+          ...a,
+          [b.id]: {
+            ...Object.keys(b)
+              .filter((k) => k !== "itemIds")
+              .reduce((c, d) => ({ ...c, [d]: b[d] }), {}),
+          },
+        }),
+        {}
+      );
+      const ids = body.map(({ id }) => id);
+      const options = {
+        method: "PUT",
+        body: JSON.stringify({ entities, ids }),
+      };
+      const url = process.env.BACKEND_URI + "settings/categories";
+      return authenticatedFetch(url, options);
+    },
+    [authenticatedFetch]
+  );
   const updateMeals = useCallback(
     (id, body) => {
       const options = {
@@ -71,6 +94,7 @@ const useAPI = () => {
     updateMeals,
     updateAllMeals,
     updateSettings,
+    updateCategoriesAndMeals,
   };
 };
 export default useAPI;

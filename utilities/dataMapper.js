@@ -15,9 +15,9 @@ const mapSettings = ({ uid, entities, ids }, meta) => {
       return { id: uid, value: entities.value.value };
   }
 };
-export const mapSettingsToCategories = ({ entities, meals }) => {
+export const mapSettingsToCategories = ({ entities, ids, meals }) => {
   return (
-    Object.keys(entities)?.map((c) => {
+    ids?.map((c) => {
       return {
         ...entities[c],
         itemIds: meals?.filter((m) => m.category === c).map((m) => m.id) || [],

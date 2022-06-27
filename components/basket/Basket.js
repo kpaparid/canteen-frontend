@@ -47,6 +47,12 @@ justify-content: space-between;
   height: 100%;
   overflow: auto;
 }
+ .user-dropdown-wrapper{
+   width: 100%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+ }
 
 `;
 const RightSide = memo(({ props }) => {
@@ -54,7 +60,7 @@ const RightSide = memo(({ props }) => {
   const { summa, cartExists, items, sendOrder, addTime } = useCart();
   const shopEnabled = useSelector(selectShopIsOpen);
   return (
-    <StyledRightSide>
+    <StyledRightSide className="basket-right-side">
       <BasketTabs
         {...{
           orders,
@@ -67,7 +73,7 @@ const RightSide = memo(({ props }) => {
           shopEnabled,
         }}
       ></BasketTabs>
-      <div className="w-100 d-flex justify-content-center align-items-center">
+      <div className="user-dropdown-wrapper">
         <UserDropdown />
       </div>
     </StyledRightSide>
@@ -156,10 +162,11 @@ const ModalToggle = memo(({ icon, text, onClick, disabled, number = 0 }) => {
 }, isEqual);
 
 const Basket = memo(() => {
-  const isBigScreen = useMediaQuery({ query: "(min-width: 992px)" });
+  const isBigScreen = useMediaQuery({ query: "(min-width: 767.97px)" });
   const { orders, ordersExist } = useOrders();
   const { summa, cartExists, items, sendOrder, addTime } = useCart();
   const renderToggle = (props) => <ModalToggle {...props} />;
+  const shopEnabled = useSelector(selectShopIsOpen);
   return (
     <>
       {isBigScreen ? (
@@ -176,6 +183,7 @@ const Basket = memo(() => {
               onSend: sendOrder,
               addTime,
               renderToggle,
+              shopEnabled,
             }}
           />
         </StyledBar>

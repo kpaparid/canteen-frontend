@@ -69,14 +69,21 @@ export const useCart = () => {
   };
 };
 const Cart = memo((props) => {
-  const isBigScreen = useMediaQuery({ query: "(min-width: 992px)" });
+  const isBigScreen = useMediaQuery({ query: "(min-width: 767.97px)" });
 
   return (
     <>{isBigScreen ? <CartCard {...props} /> : <CartModal {...props} />}</>
   );
 }, isEqual);
 
-export const CartModal = ({ items, summa, onSend, addTime, renderToggle }) => {
+export const CartModal = ({
+  items,
+  summa,
+  onSend,
+  addTime,
+  renderToggle,
+  ...rest
+}) => {
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
@@ -104,7 +111,7 @@ export const CartModal = ({ items, summa, onSend, addTime, renderToggle }) => {
           <span>Warenkorb</span>
         </Modal.Header>
         <Modal.Body>
-          <CartBody items={items} />
+          <CartBody items={items} {...rest} />
         </Modal.Body>
         {items.length !== 0 && (
           <Modal.Footer>
@@ -147,22 +154,28 @@ const CartBody = ({ items, shopEnabled }) => {
   return (
     <>
       {!shopEnabled ? (
-        <div className="p-5">
+        <div
+          className="py-3 d-flex flex-column aling-items-center justify-content-center"
+          style={{ minHeight: "150px", maxHeight: "250px", height: "50vh" }}
+        >
           <ClosedSvg />
-          <div className="text-center font-small fw-bold pt-4">
+          <div className="text-center fw-bold pt-5">
             Zurzeit sind wir geschlossen.
           </div>
         </div>
       ) : items.length ? (
         items?.map((i) => <CartItem key={i.id} {...i} />)
       ) : (
-        <div className="p-5 d-flex flex-column">
+        <div
+          className="py-3 d-flex flex-column aling-items-center justify-content-center"
+          style={{ minHeight: "150px", maxHeight: "250px", height: "50vh" }}
+        >
           <FontAwesomeIcon
             className="pb-4 text-primary"
             size="4x"
             icon={faBasketShopping}
           />
-          <div className="text-center font-small fw-bold">
+          <div className="text-center fw-bold font-small">
             Füllen Sie Ihren Warenkorb mit den Produkten auf der linken Seite
           </div>
         </div>

@@ -7,7 +7,7 @@ import { useDurationHook } from "../../utilities/utils.mjs";
 
 const StyledSVG = styledComponents.div`
 // svg{
-  transform: scale(1.2) !important;
+  // transform: scale(1.2) !important;
 // }
 .lf-player-container{
   height: 100%;

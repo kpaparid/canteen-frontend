@@ -11,7 +11,14 @@ import ProcessingSvg from "./svg/ProcessingSvg";
 import ProcessingSvg2 from "./svg/ProcessingSvg2";
 import ReadySvg from "./svg/ReadySvg";
 const Ball = styledComponents.div`
-background-color: ${(props) => "var(--bs-" + props.bg + ")"};
+// background-color: ${(props) => "var(--bs-" + props.bg + ")"};
+background-color: ${(props) =>
+  props.active2 === "pending"
+    ? "var(--bs-gray-100)"
+    : "var(--bs-light-primary)"};
+
+opacity: ${(props) => (props.active2 === "pending" ? "50%%" : "100%")};
+
 height: 23px;
 width: 23px;
 border-radius: 2rem;
@@ -49,7 +56,6 @@ bottom: 0;
 `;
 const RightSide = styledComponents.div`
 display: flex;
-// padding: 0 2rem;
 width: 100%;
 flex-direction: column;
 .item:first-child .bar:before{
@@ -71,118 +77,93 @@ const OrderTracker = memo(({ status, ...rest }) => {
       ? 4
       : -1;
   return (
-    <div className="d-flex flex-column justify-content-center align-items-center bg-white">
+    <div className="orders-wrapper">
       <Icon index={index} {...rest} />
-      <div className="d-flex w-100">
-        <RightSide>
-          <Item
-            title="Order Placed"
-            subtitle="We have received your order."
-            weight={0}
-            index={index}
-          />
-          <Item
+      <RightSide className="orders-list">
+        <Item
+          title="Order Placed"
+          description="We have received your order."
+          weight={0}
+          index={index}
+        />
+        {/* <Item
             title="Order Confirmed"
             subtitle="Your order has been confirmed."
             weight={1}
             index={index}
-          />
-          <Item
-            title="Order Processed"
-            subtitle="We are preparing your order."
-            weight={2}
-            index={index}
-          />
-          <Item
-            title="Ready to Pickup"
-            subtitle="Your order is ready for pickup."
-            weight={3}
-            index={index}
-          />
-          <Item
-            title="Order Finished"
-            subtitle="Your order was successful."
-            weight={4}
-            index={index}
-          />
-        </RightSide>
-      </div>
+          /> */}
+        <Item
+          title="Order Confirmed"
+          description="We are preparing your order."
+          weight={2}
+          index={index}
+        />
+        <Item
+          title="Ready to Pickup"
+          description="Your order is ready for pickup."
+          weight={3}
+          index={index}
+        />
+        <Item
+          title="Order Finished"
+          description="Your order was successful."
+          weight={4}
+          index={index}
+        />
+      </RightSide>
     </div>
   );
 }, isEqual);
-const Item = memo(({ title, subtitle, icon, index, weight }) => {
+const Item = memo(({ title, description, icon, index, weight }) => {
   const calcBg = (i, w) =>
-    w === i ? "primary" : w > i ? "gray-100" : "primary";
+    w === i ? "light-primary" : w > i ? "gray-100" : "gray-100";
   const bg = calcBg(index, weight);
   const bgAfter = calcBg(index - 1, weight);
   const active =
-    index === weight ? "bg-light-primary" : index < weight ? "opacity-25" : "";
+    index === weight
+      ? "bg-light-primary font-normal"
+      : index < weight
+      ? "opacity-25 font-small"
+      : "bg-light-primary opacity-50 font-small";
+  const active2 =
+    index === weight ? "active" : index < weight ? "pending" : "finished";
 
   return (
     <div className="item d-flex flex-nowrap align-items-center px-2">
-      <div className="position-relative h-100" style={{ width: "30px" }}>
-        <Ball bg={bg}></Ball>
-        <Bar bgBefore={bg} bgAfter={bgAfter} className="bar" />
-      </div>
       <div
-        className={`px-3 py-3 d-flex justify-content-center flex-fill flex-column ${active}`}
+        className="position-relative h-100"
+        style={{ minWidth: "30px", maxWidth: "30px" }}
       >
-        <div className="fw-bolder">{title}</div>
-        <div className="fw-bold">{subtitle}</div>
+        <Ball bg={bg} active2={active2}></Ball>
+        <Bar
+          active2={active2}
+          bgBefore={bg}
+          bgAfter={bgAfter}
+          className="bar"
+        />
+      </div>
+      <div className={`order-status ${active}`}>
+        <div className="order-status-title">{title}</div>
+        <div className="order-status-description">{description}</div>
       </div>
     </div>
   );
 }, isEqual);
 
 const Icon = memo(({ index, time }) => {
-  switch (index) {
-    case 0:
-      return (
-        <>
-          <div
-            style={{ height: "200px", width: "240px" }}
-            className="d-flex justify-content-center align-items-center p-1 my-2"
-          >
-            {/* <OrderSvg></OrderSvg> */}
-            <PendingSvg></PendingSvg>
-          </div>
-        </>
-      );
-    case 2:
-      return (
-        <>
-          <div
-            style={{ height: "200px", width: "240px" }}
-            className="d-flex justify-content-center align-items-center p-1 my-2"
-          >
-            <ProcessingSvg2 time={time}></ProcessingSvg2>
-          </div>
-        </>
-      );
-    case 3:
-      return (
-        <>
-          <div
-            style={{ height: "200px", width: "240px" }}
-            className="d-flex justify-content-center align-items-center p-1 my-2"
-          >
-            <ReadySvg />
-          </div>
-        </>
-      );
-    case 4: {
-      return (
-        <div
-          style={{ height: "200px", width: "240px" }}
-          className="d-flex justify-content-center align-items-center p-1 mb-2"
-        >
-          <FinishedSvg />
-        </div>
-      );
-    }
-    default:
-      return <></>;
-  }
+  return (
+    <div className="lottie-wrapper">
+      {index === 0 ? (
+        <PendingSvg></PendingSvg>
+      ) : index === 2 ? (
+        <ProcessingSvg2 time={time}></ProcessingSvg2>
+      ) : index === 3 ? (
+        <ReadySvg />
+      ) : (
+        <FinishedSvg />
+      )}
+    </div>
+  );
 }, isEqual);
 
 export default OrderTracker;

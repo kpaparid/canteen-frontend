@@ -197,6 +197,7 @@ export const subjectSlice = createSlice({
       };
     },
     [fetchMeals.fulfilled](state, { payload }) {
+      mealsAdapter.removeAll(state.meals);
       mealsAdapter.upsertMany(state.meals, payload || []);
     },
     [fetchCategories.fulfilled](state, { payload, meta: { arg } }) {
@@ -361,7 +362,7 @@ export const selectAllMealsByCategory = createSelector(
       return a;
     }, {});
     return categories?.reduce((a, { id, itemIds, ...rest }) => {
-      const data = itemIds.map((id) => mealsObject[id]);
+      const data = itemIds.map((id) => mealsObject[id]).filter((i) => i);
       if (data.length) a[id] = { id, data, ...rest };
       return a;
     }, {});

@@ -41,6 +41,27 @@ const useAPI = () => {
     },
     [authenticatedFetch]
   );
+  const deleteMeal = useCallback(
+    (id) => {
+      const options = {
+        method: "DELETE",
+      };
+      const url = process.env.BACKEND_URI + "meals/" + id;
+      return authenticatedFetch(url, options);
+    },
+    [authenticatedFetch]
+  );
+  const postMeal = useCallback(
+    (body) => {
+      const options = {
+        method: "POST",
+        body: JSON.stringify(body),
+      };
+      const url = process.env.BACKEND_URI + "meals";
+      return authenticatedFetch(url, options);
+    },
+    [authenticatedFetch]
+  );
   const updateMeals = useCallback(
     (id, body) => {
       const options = {
@@ -79,8 +100,8 @@ const useAPI = () => {
   const fetchUserTodaysOrders = useCallback(() => {
     if (currentUser) {
       const date = format(new Date(), "yyyy-MM-dd") + "T00:00:00.000+02:00";
-      // const suffix = `?createdAt_gte=${date}&user.uid=${currentUser?.uid}`;
-      const suffix = `?user.uid=${currentUser?.uid}`;
+      const suffix = `?createdAt_gte=${date}&user.uid=${currentUser?.uid}`;
+      // const suffix = `?user.uid=${currentUser?.uid}`;
       return fetchOrders({ suffix, authenticatedFetch });
     } else {
       return clearOrders();
@@ -95,6 +116,8 @@ const useAPI = () => {
     updateAllMeals,
     updateSettings,
     updateCategoriesAndMeals,
+    postMeal,
+    deleteMeal,
   };
 };
 export default useAPI;

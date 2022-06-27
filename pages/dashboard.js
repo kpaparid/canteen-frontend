@@ -32,7 +32,7 @@ const Home = memo(() => {
         "shopIsOpen",
       ]);
     });
-  }, [socket]);
+  }, [socket, dispatch, fetchTodaysOrders]);
 
   useEffect(() => {
     console.log({ socket });
@@ -47,10 +47,9 @@ const Home = memo(() => {
         });
       });
     }
-  }, [socket]);
+  }, [socket, dispatch, fetchTodaysOrders]);
   const onChangeOrderStatus = (userId, orderId, body) => {
     setLoading(true);
-    console.log(socket);
     dispatch(changeOrderStatus({ id: orderId, body })).then(async () => {
       socket?.emit("update_order", { uid: userId });
       setLoading(false);

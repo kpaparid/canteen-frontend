@@ -41,12 +41,25 @@ export function AuthProvider({ children }) {
 
   const [loading, setLoading] = useState(true);
 
-  function updateUser(data) {
+  function updateCurrentUser(data) {
     return updateProfile(currentUser, data).then((r) => currentUser.reload());
+  }
+  function updateUser(user, data) {
+    return updateProfile(user, data);
   }
 
   function signup(email, password) {
     return createUserWithEmailAndPassword(auth, email, password);
+  }
+  function createUser(body) {
+    const options = {
+      method: "POST",
+      body: JSON.stringify(body),
+    };
+    return authenticatedFetch(
+      process.env.BACKEND_URI + "firebase/user",
+      options
+    );
   }
 
   function login(email, password) {
@@ -57,16 +70,12 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   }
 
-  function resetPassword(email) {
-    return sendPasswordResetEmail(auth, email);
-  }
-
   function handleUpdateEmail(email) {
     return updateEmail(currentUser, email);
   }
 
   function findConnection() {
-    return fetch(process.env.REACT_APP_BACKEND);
+    return fetch(process.env.BACKEND_URI);
   }
   function updatePW(newPassword) {
     return updatePassword(currentUser, newPassword);
@@ -81,6 +90,20 @@ export function AuthProvider({ children }) {
         Authorization: `Bearer ${idToken}`,
       };
     });
+  }
+
+  function resetPassword() {
+    return sendPasswordResetEmail(auth, currentUser?.email)
+      .then((r) => {
+        console.log();
+        // Password reset email sent!
+        // ..
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        // ..
+      });
   }
 
   const authenticatedFetch = (url, options) => {
@@ -98,14 +121,16 @@ export function AuthProvider({ children }) {
           });
         })
         .catch((e) => {
-          return Promise.reject();
+          return Promise.reject(e);
         });
     });
   };
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
-      await (user && getRole(user).then((role) => setCurrentRole(role)));
+      await (user
+        ? getRole(user).then((role) => setCurrentRole(role))
+        : setCurrentRole());
       setLoading(false);
     });
     return unsubscribe;
@@ -123,9 +148,11 @@ export function AuthProvider({ children }) {
     updatePassword,
     findConnection,
     authenticatedFetch,
+    updateCurrentUser,
     updateUser,
     updatePW,
     getHeader,
+    createUser,
   };
 
   return (

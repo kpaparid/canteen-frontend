@@ -54,7 +54,7 @@ export default function Menu(props) {
   const usedUIDs = useMemo(
     () =>
       Object.keys(menu).reduce(
-        (a, b) => [...a, ...menu[b].data.map((i) => i.uid)],
+        (a, b) => [...a, ...menu[b].data.filter((i) => i).map((i) => i.uid)],
         []
       ),
     [menu]
@@ -143,6 +143,7 @@ export default function Menu(props) {
             )}
             <div className="menu">
               <div className="flex-fill">
+                {isAdmin && <AddItem categories={categories} />}
                 {menu &&
                   Object.keys(menu)?.map((i, index) => (
                     <SubCategory
@@ -164,7 +165,39 @@ export default function Menu(props) {
     </div>
   );
 }
+const AddItem = memo(({ categories }) => {
+  const dispatch = useDispatch();
+  const { postMeal } = useApi();
 
+  const handleAddNewItem = useCallback(() => {
+    const body = {
+      name: "New Item",
+      category: categories[0].id,
+      uid: 0,
+      price: 0,
+    };
+    postMeal(body).then((r) => {
+      dispatch(fetchMeals()).then(({ payload }) =>
+        dispatch(fetchCategories(payload))
+      );
+    });
+  }, [categories, postMeal, dispatch]);
+  return (
+    <div className="w-100 d-flex justify-content-center align-content-center my-2">
+      <Button
+        onClick={handleAddNewItem}
+        style={{
+          borderRadius: "1rem",
+          width: "30px",
+          height: "30px",
+          padding: 0,
+        }}
+      >
+        <FontAwesomeIcon icon={faPlus} />
+      </Button>
+    </div>
+  );
+}, isEqual);
 const SubCategory = forwardRef(({ items, category, onClick, ...rest }, ref) => {
   return (
     <div className="category-wrapper" ref={ref} id={items.id}>
@@ -199,8 +232,10 @@ function CategoryTitle({ title, text, photoURL }) {
         <div
           className="bg-primary"
           style={{
+            maxWidth: "100%",
             width: "100%",
-            height: "200px",
+            minHeight: "200px",
+            aspectRatio: 3,
             position: "relative",
             textShadow: "1px 1px 20px rgb(34 34 34)",
             boxShadow: "2px 2px 4px 3px rgb(0 0 0 / 13%)",

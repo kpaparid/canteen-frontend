@@ -59,7 +59,6 @@
   .modal-content {
     background-color: white;
     border: 0;
-    box-shadow: none;
     display: flex;
     height: fit-content;
     margin: auto;
@@ -282,4 +281,30 @@
   .css-2ujp1m {
     border-color: $primary;
   }
+}
+
+.side-bar-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 200px;
+  margin: 0;
+  bottom: 0;
+  min-height: auto;
+  transform: translateX(-100%);
+  animation: slide-in 1s forwards;
+}
+@keyframes slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.register-user-backdrop {
+  z-index: 1050;
+}
+.register-user-dialog {
+  z-index: 1060;
 }

@@ -3,6 +3,7 @@ import { memo } from "react";
 import styledComponents from "styled-components";
 
 const StyledSvg = styledComponents.svg`
+max-width: 250px;
 #top, #bar{
     fill: var(--bs-light-primary);
     stroke: var(--bs-light-primary);

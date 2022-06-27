@@ -139,6 +139,8 @@ const CustomMenu = forwardRef(
   }
 );
 const StyledMenu = styledComponents.div`
+
+    box-shadow: 0px 0px 8px 3px rgb(0 0 0 / 28%);
     border: 0;
     padding: 0;
     min-width: 100%;

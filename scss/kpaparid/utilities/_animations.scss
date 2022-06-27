@@ -279,3 +279,22 @@
     width: 25px;
   }
 }
+@keyframes error-shadow-vanish {
+  0% {
+    border-color: $primary;
+    box-shadow: inset 0 1px 2px rgb(46 54 80 / 8%),
+      0 0 0 0.2rem rgb(212 8 17 / 25%);
+  }
+  90% {
+    border-color: $primary;
+    box-shadow: inset 0 1px 2px rgb(46 54 80 / 8%),
+      0 0 0 0.2rem rgb(212 8 17 / 25%);
+  }
+  100% {
+    border-color: initial;
+    box-shadow: initial;
+  }
+}
+.error-shadow {
+  animation: error-shadow-vanish 5s linear;
+}

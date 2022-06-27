@@ -48,7 +48,7 @@ export const useOrders = () => {
   return { orders, ordersExist };
 };
 const Orders = memo((props) => {
-  const isBigScreen = useMediaQuery({ query: "(min-width: 992px)" });
+  const isBigScreen = useMediaQuery({ query: "(min-width: 767.97px)" });
   return (
     <>{isBigScreen ? <OrdersBody {...props} /> : <OrdersModal {...props} />}</>
   );
@@ -197,29 +197,7 @@ const OrderOverview = memo(
         <span className="font-small fw-bolder ps-2">{right}</span>
       </div>
     );
-    return (
-      <div className="order-overview">
-        <OrderTracker status={status} time={time} updatedAt={updatedAt} />
-        {/* <OrderStatus status={status} time={time} updatedAt={updatedAt} />
-        <div className="order-details">
-          <Detail left="Bestellnummer:" right={number} />
-          {time && <Detail left="Abholung:" right={time} />}
-          <Detail left="Preis:" right={formatPrice(price)} />
-        </div>
-        <div className="order-list">
-          <Accordion defaultActiveKey="0" flush>
-            {items.map((i, index) => (
-              <Order
-                {...i}
-                index={index}
-                key={i.itemId}
-                length={items.length}
-              />
-            ))}
-          </Accordion>
-        </div> */}
-      </div>
-    );
+    return <OrderTracker status={status} time={time} updatedAt={updatedAt} />;
   },
   isEqual
 );

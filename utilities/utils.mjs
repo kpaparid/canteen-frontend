@@ -1,5 +1,5 @@
 import { intervalToDuration, isAfter, parse } from "date-fns";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export const formatPrice = (price, euro = true) => {
   const pr = parseFloat(price);
@@ -68,4 +68,22 @@ export const useDurationHook = (time) => {
   }, [time, endDate]);
 
   return duration;
+};
+export const postPhoto = (file, categories) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "aewhjhan");
+  formData.append(
+    "public_id",
+    `canteen/${categories}/${new Date().toISOString()}`
+  );
+  const options = { method: "POST", body: formData };
+  return fetch("https://api.cloudinary.com/v1_1/duvwxquad/upload", options);
+};
+export const validateEmail = (email) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
 };

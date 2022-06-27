@@ -1,19 +1,39 @@
 import { faClock } from "@fortawesome/free-regular-svg-icons";
 import { faBars, faPhone, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { addMinutes, format, intervalToDuration } from "date-fns";
+import { nanoid } from "@reduxjs/toolkit";
+import {
+  addMinutes,
+  format,
+  intervalToDuration,
+  isAfter,
+  parse,
+} from "date-fns";
 import { isEqual } from "lodash";
 import Image from "next/image";
-import { memo, useCallback, useEffect, useState } from "react";
-import { Button, Form, Modal, Spinner } from "react-bootstrap";
+import RegisterUser from "./Register";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useState,
+  useRef,
+  forwardRef,
+} from "react";
+import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import styledComponents from "styled-components";
+import { useAuth } from "../contexts/AuthContext";
 import {
   fetchSettings,
   openCloseShop,
   selectShopIsOpen,
 } from "../reducer/redux2";
-import { formatPrice, useDurationHook } from "../utilities/utils.mjs";
+import {
+  formatPrice,
+  useDurationHook,
+  validateEmail,
+} from "../utilities/utils.mjs";
 const CustomInput = styledComponents.input`
   outline: none;
   border: 0;
@@ -39,9 +59,16 @@ const StyledItem = styledComponents.div`
     cursor: pointer;
   }`;
 const StyledOrderList = styledComponents.div`
-height: calc(100% - 50px);
+height: ${(props) =>
+  props.footer ? "calc(100% - 100px);" : "calc(100% - 50px);"}
 background-color: var(--bs-gray-white);
 border-radius: 0.25rem;
+overflow: auto;
+.right-item{
+  margin-left: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
 
 `;
 const StyledTitle = styledComponents.div`
@@ -61,15 +88,195 @@ const StyledTitle = styledComponents.div`
     }
 
 `;
+
+const StyledNavBar = styledComponents.div`
+padding: 0 1rem;
+.finished-btn{
+  display: none;
+}
+ @media (max-width: 768px) {
+  .finished-btn{
+    display: block;
+    padding: 0.5rem;
+    width: fit-content;
+    button{
+      padding: 0 0.5rem;
+      border-radius: 0.25rem;
+    }
+  }
+   border: 0;
+   position: fixed;
+   top: 0;
+   left: 0;
+ }
+display: flex;
+flex-wrap: nowrap;
+justify-content: space-between;
+align-items: center;
+width: 100%;
+height: 50px;
+border-bottom: 2px solid var(--bs-gray-900);
+color: var(--bs-gray-white);
+font-weight: 600;
+.ball{
+  height: 13px;
+  width: 13px;
+}
+.shop-status{
+  width: 70px;
+  cursor: pointer;
+  &:hover{
+    color: white;
+  }
+}
+`;
+const StyledSidebar = styledComponents.div`
+height: 100%;
+.settings{
+  padding: 0.5rem;
+  height: 100%;
+  width: 70px;
+  display: flex;
+  align-items: center;
+  button{
+    display: flex;
+    svg{
+      margin: auto;
+    }
+    width: fit-content;
+    padding: 0;
+    width: 25px;
+    color: var(--bs-gray-white);
+  }
+}
+          // className="h-100 w-100 text-gray-white shadow-none"
+          // style={{ padding: "0.85rem 0", width: "70px" }}
+`;
+const StyledFinishedItems = styledComponents.div`
+width: 100%;
+height: 50px;
+padding-top: 10px;
+padding-left: 0.5rem;
+button{
+  width: 100%;
+  height: 100%;
+  padding:0;
+  border-radius: 0.25rem 0.25rem 0 0rem;
+}
+span{
+  font-weight: 700;
+  color: nonary;
+}
+`;
+const StyledLeftItem = styledComponents.div`
+      color: var(--body-color);
+      margin: 0.5rem;
+      display: flex;
+      flex-wrap: nowrap;
+      flex-direction: column;
+      border-radius: 0.5rem;
+      background-color: white;
+      padding: 1.5rem; 
+      .info-wrapper{
+        width: 100%;
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: start;
+      }
+      .price{
+        font-weight: 700;
+        margin-top: 1rem;
+        font-size: 1.4rem;
+      }
+      .items{
+        margin-top: 1.5rem;
+        border-top: 1px solid var(--bs-gray-500);
+      }
+      .timer{
+        display: flex;
+        justify-content: center;
+        height: fit-content;
+      }
+      .circle-time{
+        // padding: 0 1.5rem;
+
+        border: 0.4rem solid var(--bs-senary);
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        aspect-ratio: 1;
+        minWidth: 64px;
+        height: 90px;
+      }
+      .round-timer{
+        font-weight: 700;
+        background-color: var(--bs-nonary);
+        color: white;
+        padding: 0.5rem;
+        border-radius: 0.3rem;
+      }
+      .duration{
+        font-weight: 700;
+        height: fit-content;
+        line-height: 15px;
+        font-size: 18px;
+      }
+      .time{
+        font-size: 1rem;
+        color: var(--bs-gray-800);
+        font-weight: 600;
+        line-height: 15px;
+      }
+      .minutes{
+        padding-left: 0.15rem;
+      }
+      .infos{
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        flex: 1 0;
+      }
+      .info{
+        flex: 1 auto;
+        max-width: 100%;
+      }
+      .order-id{
+        font-weight: 700;
+        border-radius: 0.25rem;
+        background-color: var(--bs-gray-500);
+        padding: 0.25rem 0.5rem;
+      }
+`;
+const StyledFinishedModalBody = styledComponents(Modal.Body)`
+      padding: 1.5rem;
+      background-color: var(--bs-nonary);
+      .left-item{
+        background-color: transparent;
+        padding: 0 0.75rem;
+        margin: 0;
+      }
+`;
 const ColumnsWrapper = styledComponents.div`
 height: calc(100% - 50px);
 width: 100%;
 display: flex;
 justify-content: space-around;
-flex-wrap: wrap;
+flex-wrap: nowrap;
 margin: auto;
+.footer{
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
+  margin-top: 1rem;
+}
 .orders-list-wrapper{
-    // width: 40%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+    width: 40%;
     flex: 1;
     &:first-child{
       margin-right: 0.25rem;
@@ -85,34 +292,202 @@ margin: auto;
         }
     }
 }
-`;
-const StyledNavBar = styledComponents.div`
-display: flex;
-flex-wrap: nowrap;
-justify-content: space-between;
-align-items: center;
-width: 100%;
-height: 50px;
-border-bottom: 2px solid var(--bs-gray-900);
-color: var(--bs-gray-white);
-font-weight: 600;
-.ball{
-  height: 13px;
-  width: 13px;
-}
-.shop-status{
-  cursor: pointer;
-  &:hover{
-    color: white;
+  @media (max-width: 768px) {
+    .left-item{
+      padding: 0.45rem !important;
+    }
+    padding-top: 55px;
+    height: 100% !important;
+    flex-wrap: wrap;
+    .info-wrapper{
+      flex-wrap: wrap !important;
+    }
+    .footer{
+      flex-direction: column;
+      button{
+        margin: 0 !important;
+        &:first-child{
+          margin-bottom: 0.5rem !important;
+        }
+      }
+    }
+    .left-item:first-child{
+      margin-top: 0.25rem;
+    }
+    .orders-title{
+      background-color: var(--bs-light-nonary);
+      border-radius: 0.5rem 0.5rem 0 0;
+      height: 35px;
+    }
+    .orders-list{
+      background-color: var(--bs-light-nonary);
+      height: calc(100% - 35px);
+    }
+    .orders-list-wrapper{
+      &:first-child, &:nth-child(2){
+        height: calc(100% - 110px);
+        max-width: 49%;
+        min-width: 49%;
+        margin: 0;
+      }        
+      &:last-child{
+        // position: relative;
+        width: 100%;
+        height: 110px;
+        .orders-list{
+          // position: absolute;
+          // top:0;
+          // left: 30px;
+          width: 100%;
+          align-items: center;
+          height: 100% !important;
+          display: flex;
+          flex-wrap: nowrap;
+          // background-color: var(--bs-nonary);
+        }
+        .title, .count{
+          // transform: rotate(-90deg);
+        }
+        .orders-title{
+          display: none;
+          // background-color: var(--bs-nonary);
+          // position: absolute;
+          // bottom: 0;
+          // left: 0;
+          // height: 32px;
+          // width: 100px;
+          // transform: rotate(-90deg) translate(39px, -32px);
+        }
+      }
+    .finished-btn{
+      display: none;
+    }
   }
-}
+  .right-item{
+    width: fit-content;
+    margin: auto;
+    padding: 0 0.5rem 0 0;
+  }
+    .timer{
+      flex: 1 0;
+      margin-top: 0.25rem;
+    }
+  }
 `;
+const FinishItem = memo(
+  ({ active, onPending, onConfirmed, onReady, onClose, ...rest }) => {
+    const renderFooter = useCallback(() => {
+      return active ? (
+        <div className="d-flex flex-wrap w-100 justify-content-around">
+          <Button
+            variant="pending"
+            className="mt-2"
+            onClick={() => {
+              onPending(rest.user.userId, rest.id, {
+                status: "pending",
+                time: null,
+              });
+              onClose();
+            }}
+          >
+            pending
+          </Button>
+          <Button
+            variant="confirmed"
+            className="mt-2"
+            onClick={() => {
+              onConfirmed(rest.user.userId, rest.id);
+              onClose();
+            }}
+          >
+            confirmed
+          </Button>
+          <Button
+            variant="ready"
+            className="mt-2"
+            onClick={() => {
+              onReady(rest.user.userId, rest.id);
+              onClose();
+            }}
+          >
+            ready
+          </Button>
+        </div>
+      ) : (
+        <></>
+      );
+    }, [
+      active,
+      onClose,
+      onPending,
+      onConfirmed,
+      onReady,
+      rest.user.userId,
+      rest.id,
+    ]);
+    return (
+      <LeftItem
+        itemDisabled
+        {...rest}
+        key={rest.id}
+        renderFooter={renderFooter}
+      />
+    );
+  },
+  isEqual
+);
+
+const FinishedListModal = memo(({ orders = [], ...rest }) => {
+  const [show, setShow] = useState();
+  const onClose = useCallback(() => {
+    setShow(false);
+    setActive();
+  }, []);
+  const onShow = useCallback(() => setShow(true), []);
+  const [active, setActive] = useState();
+  return (
+    <>
+      <StyledFinishedItems className="finished-btn">
+        <Button variant="gray-white" onClick={onShow}>
+          <span className="fw-600">Finished</span>
+          <span className="fw-600 ps-2">{orders?.length}</span>
+        </Button>
+      </StyledFinishedItems>
+      <Modal
+        show={show && orders.length !== 0}
+        onHide={onClose}
+        centered
+        className="p-0"
+        contentClassName="w-100"
+      >
+        <StyledFinishedModalBody>
+          {orders.map((o) => (
+            <Button
+              onClick={() => setActive(o.id)}
+              key={o.id}
+              variant="gray-500"
+              className="w-100 my-2"
+            >
+              <FinishItem
+                {...rest}
+                {...o}
+                active={o.id === active}
+                onClose={onClose}
+              />
+            </Button>
+          ))}
+        </StyledFinishedModalBody>
+      </Modal>
+    </>
+  );
+}, isEqual);
 const TwoColumnsOrders = memo(
   ({ orders, loading, onChangeOrderStatus, onChangeShopStatus }) => {
     // const dispatch = useDispatch();
-    const leftColumn = orders?.pending;
-    const middleColumn = orders?.confirmed;
-    const rightColumn = orders?.ready;
+    const pendingColumn = orders?.pending;
+    const confirmedColumn = orders?.confirmed;
+    const readyColumn = orders?.ready;
+    const archivedColumn = orders?.archived;
     const [showLoading, setShowLoading] = useState();
 
     useEffect(() => {
@@ -126,8 +501,8 @@ const TwoColumnsOrders = memo(
       }
     }, [loading]);
     const handleAccept = useCallback(
-      (userId, orderId) => {
-        onChangeOrderStatus(userId, orderId, { status: "confirmed" });
+      (userId, orderId, body) => {
+        onChangeOrderStatus(userId, orderId, { status: "confirmed", ...body });
       },
       [onChangeOrderStatus]
     );
@@ -139,26 +514,26 @@ const TwoColumnsOrders = memo(
       [onChangeOrderStatus]
     );
     const handleNew = useCallback(
-      (userId, orderId) => {
-        onChangeOrderStatus(userId, orderId, { status: "pending" });
+      (userId, orderId, body) => {
+        onChangeOrderStatus(userId, orderId, { status: "pending", ...body });
       },
       [onChangeOrderStatus]
     );
     const handleReady = useCallback(
-      (userId, orderId) => {
-        onChangeOrderStatus(userId, orderId, { status: "ready" });
+      (userId, orderId, body) => {
+        onChangeOrderStatus(userId, orderId, { status: "ready", ...body });
       },
       [onChangeOrderStatus]
     );
     const handleFinish = useCallback(
-      (userId, orderId) => {
-        onChangeOrderStatus(userId, orderId, { status: "finished" });
+      (userId, orderId, body) => {
+        onChangeOrderStatus(userId, orderId, { status: "finished", ...body });
       },
       [onChangeOrderStatus]
     );
     const handleDeclined = useCallback(
       (userId, orderId) => {
-        onChangeOrderStatus(userId, orderId, { status: "declined" });
+        onChangeOrderStatus(userId, orderId, { status: "declined", ...body });
       },
       [onChangeOrderStatus]
     );
@@ -175,17 +550,24 @@ const TwoColumnsOrders = memo(
             <Spinner animation="border" variant="darker-nonary" />
           </Modal.Body>
         </Modal>
-        <TopBar onChangeShopStatus={onChangeShopStatus} />
+        <TopBar
+          archivedColumn={archivedColumn}
+          onChangeShopStatus={onChangeShopStatus}
+          onReady={handleReady}
+          onConfirmed={handleAccept}
+          onPending={handleNew}
+        />
         <ColumnsWrapper className="px-2">
           <OrdersList
-            orders={leftColumn}
+            orders={pendingColumn}
             title="pending"
             renderItem={(props) => (
               <LeftItem
+                interval
                 key={props.id}
                 {...props}
                 renderFooter={(footerProps) => (
-                  <div className="d-flex flex-nowrap w-100 mt-3">
+                  <div className="footer">
                     {props?.time ? (
                       <Button
                         variant="senary"
@@ -212,10 +594,11 @@ const TwoColumnsOrders = memo(
             )}
           />
           <OrdersList
-            orders={middleColumn}
+            orders={confirmedColumn}
             title="confirmed"
             renderItem={(props) => (
               <LeftItem
+                interval
                 key={props.id}
                 {...props}
                 renderFooter={() => (
@@ -233,9 +616,17 @@ const TwoColumnsOrders = memo(
             )}
           />
           <OrdersList
-            orders={rightColumn}
+            orders={readyColumn}
             col={2}
             title="ready"
+            footer={
+              <FinishedListModal
+                orders={archivedColumn}
+                onReady={handleReady}
+                onConfirmed={handleAccept}
+                onPending={handleNew}
+              />
+            }
             renderItem={(props) => (
               <ReadyItem
                 key={props.id}
@@ -247,7 +638,7 @@ const TwoColumnsOrders = memo(
                       className="text-white flex-fill me-2"
                       onClick={() => {
                         footerProps?.onClick();
-                        handleNew(props.user.uid, props.id);
+                        handleFinish(props.user.uid, props.id);
                       }}
                     >
                       Mark as Finished
@@ -263,87 +654,150 @@ const TwoColumnsOrders = memo(
   },
   isEqual
 );
-const TopBar = memo(({ onChangeShopStatus }) => {
-  const dispatch = useDispatch();
-  const shopEnabled = useSelector(selectShopIsOpen);
-  const handleClick = useCallback(
-    () => onChangeShopStatus(!shopEnabled),
-    [onChangeShopStatus, shopEnabled]
-  );
-  return (
-    <StyledNavBar className="px-4">
-      <div className="h-100" style={{ padding: "0.85rem 0" }}>
-        <FontAwesomeIcon className="h-100" icon={faBars} />
-      </div>
-      <div
-        className="shop-status d-flex flex-nowrap align-items-center p-1"
-        onClick={handleClick}
-      >
-        <div>{shopEnabled ? "Open" : "Closed"}</div>
-        <div
-          className={`ball ms-2 rounded-circle ${
-            shopEnabled ? "bg-ready" : "bg-primary"
-          }`}
+const TopBar = memo(
+  ({
+    onChangeShopStatus,
+    handleReady,
+    handleAccept,
+    handleNew,
+    archivedColumn,
+  }) => {
+    const shopEnabled = useSelector(selectShopIsOpen);
+    const handleClick = useCallback(
+      () => onChangeShopStatus(!shopEnabled),
+      [onChangeShopStatus, shopEnabled]
+    );
+    return (
+      <StyledNavBar>
+        <Sidebar />
+        <FinishedListModal
+          orders={archivedColumn}
+          onReady={handleReady}
+          onConfirmed={handleAccept}
+          onPending={handleNew}
         />
-      </div>
-    </StyledNavBar>
-  );
-}, isEqual);
-const OrdersList = memo(({ orders, title, renderItem }) => {
+        <div
+          className="shop-status d-flex flex-nowrap align-items-center p-1"
+          onClick={handleClick}
+        >
+          <div>{shopEnabled ? "Open" : "Closed"}</div>
+          <div
+            className={`ball ms-2 rounded-circle ${
+              shopEnabled ? "bg-ready" : "bg-primary"
+            }`}
+          />
+        </div>
+      </StyledNavBar>
+    );
+  },
+  isEqual
+);
+const OrdersList = memo(({ orders, title, renderItem, footer }) => {
   return (
-    <div className={`orders-list-wrapper d-flex flex-column h-100`}>
-      <StyledTitle>
+    <div className={`orders-list-wrapper`}>
+      <StyledTitle className="orders-title">
         <span className="title">{title}</span>
         <span className="count">{orders?.length}</span>
       </StyledTitle>
-      <StyledOrderList className="orders-list">
-        <div
-          className="overflow-auto"
-          style={{ width: "100%", height: "100%" }}
-        >
-          {orders?.map((o) => renderItem(o))}
-        </div>
+      <StyledOrderList className="orders-list" footer={footer}>
+        {orders?.map((o) => renderItem(o))}
       </StyledOrderList>
+      {footer}
     </div>
+  );
+}, isEqual);
+
+const Sidebar = memo(() => {
+  const [show, setShow] = useState();
+  const handleShow = useCallback(() => setShow(true), []);
+  const handleClose = useCallback(() => setShow(false), []);
+  return (
+    <StyledSidebar>
+      <div className="settings">
+        <Button variant="transparent" onClick={handleShow}>
+          <FontAwesomeIcon className="h-100" icon={faBars} />
+        </Button>
+      </div>
+      <Modal
+        show={show}
+        onHide={handleClose}
+        centered
+        className="p-0"
+        dialogClassName="side-bar-dialog"
+        contentClassName="w-100 h-100"
+      >
+        <Modal.Body className="bg-gray-white p-3">
+          <RegisterUser />
+          {/* <div>hi</div> */}
+        </Modal.Body>
+      </Modal>
+    </StyledSidebar>
   );
 }, isEqual);
 
 const ReadyItem = memo((props) => {
   const {
     number,
-    user: { email, displayName, pickupTime = new Date() },
+    time: pickupTime,
+    user: { email, displayName },
   } = props;
-  const interval = intervalToDuration({
-    start: new Date(),
-    end: pickupTime,
+  const start = new Date();
+  const end = parse(pickupTime, "HH:mm", new Date());
+  const duration = intervalToDuration({
+    start,
+    end,
   }).minutes;
-  const time = interval <= 0 ? "now" : interval + "min";
+  const time =
+    duration === 0 || isAfter(start, end) ? "now" : duration + " min";
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   return (
-    <div className="ms-2 mb-2">
+    <div className="right-item">
       <FinishModal show={show} onClose={handleClose} {...props} />
       <Button
         variant="light-nonary"
-        className="w-100 d-flex flex-column rounded text-white justify-content-center align-items-center p-4"
+        className="w-100 d-flex flex-column rounded text-white justify-content-center align-items-center p-2"
         onClick={handleShow}
       >
-        <div className="rounded rounded-3 bg-gray-500 text-nonary fw-bolder px-2 py-1">
-          {number}
+        <div className="d-flex flex-wrap justify-content-center w-100">
+          <div
+            className="rounded rounded-3 mt-2 bg-gray-500 text-nonary fw-bolder px-2 py-1 h-auto mx-2"
+            style={{ height: "fit-content" }}
+          >
+            {number}
+          </div>
+          <div
+            className="rounded bg-very-light-nonary mt-2 px-2 py-1 text-center mx-2"
+            style={{ height: "fit-content" }}
+          >
+            {time}
+          </div>
         </div>
         <div className="text-truncate text-break w-100 text-center my-2">
           {displayName || email}
         </div>
-        {interval > 0 && (
-          <div className="text-center font-small text-gray-white">
-            Pickup in
-          </div>
-        )}
-        <div className="rounded bg-very-light-nonary px-2 py-1 text-center">
-          {time}
-        </div>
       </Button>
+    </div>
+  );
+}, isEqual);
+const TimeComponent = memo(({ time }) => {
+  const duration = useDurationHook(time);
+  return (
+    <div className="circle-time">
+      <div className="d-flex">
+        <div className="duration">
+          {duration === 0 ? (
+            <span>now</span>
+          ) : (
+            <>
+              <span>{duration}</span>
+              <span className="minutes">min</span>
+            </>
+          )}
+        </div>
+      </div>
+      <span className="time">{time}</span>
     </div>
   );
 }, isEqual);
@@ -356,89 +810,83 @@ const LeftItem = memo(
     items,
     price,
     renderFooter = () => <></>,
+    interval,
+    itemDisabled,
   }) => {
-    const duration = useDurationHook(pickupTime);
-
     return (
-      <div className="text-body-color m-2 d-flex flex-nowrap flex-column border-gray-white bg-white rounded p-4">
-        <div className="d-flex w-100 flex-md-row flex-column justify-content-center align-items-center">
-          <div className="col d-flex flex-column align-items-center align-items-md-start">
+      <StyledLeftItem className="left-item">
+        <div className="info-wrapper">
+          <div className="info">
             <div
-              className="fw-bolder rounded rounded-3 bg-gray-500 py-1 px-2"
+              className="order-id"
               style={{ height: "fit-content", width: "fit-content" }}
             >
               {number}
             </div>
-            <div className="fw-bolder text-truncate mt-2">
+            <div className="name fw-bolder text-truncate mt-2">
               {displayName || email}
             </div>
             {phoneNumber && (
-              <div className="font-small fw-bold text-gray-800">
+              <div className="phone font-small text-truncate fw-bold text-gray-800">
                 <FontAwesomeIcon icon={faPhone} className="pe-2" />
                 {phoneNumber}
               </div>
             )}
-            <div className="font-small fw-bold text-gray-800">
+            <div className="created-time font-small fw-bold text-gray-800">
               <FontAwesomeIcon icon={faClock} className="pe-2" />
               {format(new Date(createdAt), "HH:mm")}
             </div>
           </div>
-          <div
-            className="d-flex justify-content-center"
-            style={{ height: "fit-content" }}
-          >
-            <div
-              className="border border-4 border-senary px-2 rounded-circle d-flex flex-column justify-content-center align-items-center"
-              style={{
-                aspectRatio: "1",
-                minWidth: "64px",
-                height: "fit-content",
-              }}
-            >
-              <div className="d-flex">
-                <div className="fw-bolder">{duration ? duration : "now"}</div>
-                {duration !== 0 && <div className="fw-bolder">min</div>}
-              </div>
-              <span className="font-small fw-bold text-gray-800">
-                {pickupTime}
-              </span>
-            </div>
+          <div className="timer">
+            {interval ? (
+              pickupTime && <TimeComponent time={pickupTime} />
+            ) : (
+              <div className="round-timer">{pickupTime}</div>
+            )}
           </div>
         </div>
-        <div className="mt-4 border-top border-gray-500">
+        <div className="items">
           {items.map((props) => {
-            return <Item {...props} key={props?.itemId} />;
+            return (
+              <Item
+                {...props}
+                key={props?.itemId}
+                itemDisabled={itemDisabled}
+              />
+            );
           })}
         </div>
-        <div className="fw-bold mt-3">{formatPrice(price)}</div>
+        <div className="price">{formatPrice(price)}</div>
         {renderFooter()}
-      </div>
+      </StyledLeftItem>
     );
   },
   isEqual
 );
 
-const Item = memo((props) => {
-  const { count, title } = props;
+const Item = memo(({ itemDisabled, ...rest }) => {
+  const { count, title } = rest;
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   return (
     <>
-      <ItemModal {...props} name={title} show={show} onClose={handleClose} />
+      {!itemDisabled && (
+        <ItemModal {...rest} name={title} show={show} onClose={handleClose} />
+      )}
       <StyledItem
         className="border-bottom border-gray-500 py-1"
         onClick={handleShow}
       >
         <div className="d-flex flex-nowrap title">
           <span className="fw-bolder pe-2">{count}x</span>
-          <span className="fw-bolder">{title}</span>
+          <span className="fw-bolder text-truncate">{title}</span>
         </div>
-        {(props?.extras || props?.comment) && (
-          <div className="ps-4">
-            {props?.extras && (
+        {(rest?.extras || rest?.comment) && (
+          <div className="ps-4 text-break">
+            {rest?.extras && (
               <div className="d-flex flex-column">
-                {props?.extras.map((e) =>
+                {rest?.extras.map((e) =>
                   e.options?.map((o) => (
                     <span className="font-small fw-bold" key={o.text}>
                       +{o.text}
@@ -447,8 +895,8 @@ const Item = memo((props) => {
                 )}
               </div>
             )}
-            {props?.comment && (
-              <span className="px-3 bg-light-senary">{props?.comment}</span>
+            {rest?.comment && (
+              <span className="px-3 bg-light-senary">{rest?.comment}</span>
             )}
           </div>
         )}
@@ -468,7 +916,7 @@ const ItemModal = memo(({ show, onClose, itemId }) => {
           setItem(r.data[0]);
         })
       );
-  }, [item, show]);
+  }, [item, show, itemId]);
 
   return (
     <Modal
@@ -546,9 +994,15 @@ const FinishModal = memo(({ show, onClose, ...rest }) => {
     [onClose, rest?.renderFooter]
   );
   return (
-    <Modal show={show} onHide={onClose} centered className="p-0">
+    <Modal
+      show={show}
+      onHide={onClose}
+      centered
+      className="p-0"
+      contentClassName="w-100"
+    >
       <Modal.Body className="bg-white p-0">
-        <LeftItem {...rest} renderFooter={renderFooter} />
+        <LeftItem interval {...rest} renderFooter={renderFooter} />
       </Modal.Body>
     </Modal>
   );
@@ -691,23 +1145,3 @@ const AcceptModal = memo(({ onClick, ...rest }) => {
 }, isEqual);
 
 export default TwoColumnsOrders;
-
-TwoColumnsOrders.displayName = "TwoColumnsOrders";
-
-RejectModal.displayName = "RejectModal";
-
-AcceptModal.displayName = "AcceptModal";
-
-FinishModal.displayName = "FinishModal";
-
-ItemModal.displayName = "ItemModal";
-
-Item.displayName = "Item";
-
-LeftItem.displayName = "LeftItem";
-
-ReadyItem.displayName = "ReadyItem";
-
-TopBar.displayName = "TopBar";
-
-OrdersList.displayName = "OrdersList";

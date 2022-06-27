@@ -2,6 +2,7 @@ import {
   faCartArrowDown,
   faCartPlus,
   faEdit,
+  faMinus,
   faPlus,
   faX,
   faXmark,
@@ -175,7 +176,7 @@ const Item = memo(
             </Button>
             <Overlay target={target.current} show={showTooltip} placement="top">
               {(props) => (
-                <Tooltip {...props} className="text-break text-wrap">
+                <Tooltip {...props} className="text-break text-wrap p-0 m-0">
                   Zurzeit sind wir geschlossen.
                 </Tooltip>
               )}
@@ -206,7 +207,7 @@ export const EditableItem = memo(
     ...rest
   }) => {
     const dispatch = useDispatch();
-    const { updateMeals } = useAPI();
+    const { updateMeals, deleteMeal } = useAPI();
     const [photoURL, setPhotoURL] = useState(initialPhotoURL);
     const [name, setName] = useState(initialName);
     const [description, setDescription] = useState(initialDescription);
@@ -215,15 +216,17 @@ export const EditableItem = memo(
     const [extras, setExtras] = useState(initialExtras);
     const [category, setCategory] = useState(initialCategory);
     const menuIdOptions = [
-      ...Array.from(Array(100).keys())
-        .map(
-          (n) => n + (categories.map((c) => c.id).indexOf(category) + 1) * 100
-        )
-        .filter((n) => !usedUIDs.includes(n)),
+      ...Array.from(Array(100).keys()).map(
+        (n) => n + (categories.map((c) => c.id).indexOf(category) + 1) * 100
+      ),
       initialMenuId,
-    ].sort((a, b) => a - b);
+    ]
+      .filter((n) => !usedUIDs.includes(n) && n !== 0)
+      .sort((a, b) => a - b);
 
     const target = useRef(null);
+    const titleRef = useRef(null);
+    const selectRef = useRef(null);
     const [editMode, setEditMode] = useState(false);
     const [showTooltip, setShowTooltip] = useState(false);
     const shopEnabled = useSelector(selectShopIsOpen);
@@ -294,6 +297,10 @@ export const EditableItem = memo(
       clearState();
       onClose();
     }
+    const handleCategoryChange = useCallback((e) => {
+      setCategory(e.target.value);
+      setMenuId();
+    }, []);
     const handleExtraDelete = useCallback(
       (index) => setExtras((old) => [...old].filter((e, i) => i !== index)),
       []
@@ -329,22 +336,45 @@ export const EditableItem = memo(
         }),
       []
     );
+    const handleDelete = useCallback(
+      (id) =>
+        deleteMeal(id).then(() =>
+          dispatch(fetchMeals()).then(({ payload }) =>
+            dispatch(fetchCategories(payload))
+          )
+        ),
+      [deleteMeal, dispatch]
+    );
     const handleSave = useCallback(() => {
-      const body = {
-        extras,
-        name,
-        description,
-        price,
-        uid: menuId,
-        photoURL,
-        category,
-        id,
-      };
-      updateMeals(id, body).then(() =>
-        dispatch(fetchMeals())
-          .then(({ payload }) => dispatch(fetchCategories(payload)))
-          .then(() => clearState())
-      );
+      if (menuId && name?.trim() !== "") {
+        const body = {
+          extras,
+          name,
+          description,
+          price,
+          uid: menuId,
+          photoURL,
+          category,
+          id,
+        };
+        updateMeals(id, body).then(() =>
+          dispatch(fetchMeals())
+            .then(({ payload }) => dispatch(fetchCategories(payload)))
+            .then(() => clearState())
+        );
+      } else {
+        if (!menuId) {
+          selectRef.current.classList.remove("error-shadow");
+          setTimeout(function () {
+            selectRef.current.classList.add("error-shadow");
+          }, 1);
+        } else {
+          titleRef.current.classList.remove("error-shadow");
+          setTimeout(function () {
+            titleRef.current.classList.add("error-shadow");
+          }, 1);
+        }
+      }
     }, [
       clearState,
       dispatch,
@@ -406,7 +436,7 @@ export const EditableItem = memo(
                     <Form.Select
                       className="px-5"
                       value={category}
-                      onChange={(e) => setCategory(e.target.value)}
+                      onChange={handleCategoryChange}
                     >
                       {categories.map((c) => (
                         <option value={c.id} key={c.id}>
@@ -428,6 +458,16 @@ export const EditableItem = memo(
                     >
                       <FontAwesomeIcon icon={faEdit} />
                     </Button>
+                    <Button
+                      className="ms-3"
+                      style={{ height: "fit-content" }}
+                      onClick={() => {
+                        handleDelete(id);
+                        clearState();
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faMinus} />
+                    </Button>
                   </div>
                 </>
               )}
@@ -442,7 +482,7 @@ export const EditableItem = memo(
             )}
             {editMode ? (
               <div className="d-flex flex-nowrap">
-                <div style={{ width: " 70px" }}>
+                <div style={{ width: " 80px" }}>
                   <Form.Label
                     className="font-small fw-bolder m-0 mt-2"
                     type="number"
@@ -450,9 +490,11 @@ export const EditableItem = memo(
                     ID
                   </Form.Label>
                   <Form.Select
-                    value={menuId}
+                    ref={selectRef}
+                    value={menuId || "default"}
                     onChange={(e) => setMenuId(e.target.value)}
                   >
+                    {!menuId && <option value={"default"}>Empty</option>}
                     {menuIdOptions.map((o) => (
                       <option value={o} key={"menu-id-option-" + o}>
                         {o}
@@ -466,6 +508,7 @@ export const EditableItem = memo(
                     Title
                   </Form.Label>
                   <Form.Control
+                    ref={titleRef}
                     className="font-small"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -642,7 +685,7 @@ export const EditableItem = memo(
                 placement="top"
               >
                 {(props) => (
-                  <Tooltip {...props} className="text-break text-wrap">
+                  <Tooltip {...props} className="text-break text-wrap p-0 m-0">
                     Zurzeit sind wir geschlossen.
                   </Tooltip>
                 )}

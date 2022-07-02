@@ -6,9 +6,10 @@ const DismissibleAlert = memo(
   ({
     className,
     title = "Oh snap! You got an error!",
-    message = "",
+    message,
     show,
     onClose,
+    variant = "danger",
   }) => {
     useEffect(() => {
       const timer1 = setTimeout(() => onClose(), 8000);
@@ -20,12 +21,12 @@ const DismissibleAlert = memo(
       return (
         <Alert
           className={className}
-          variant="danger"
+          variant={variant}
           onClose={onClose}
           dismissible
         >
           <Alert.Heading>{title}</Alert.Heading>
-          <p>{message}</p>
+          {message && <p>{message}</p>}
         </Alert>
       );
     }

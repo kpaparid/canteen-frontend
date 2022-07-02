@@ -1,17 +1,16 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { isEqual } from "lodash";
-import { memo, useCallback, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import { useAuth } from "../contexts/AuthContext";
 import { validateEmail } from "../utilities/utils.mjs";
 import DismissibleAlert from "./Alert";
 
 const UserForm = memo(({ onClose }) => {
-  const [show, setShow] = useState(false);
-  const [alertMessage, setAlertMessage] = useState();
+  const [alert, setAlert] = useState();
   const nameRef = useRef();
   const emailRef = useRef();
-  const { createUser } = useAuth();
+  const { createUser, resetPassword } = useAuth();
   const handleSave = useCallback(
     (e) => {
       e.preventDefault();
@@ -21,22 +20,32 @@ const UserForm = memo(({ onClose }) => {
         name?.trim() !== "" && email?.trim() !== "" && validateEmail(email);
       validated &&
         createUser({ email, displayName: name, password: nanoid() })
-          .then((r) => onClose())
-          .catch((r) => {
-            setAlertMessage(r.message);
+          .then((r) =>
+            resetPassword(email).then(() => {
+              nameRef.current.value = "";
+              emailRef.current.value = "";
+              setAlert(() => ({
+                title: "Account created",
+                message: null,
+                variant: "success",
+                show: true,
+              }));
+            })
+          )
+          .catch(({ message }) => {
+            setAlert(() => ({ message, variant: "danger", show: true }));
             setShow(true);
           });
     },
-    [createUser, onClose]
+    [createUser, resetPassword]
   );
 
   return (
     <>
       <DismissibleAlert
         className="mx-3"
-        message={alertMessage}
-        show={show}
-        onClose={() => setShow(false)}
+        {...alert}
+        onClose={() => setAlert((old) => ({ ...old, show: false }))}
       />
       <Form onSubmit={handleSave}>
         <Modal.Body className="bg-gray-white px-5">

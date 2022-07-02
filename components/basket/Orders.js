@@ -183,18 +183,9 @@ const OrderStatus = memo(({ status, time, updatedAt }) => {
   );
 }, isEqual);
 
-const OrderOverview = memo(
-  ({ time, status, updatedAt, price, number, items }) => {
-    const Detail = ({ left, right }) => (
-      <div>
-        <span className="font-small fw-bold">{left}</span>
-        <span className="font-small fw-bolder ps-2">{right}</span>
-      </div>
-    );
-    return <OrderTracker status={status} time={time} updatedAt={updatedAt} />;
-  },
-  isEqual
-);
+const OrderOverview = memo((props) => {
+  return <OrderTracker {...props} />;
+}, isEqual);
 const Order = ({
   index,
   count,

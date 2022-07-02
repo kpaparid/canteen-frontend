@@ -189,9 +189,9 @@ const StyledLeftItem = styledComponents.div`
         margin-top: 1rem;
         font-size: 1.4rem;
       }
-      .items{
-        margin-top: 1.5rem;
-        border-top: 1px solid var(--bs-gray-500);
+      .info-wrapper{
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--bs-gray-500);
       }
       .timer{
         display: flex;
@@ -320,6 +320,10 @@ margin: auto;
       height: 35px;
     }
     .orders-list{
+      flex-direction: column;
+      width: 100%;
+      margin: 0;
+      max-width: initial;
       background-color: var(--bs-light-nonary);
       height: calc(100% - 35px);
     }
@@ -331,32 +335,23 @@ margin: auto;
         margin: 0;
       }        
       &:last-child{
-        // position: relative;
         width: 100%;
         height: 110px;
+        flex-direction: row;
+        flex-wrap: nowrap;
         .orders-list{
-          // position: absolute;
-          // top:0;
-          // left: 30px;
           width: 100%;
           align-items: center;
           height: 100% !important;
           display: flex;
           flex-wrap: nowrap;
-          // background-color: var(--bs-nonary);
-        }
-        .title, .count{
-          // transform: rotate(-90deg);
+          flex-direction: row;
+          .right-item{
+            min-width: 185px;
+          }
         }
         .orders-title{
           display: none;
-          // background-color: var(--bs-nonary);
-          // position: absolute;
-          // bottom: 0;
-          // left: 0;
-          // height: 32px;
-          // width: 100px;
-          // transform: rotate(-90deg) translate(39px, -32px);
         }
       }
     .finished-btn{
@@ -374,113 +369,7 @@ margin: auto;
     }
   }
 `;
-const FinishItem = memo(
-  ({ active, onPending, onConfirmed, onReady, onClose, ...rest }) => {
-    const renderFooter = useCallback(() => {
-      return active ? (
-        <div className="d-flex flex-wrap w-100 justify-content-around">
-          <Button
-            variant="pending"
-            className="mt-2"
-            onClick={() => {
-              onPending(rest.user.uid, rest.id, {
-                status: "pending",
-                time: null,
-              });
-              onClose();
-            }}
-          >
-            pending
-          </Button>
-          <Button
-            variant="confirmed"
-            className="mt-2"
-            onClick={() => {
-              onConfirmed(rest.user.uid, rest.id);
-              onClose();
-            }}
-          >
-            confirmed
-          </Button>
-          <Button
-            variant="ready"
-            className="mt-2"
-            onClick={() => {
-              onReady(rest.user.uid, rest.id);
-              onClose();
-            }}
-          >
-            ready
-          </Button>
-        </div>
-      ) : (
-        <></>
-      );
-    }, [
-      active,
-      onClose,
-      onPending,
-      onConfirmed,
-      onReady,
-      rest.user.uid,
-      rest.id,
-    ]);
-    return (
-      <LeftItem
-        itemDisabled
-        {...rest}
-        key={rest.id}
-        renderFooter={renderFooter}
-      />
-    );
-  },
-  isEqual
-);
 
-const FinishedListModal = memo(({ orders = [], ...rest }) => {
-  const [show, setShow] = useState();
-  const onClose = useCallback(() => {
-    setShow(false);
-    setActive();
-  }, []);
-  const onShow = useCallback(() => setShow(true), []);
-  const [active, setActive] = useState();
-  return (
-    <>
-      <StyledFinishedItems className="finished-btn">
-        <Button variant="gray-white" onClick={onShow}>
-          <span className="fw-600">Finished</span>
-          <span className="fw-600 ps-2">{orders?.length}</span>
-        </Button>
-      </StyledFinishedItems>
-      <Modal
-        show={show && orders.length !== 0}
-        onHide={onClose}
-        centered
-        className="p-0"
-        contentClassName="w-100"
-      >
-        <StyledFinishedModalBody>
-          {orders.map((o) => (
-            <Button
-              onClick={() => setActive(o.id)}
-              key={o.id}
-              variant="gray-500"
-              className="w-100 my-2"
-            >
-              <FinishItem
-                {...rest}
-                {...o}
-                active={o.id === active}
-                onClose={onClose}
-              />
-            </Button>
-          ))}
-        </StyledFinishedModalBody>
-      </Modal>
-    </>
-  );
-}, isEqual);
 const TwoColumnsOrders = memo(
   ({ orders, loading, onChangeOrderStatus, onChangeShopStatus }) => {
     // const dispatch = useDispatch();
@@ -598,6 +487,7 @@ const TwoColumnsOrders = memo(
             title="confirmed"
             renderItem={(props) => (
               <LeftItem
+                details={false}
                 interval
                 key={props.id}
                 {...props}
@@ -605,7 +495,7 @@ const TwoColumnsOrders = memo(
                   <div className="d-flex flex-nowrap w-100 mt-3">
                     <Button
                       variant="ready"
-                      className="text-white flex-fill me-2"
+                      className="text-white flex-fill"
                       onClick={() => handleReady(props.user.uid, props.id)}
                     >
                       Mark as Ready
@@ -812,58 +702,71 @@ const LeftItem = memo(
     renderFooter = () => <></>,
     interval,
     itemDisabled,
+    details = true,
   }) => {
     return (
       <StyledLeftItem className="left-item">
-        <div className="info-wrapper">
-          <div className="info">
-            <div
-              className="order-id"
-              style={{ height: "fit-content", width: "fit-content" }}
-            >
-              {number}
-            </div>
-            <div className="name fw-bolder text-truncate mt-2">
-              {displayName || email}
-            </div>
-            {phoneNumber && (
-              <div className="phone font-small text-truncate fw-bold text-gray-800">
-                <FontAwesomeIcon icon={faPhone} className="pe-2" />
-                {phoneNumber}
+        {details && (
+          <div className="info-wrapper">
+            <div className="info">
+              <div
+                className="order-id"
+                style={{ height: "fit-content", width: "fit-content" }}
+              >
+                {number}
               </div>
-            )}
-            <div className="created-time font-small fw-bold text-gray-800">
-              <FontAwesomeIcon icon={faClock} className="pe-2" />
-              {format(new Date(createdAt), "HH:mm")}
+              <div className="name fw-bolder text-truncate mt-2">
+                {displayName || email}
+              </div>
+              {phoneNumber && (
+                <div className="phone font-small text-truncate fw-bold text-gray-800">
+                  <FontAwesomeIcon icon={faPhone} className="pe-2" />
+                  {phoneNumber}
+                </div>
+              )}
+              <div className="created-time font-small fw-bold text-gray-800">
+                <FontAwesomeIcon icon={faClock} className="pe-2" />
+                {format(new Date(createdAt), "HH:mm")}
+              </div>
+            </div>
+            <div className="timer">
+              {interval ? (
+                pickupTime && <TimeComponent time={pickupTime} />
+              ) : (
+                <div className="round-timer">{pickupTime}</div>
+              )}
             </div>
           </div>
-          <div className="timer">
-            {interval ? (
-              pickupTime && <TimeComponent time={pickupTime} />
-            ) : (
-              <div className="round-timer">{pickupTime}</div>
-            )}
+        )}
+        <div className="d-flex flex-wrap justify-content-between align-items-center">
+          <div className="items flex-fill">
+            {items.map((props) => {
+              return (
+                <Item
+                  {...props}
+                  key={props?.itemId}
+                  itemDisabled={itemDisabled}
+                />
+              );
+            })}
           </div>
+          {!details && (
+            <div className="timer ps-3">
+              {interval ? (
+                pickupTime && <TimeComponent time={pickupTime} />
+              ) : (
+                <div className="round-timer">{pickupTime}</div>
+              )}
+            </div>
+          )}
         </div>
-        <div className="items">
-          {items.map((props) => {
-            return (
-              <Item
-                {...props}
-                key={props?.itemId}
-                itemDisabled={itemDisabled}
-              />
-            );
-          })}
-        </div>
-        <div className="price">{formatPrice(price)}</div>
+        {details && <div className="price">{formatPrice(price)}</div>}
         {renderFooter()}
       </StyledLeftItem>
     );
   },
   isEqual
 );
-
 const Item = memo(({ itemDisabled, ...rest }) => {
   const { count, title } = rest;
   const [show, setShow] = useState(false);
@@ -904,7 +807,6 @@ const Item = memo(({ itemDisabled, ...rest }) => {
     </>
   );
 }, isEqual);
-
 const ItemModal = memo(({ show, onClose, itemId }) => {
   const [item, setItem] = useState();
   useEffect(() => {
@@ -987,27 +889,6 @@ const ItemModal = memo(({ show, onClose, itemId }) => {
     </Modal>
   );
 }, isEqual);
-
-const FinishModal = memo(({ show, onClose, ...rest }) => {
-  const renderFooter = useCallback(
-    () => rest?.renderFooter({ onClick: onClose }),
-    [onClose, rest?.renderFooter]
-  );
-  return (
-    <Modal
-      show={show}
-      onHide={onClose}
-      centered
-      className="p-0"
-      contentClassName="w-100"
-    >
-      <Modal.Body className="bg-white p-0">
-        <LeftItem interval {...rest} renderFooter={renderFooter} />
-      </Modal.Body>
-    </Modal>
-  );
-}, isEqual);
-
 const RejectModal = memo(({ ...rest }) => {
   const [show, setShow] = useState(false);
   const handleShow = () => setShow(true);
@@ -1143,5 +1024,130 @@ const AcceptModal = memo(({ onClick, ...rest }) => {
     </>
   );
 }, isEqual);
+const FinishModal = memo(({ show, onClose, ...rest }) => {
+  const renderFooter = useCallback(
+    () => rest?.renderFooter({ onClick: onClose }),
+    [onClose, rest?.renderFooter]
+  );
+  return (
+    <Modal
+      show={show}
+      onHide={onClose}
+      centered
+      className="p-0"
+      contentClassName="w-100"
+    >
+      <Modal.Body className="bg-white p-0">
+        <LeftItem interval {...rest} renderFooter={renderFooter} />
+      </Modal.Body>
+    </Modal>
+  );
+}, isEqual);
+const FinishedListModal = memo(({ orders = [], ...rest }) => {
+  const [show, setShow] = useState();
+  const onClose = useCallback(() => {
+    setShow(false);
+    setActive();
+  }, []);
+  const onShow = useCallback(() => setShow(true), []);
+  const [active, setActive] = useState();
+  return (
+    <>
+      <StyledFinishedItems className="finished-btn">
+        <Button variant="gray-white" onClick={onShow}>
+          <span className="fw-600">Finished</span>
+          <span className="fw-600 ps-2">{orders?.length}</span>
+        </Button>
+      </StyledFinishedItems>
+      <Modal
+        show={show && orders.length !== 0}
+        onHide={onClose}
+        centered
+        className="p-0"
+        contentClassName="w-100"
+      >
+        <StyledFinishedModalBody>
+          {orders.map((o) => (
+            <Button
+              onClick={() => setActive(o.id)}
+              key={o.id}
+              variant="gray-500"
+              className="w-100 my-2"
+            >
+              <FinishItem
+                {...rest}
+                {...o}
+                active={o.id === active}
+                onClose={onClose}
+              />
+            </Button>
+          ))}
+        </StyledFinishedModalBody>
+      </Modal>
+    </>
+  );
+}, isEqual);
+const FinishItem = memo(
+  ({ active, onPending, onConfirmed, onReady, onClose, ...rest }) => {
+    const renderFooter = useCallback(() => {
+      return active ? (
+        <div className="d-flex flex-wrap w-100 justify-content-around">
+          <Button
+            variant="pending"
+            className="mt-2"
+            onClick={() => {
+              onPending(rest.user.uid, rest.id, {
+                status: "pending",
+                time: null,
+              });
+              onClose();
+            }}
+          >
+            pending
+          </Button>
+          <Button
+            variant="confirmed"
+            className="mt-2"
+            onClick={() => {
+              onConfirmed(rest.user.uid, rest.id);
+              onClose();
+            }}
+          >
+            confirmed
+          </Button>
+          <Button
+            variant="ready"
+            className="mt-2"
+            onClick={() => {
+              onReady(rest.user.uid, rest.id);
+              onClose();
+            }}
+          >
+            ready
+          </Button>
+        </div>
+      ) : (
+        <></>
+      );
+    }, [
+      active,
+      onClose,
+      onPending,
+      onConfirmed,
+      onReady,
+      rest.user.uid,
+      rest.id,
+    ]);
+    return (
+      <LeftItem
+        itemDisabled
+        {...rest}
+        key={rest.id}
+        renderFooter={renderFooter}
+      />
+    );
+  },
+  isEqual
+);
 
 export default TwoColumnsOrders;

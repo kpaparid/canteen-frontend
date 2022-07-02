@@ -261,7 +261,7 @@
     max-height: 100%;
     min-width: 126px;
     max-width: 315px;
-    overflow: auto;
+    // overflow: auto;
     padding: 0;
     display: flex;
   }
@@ -581,6 +581,13 @@
         }
       }
     }
+  }
+}
+.accordion-order-list {
+  max-height: none;
+  overflow: auto;
+  .lottie-wrapper {
+    margin: 0;
   }
 }
 .basket-modal {

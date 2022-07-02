@@ -7,7 +7,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { current } from "@reduxjs/toolkit";
 import { isEqual } from "lodash";
 import { useRouter } from "next/router";
-import { forwardRef, memo, useEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Alert,
   Button,
@@ -59,12 +66,15 @@ const CustomMenu = forwardRef(
     const [error, setError] = useState(false);
     const emailRef = useRef();
     const passwordRef = useRef();
+    const handleClose = useCallback(() => {
+      setError(false);
+      onClose();
+    }, [onClose]);
     async function handleLogin(e) {
       e.preventDefault();
       try {
         await login(emailRef.current.value, passwordRef.current.value);
-        setError(false);
-        onClose();
+        handleClose();
       } catch (err) {
         setError(err.message);
       }
@@ -73,7 +83,7 @@ const CustomMenu = forwardRef(
       e.preventDefault();
       try {
         await logout();
-        onClose();
+        handleClose();
       } catch (error) {
         console.log(error);
       }
@@ -90,9 +100,13 @@ const CustomMenu = forwardRef(
           <>
             <div className="header">Konto</div>
             <div className="p-3">
-              <div className="pb-3 fw-bolder d-flex flex-column align-items-center">
-                {currentUser.email}
-                {currentUser.displayName}
+              <div className="p-3">
+                <div className="pb-3 fw-bolder d-flex flex-column align-items-center">
+                  {currentUser.email}
+                </div>
+                <div className="pb-3 fw-bolder d-flex flex-column align-items-center">
+                  {currentUser?.displayName}
+                </div>
               </div>
               <Button
                 variant="primary"
@@ -105,10 +119,10 @@ const CustomMenu = forwardRef(
           </>
         ) : (
           <>
-            {error && <Alert variant="danger">{error}</Alert>}
             <Form onSubmit={handleLogin} className="p-0">
               <Form.Label className="header">Anmelden</Form.Label>
               <div className="p-3">
+                {error && <Alert variant="danger">{error}</Alert>}
                 <Form.Group id="email" className="mb-4">
                   <InputGroup>
                     <InputGroup.Text>
@@ -195,7 +209,10 @@ export const UserModal = ({ renderToggle, fullscreen = true }) => {
   const [show, setShow] = useState(false);
   const [error, setError] = useState(false);
 
-  const handleClose = () => setShow(false);
+  const handleClose = useCallback(() => {
+    setError(false);
+    setShow(false);
+  }, []);
   const handleShow = () => setShow(true);
   const { currentUser, login, logout } = useAuth();
   const emailRef = useRef();
@@ -204,7 +221,6 @@ export const UserModal = ({ renderToggle, fullscreen = true }) => {
     e.preventDefault();
     try {
       await login(emailRef.current.value, passwordRef.current.value);
-      setError(false);
       handleClose();
     } catch (err) {
       setError(err.message);
@@ -249,7 +265,9 @@ export const UserModal = ({ renderToggle, fullscreen = true }) => {
               <div className="p-3">
                 <div className="pb-3 fw-bolder d-flex flex-column align-items-center">
                   {currentUser.email}
-                  {currentUser.displayName}
+                </div>
+                <div className="pb-3 fw-bolder d-flex flex-column align-items-center">
+                  {currentUser?.displayName}
                 </div>
               </div>
             </>

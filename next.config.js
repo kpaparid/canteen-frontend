@@ -11,6 +11,15 @@ const nextConfig = {
   env: {
     BACKEND_URI: process.env.BACKEND_URI,
   },
+  webpack(config, options) {
+    config.module.rules.push({
+      test: /\.mp3$/,
+      use: {
+        loader: "url-loader",
+      },
+    });
+    return config;
+  },
 };
 
 module.exports = nextConfig;

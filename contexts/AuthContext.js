@@ -92,18 +92,8 @@ export function AuthProvider({ children }) {
     });
   }
 
-  function resetPassword() {
-    return sendPasswordResetEmail(auth, currentUser?.email)
-      .then((r) => {
-        console.log();
-        // Password reset email sent!
-        // ..
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // ..
-      });
+  function resetPassword(email) {
+    return sendPasswordResetEmail(auth, email);
   }
 
   const authenticatedFetch = (url, options) => {

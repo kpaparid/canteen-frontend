@@ -1,10 +1,12 @@
 import { isEqual } from "lodash";
 import { memo, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import useSound from "use-sound";
 import TwoColumnsOrders from "../components/TwoColumnsOrders";
 import { useSocket } from "../contexts/SocketContext";
 // import { useSocket } from "../hooks/orderHooks";
 import useAPI from "../hooks/useAPI";
+import notification from "../public/notification.mp3";
 import {
   changeOrderStatus,
   fetchMeals,
@@ -20,7 +22,7 @@ const Home = memo(() => {
   // const { connect, socket } = useSocket();
   const { socket } = useSocket();
   const { fetchTodaysOrders } = useAPI();
-
+  const [play] = useSound(notification);
   const [loading, setLoading] = useState();
 
   useEffect(() => {
@@ -38,7 +40,7 @@ const Home = memo(() => {
     console.log({ socket });
     if (socket) {
       socket.on("received_order", (data) => {
-        console.log(`received order in admin ${data}`);
+        play();
         dispatch(fetchTodaysOrders()).then((r) => {
           socket.emit("join_room", [
             ...new Set(r?.payload?.map((p) => p.user.uid)),
@@ -47,7 +49,7 @@ const Home = memo(() => {
         });
       });
     }
-  }, [socket, dispatch, fetchTodaysOrders]);
+  }, [socket, dispatch, fetchTodaysOrders, play]);
   const onChangeOrderStatus = (userId, orderId, body) => {
     setLoading(true);
     dispatch(changeOrderStatus({ id: orderId, body })).then(async () => {

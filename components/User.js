@@ -8,7 +8,14 @@ import { current } from "@reduxjs/toolkit";
 import { isEqual } from "lodash";
 import { useRouter } from "next/router";
 import { forwardRef, memo, useEffect, useRef, useState } from "react";
-import { Button, Dropdown, Form, InputGroup, Modal } from "react-bootstrap";
+import {
+  Alert,
+  Button,
+  Dropdown,
+  Form,
+  InputGroup,
+  Modal,
+} from "react-bootstrap";
 import styledComponents from "styled-components";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -49,15 +56,17 @@ const CustomMenu = forwardRef(
     ref
   ) => {
     const { currentUser, login, logout, authenticatedFetch } = useAuth();
+    const [error, setError] = useState(false);
     const emailRef = useRef();
     const passwordRef = useRef();
     async function handleLogin(e) {
       e.preventDefault();
       try {
         await login(emailRef.current.value, passwordRef.current.value);
+        setError(false);
         onClose();
-      } catch (error) {
-        console.log(error);
+      } catch (err) {
+        setError(err.message);
       }
     }
     async function handleLogout(e) {
@@ -95,44 +104,47 @@ const CustomMenu = forwardRef(
             </div>
           </>
         ) : (
-          <Form onSubmit={handleLogin} className="p-0">
-            <Form.Label className="header">Anmelden</Form.Label>
-            <div className="p-3">
-              <Form.Group id="email" className="mb-4">
-                <InputGroup>
-                  <InputGroup.Text>
-                    <FontAwesomeIcon icon={faEnvelope} />
-                  </InputGroup.Text>
-                  <Form.Control
-                    className="form-login bg-white"
-                    ref={emailRef}
-                    required
-                    type="email"
-                    placeholder="Email"
-                  />
-                </InputGroup>
-              </Form.Group>
-              <Form.Group>
-                <Form.Group id="password" className="mb-4">
+          <>
+            {error && <Alert variant="danger">{error}</Alert>}
+            <Form onSubmit={handleLogin} className="p-0">
+              <Form.Label className="header">Anmelden</Form.Label>
+              <div className="p-3">
+                <Form.Group id="email" className="mb-4">
                   <InputGroup>
                     <InputGroup.Text>
-                      <FontAwesomeIcon icon={faUnlockAlt} />
+                      <FontAwesomeIcon icon={faEnvelope} />
                     </InputGroup.Text>
                     <Form.Control
                       className="form-login bg-white"
-                      ref={passwordRef}
+                      ref={emailRef}
                       required
-                      type="password"
-                      placeholder="Passwort"
+                      type="email"
+                      placeholder="Email"
                     />
                   </InputGroup>
                 </Form.Group>
-              </Form.Group>
-              <Button type="submit" className="w-100 header-text">
-                Einloggen
-              </Button>
-            </div>
-          </Form>
+                <Form.Group>
+                  <Form.Group id="password" className="mb-4">
+                    <InputGroup>
+                      <InputGroup.Text>
+                        <FontAwesomeIcon icon={faUnlockAlt} />
+                      </InputGroup.Text>
+                      <Form.Control
+                        className="form-login bg-white"
+                        ref={passwordRef}
+                        required
+                        type="password"
+                        placeholder="Passwort"
+                      />
+                    </InputGroup>
+                  </Form.Group>
+                </Form.Group>
+                <Button type="submit" className="w-100 header-text">
+                  Einloggen
+                </Button>
+              </div>
+            </Form>
+          </>
         )}
       </StyledMenu>
     );
@@ -181,6 +193,7 @@ const StyledToggle = styledComponents(Button)`
 
 export const UserModal = ({ renderToggle, fullscreen = true }) => {
   const [show, setShow] = useState(false);
+  const [error, setError] = useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -191,9 +204,10 @@ export const UserModal = ({ renderToggle, fullscreen = true }) => {
     e.preventDefault();
     try {
       await login(emailRef.current.value, passwordRef.current.value);
+      setError(false);
       handleClose();
-    } catch (error) {
-      // setError("Failed to log in");
+    } catch (err) {
+      setError(err.message);
     }
 
     // setLoading(false);
@@ -240,40 +254,43 @@ export const UserModal = ({ renderToggle, fullscreen = true }) => {
               </div>
             </>
           ) : (
-            <Form className="p-0">
-              <div className="p-3">
-                <Form.Group id="email" className="mb-4">
-                  <InputGroup>
-                    <InputGroup.Text>
-                      <FontAwesomeIcon icon={faEnvelope} />
-                    </InputGroup.Text>
-                    <Form.Control
-                      className="form-login bg-white"
-                      ref={emailRef}
-                      required
-                      type="email"
-                      placeholder="Email"
-                    />
-                  </InputGroup>
-                </Form.Group>
-                <Form.Group>
-                  <Form.Group id="password" className="mb-4">
+            <>
+              {error && <Alert variant="danger">{error}</Alert>}
+              <Form className="p-0">
+                <div className="p-3">
+                  <Form.Group id="email" className="mb-4">
                     <InputGroup>
                       <InputGroup.Text>
-                        <FontAwesomeIcon icon={faUnlockAlt} />
+                        <FontAwesomeIcon icon={faEnvelope} />
                       </InputGroup.Text>
                       <Form.Control
                         className="form-login bg-white"
-                        ref={passwordRef}
+                        ref={emailRef}
                         required
-                        type="password"
-                        placeholder="Passwort"
+                        type="email"
+                        placeholder="Email"
                       />
                     </InputGroup>
                   </Form.Group>
-                </Form.Group>
-              </div>
-            </Form>
+                  <Form.Group>
+                    <Form.Group id="password" className="mb-4">
+                      <InputGroup>
+                        <InputGroup.Text>
+                          <FontAwesomeIcon icon={faUnlockAlt} />
+                        </InputGroup.Text>
+                        <Form.Control
+                          className="form-login bg-white"
+                          ref={passwordRef}
+                          required
+                          type="password"
+                          placeholder="Passwort"
+                        />
+                      </InputGroup>
+                    </Form.Group>
+                  </Form.Group>
+                </div>
+              </Form>
+            </>
           )}
         </Modal.Body>
         <Modal.Footer>

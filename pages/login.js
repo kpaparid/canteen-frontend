@@ -33,11 +33,8 @@ export default function Login() {
       await login(emailRef.current.value, passwordRef.current.value);
       console.log("logged in", currentUser);
       router.push(redirectPathName);
-    } catch (error) {
-      setError(
-        "Deine E-Mail-Adresse oder das Passwort ist falsch, bitte versuche es erneut."
-      );
-      console.log(error);
+    } catch (err) {
+      setError(err.message);
     }
 
     // setLoading(false);

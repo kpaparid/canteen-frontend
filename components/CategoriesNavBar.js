@@ -47,7 +47,7 @@ export const CategoriesNavbar = memo(({ categories, onClick }) => {
 }, isEqual);
 export const EditableCategoriesNavbar = memo((props) => {
   return (
-    <div>
+    <div className="editable-categories-navbar">
       <EditModal {...props}></EditModal>
       <CategoriesNavbar {...props} />
     </div>

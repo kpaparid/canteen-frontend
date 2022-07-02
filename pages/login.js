@@ -34,7 +34,9 @@ export default function Login() {
       console.log("logged in", currentUser);
       router.push(redirectPathName);
     } catch (error) {
-      setError("Failed to log in");
+      setError(
+        "Deine E-Mail-Adresse oder das Passwort ist falsch, bitte versuche es erneut."
+      );
       console.log(error);
     }
 

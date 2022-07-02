@@ -212,7 +212,7 @@ export const UserModal = ({ renderToggle, fullscreen = true }) => {
     <>
       {renderToggle({
         icon: faUser,
-        text: currentUser ? "Mein Konto" : "Anmelden",
+        text: currentUser ? "Konto" : "Anmelden",
         onClick: handleShow,
       })}
       <Modal

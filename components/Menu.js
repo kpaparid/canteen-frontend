@@ -99,13 +99,16 @@ export default function Menu(props) {
         if (viewable && activeCategory !== sectionId) {
           setActiveCategory((oldId) => {
             document
-              .querySelector(".categories-navbar #" + oldId)
+              .querySelector(".categories-navbar #category-btn-" + oldId)
               ?.classList.remove("active");
             document
-              .querySelector(".categories-navbar #" + sectionId)
+              .querySelector(".categories-navbar #category-btn-" + sectionId)
               ?.classList.add("active");
             return sectionId;
           });
+          document
+            .querySelector(".categories-navbar #category-" + sectionId)
+            .scrollIntoView(true);
         }
       }
     });
@@ -120,7 +123,7 @@ export default function Menu(props) {
     const sectionId = ref?.getAttribute("id");
     setActiveCategory(sectionId);
     document
-      .querySelector(".categories-navbar #" + sectionId)
+      .querySelector(".categories-navbar #category-btn-" + sectionId)
       ?.classList.add("active");
   }, [categories]);
   return (

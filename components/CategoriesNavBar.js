@@ -31,11 +31,11 @@ export const CategoriesNavbar = memo(({ categories, onClick }) => {
       {categories
         ?.filter((c) => c.itemIds?.length !== 0)
         .map(({ id, title }, index) => (
-          <div key={id} className="category">
+          <div key={id} className="category" id={"category-" + id}>
             <Button
               variant="transparent"
               className="category-text"
-              id={id}
+              id={"category-btn-" + id}
               onClick={() => onClick(index)}
             >
               {title}

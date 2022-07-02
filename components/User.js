@@ -193,7 +193,7 @@ export const UserModal = ({ renderToggle, fullscreen = true }) => {
       await login(emailRef.current.value, passwordRef.current.value);
       handleClose();
     } catch (error) {
-      setError("Failed to log in");
+      // setError("Failed to log in");
     }
 
     // setLoading(false);
@@ -204,7 +204,7 @@ export const UserModal = ({ renderToggle, fullscreen = true }) => {
       await logout();
       handleClose();
     } catch (error) {
-      setError("Failed to log out");
+      // setError("Failed to log out");
     }
   }
 
@@ -219,6 +219,7 @@ export const UserModal = ({ renderToggle, fullscreen = true }) => {
         show={show}
         onHide={handleClose}
         fullscreen={fullscreen}
+        backdropClassName="user-login-modal-backdrop"
         contentClassName="w-100"
       >
         <Modal.Header

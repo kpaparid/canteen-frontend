@@ -123,7 +123,7 @@ font-weight: 600;
   width: 13px;
 }
 .shop-status{
-  width: 70px;
+  width: 90px;
   cursor: pointer;
   &:hover{
     color: white;
@@ -383,7 +383,7 @@ const FinishItem = memo(
             variant="pending"
             className="mt-2"
             onClick={() => {
-              onPending(rest.user.userId, rest.id, {
+              onPending(rest.user.uid, rest.id, {
                 status: "pending",
                 time: null,
               });
@@ -396,7 +396,7 @@ const FinishItem = memo(
             variant="confirmed"
             className="mt-2"
             onClick={() => {
-              onConfirmed(rest.user.userId, rest.id);
+              onConfirmed(rest.user.uid, rest.id);
               onClose();
             }}
           >
@@ -406,7 +406,7 @@ const FinishItem = memo(
             variant="ready"
             className="mt-2"
             onClick={() => {
-              onReady(rest.user.userId, rest.id);
+              onReady(rest.user.uid, rest.id);
               onClose();
             }}
           >
@@ -422,7 +422,7 @@ const FinishItem = memo(
       onPending,
       onConfirmed,
       onReady,
-      rest.user.userId,
+      rest.user.uid,
       rest.id,
     ]);
     return (
@@ -677,7 +677,7 @@ const TopBar = memo(
           onPending={handleNew}
         />
         <div
-          className="shop-status d-flex flex-nowrap align-items-center p-1"
+          className="shop-status d-flex flex-nowrap align-items-center justify-content-around p-1"
           onClick={handleClick}
         >
           <div>{shopEnabled ? "Open" : "Closed"}</div>

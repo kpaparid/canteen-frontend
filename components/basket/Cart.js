@@ -81,7 +81,7 @@ export const CartModal = ({
   summa,
   onSend,
   addTime,
-  renderToggle,
+  renderToggle = () => <></>,
   ...rest
 }) => {
   const [show, setShow] = useState(false);
@@ -110,7 +110,7 @@ export const CartModal = ({
         <Modal.Header closeVariant="white" className="bg-primary" closeButton>
           <span>Warenkorb</span>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="d-flex align-items-center">
           <CartBody items={items} {...rest} />
         </Modal.Body>
         {items.length !== 0 && (
@@ -154,13 +154,15 @@ const CartBody = ({ items, shopEnabled }) => {
   return (
     <>
       {!shopEnabled ? (
-        <div
-          className="py-3 d-flex flex-column aling-items-center justify-content-center"
-          style={{ minHeight: "150px", maxHeight: "250px", height: "50vh" }}
-        >
-          <ClosedSvg />
-          <div className="text-center fw-bold pt-5">
-            Zurzeit sind wir geschlossen.
+        <div className="h-100 align-items-center justify-content-center d-flex">
+          <div
+            className="py-3 d-flex flex-column align-items-center justify-content-center"
+            style={{ minHeight: "150px", maxHeight: "250px", height: "50vh" }}
+          >
+            <ClosedSvg />
+            <div className="text-center fw-bold pt-4">
+              Zurzeit sind wir geschlossen.
+            </div>
           </div>
         </div>
       ) : items.length ? (
@@ -217,11 +219,20 @@ const CartFooter = ({ number, summa, onSend, addTime }) => {
           fullscreen={false}
           renderToggle={(props) => (
             <Button
-              className="w-100 header-text"
+              className="w-100 d-flex justify-content-between"
               style={{ borderRadius: "0 1rem 1rem 0" }}
               {...props}
             >
-              Anmelden um zu Bestellen
+              <div className="flex-fill d-flex flex-nowrap align-items-center">
+                <span
+                  className="me-2 fw-bolder px-2 bg-white text-primary"
+                  style={{ borderRadius: "35%", height: "fit-content" }}
+                >
+                  {number}
+                </span>
+                <span className="header-text">Bestellen</span>
+              </div>
+              <div className="header-text">{formattedSumma}</div>
             </Button>
           )}
         />

@@ -77,16 +77,10 @@ export const OrdersBody = memo(({ orders }) => {
                 <div className="flex-fill d-flex flex-nowrap justify-content-between text-dark pe-3">
                   <div className="d-flex flex-column align-items-start font-small fw-bolder">
                     <span>{o.number}</span>
-                    <span>{moment(o.createdAt).format("HH:mm")}</span>
-                  </div>
-                  <div
-                    className={`status text-align-middle font-small fw-bold rounded p-2 bg-${o.status}`}
-                  >
-                    {o.status}
                   </div>
                 </div>
               </Accordion.Header>
-              <Accordion.Body className="m-1 py-0">
+              <Accordion.Body className="m-1 p-0">
                 <OrderOverview {...o} />
               </Accordion.Body>
             </Accordion.Item>
@@ -260,7 +254,7 @@ const Order = ({
     </>
   );
 };
-export const OrdersModal = memo(({ orders, renderToggle }) => {
+export const OrdersModal = memo(({ orders, renderToggle = () => <></> }) => {
   const [show, setShow] = useState(false);
   const handleClose = () => {
     setShow(false);
@@ -269,30 +263,6 @@ export const OrdersModal = memo(({ orders, renderToggle }) => {
 
   return (
     <>
-      {/* {orders?.length !== 0 && (
-        <Button
-          className="orders basket-toggle-btn d-flex justify-content-between align-items-center"
-          onClick={handleShow}
-        >
-          <div className="d-flex align-items-center">
-            <FontAwesomeIcon icon={faList} className="pe-2" />
-            <span className="header-text basket-toggle-title">
-              Bestellungen
-            </span>
-          </div>
-          <span className="basket-toggle-title bg-white rounded-2 px-2 text-primary fw-bolder">
-            {orders.length}
-          </span>
-        </Button>
-      )} */}
-      {/* <Button
-        className="d-flex flex-column justify-content-around align-items-center mx-2 p-0 h-100"
-        variant="white"
-        onClick={handleShow}
-      >
-        <FontAwesomeIcon icon={faList} />
-        <div className="font-small">Bestellungen</div>
-      </Button> */}
       {renderToggle({
         icon: faList,
         text: "Bestellungen",

@@ -58,6 +58,10 @@ const RightSide = styledComponents.div`
 display: flex;
 width: 100%;
 flex-direction: column;
+padding-bottom: 1.5rem;
+.order-status{
+  margin-right: 15px;
+}
 .item:first-child .bar:before{
     background-color: transparent;
 }
@@ -81,8 +85,8 @@ const OrderTracker = memo(({ status, ...rest }) => {
       <Icon index={index} {...rest} />
       <RightSide className="orders-list">
         <Item
-          title="Order Placed"
-          description="We have received your order."
+          title="Bestellung aufgegeben"
+          description="Wir haben Ihre Bestellung erhalten."
           weight={0}
           index={index}
         />
@@ -93,20 +97,20 @@ const OrderTracker = memo(({ status, ...rest }) => {
             index={index}
           /> */}
         <Item
-          title="Order Confirmed"
-          description="We are preparing your order."
+          title="Bestellung bestätigt"
+          description="Wir bereiten Ihre Bestellung vor."
           weight={2}
           index={index}
         />
         <Item
-          title="Ready to Pickup"
-          description="Your order is ready for pickup."
+          title="Abholbereit"
+          description="Ihre Bestellung ist abholbereit"
           weight={3}
           index={index}
         />
         <Item
-          title="Order Finished"
-          description="Your order was successful."
+          title="Bestellung abgeschlossen"
+          description="Ihre Bestellung wurde erfolgreich abgeschlossen."
           weight={4}
           index={index}
         />

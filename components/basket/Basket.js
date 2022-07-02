@@ -234,7 +234,7 @@ const BasketTabs = ({
                 }
                 onClick={() => setActiveKey("orders")}
               >
-                Orders
+                Bestellungen
               </Button>
             )}
           </Nav>

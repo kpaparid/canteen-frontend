@@ -24,14 +24,6 @@ export default function Login() {
   const router = useRouter();
   const redirectPathName = router.query.pathName || "/";
 
-  const fetch = () => {
-    const options = { url: "http://localhost:3005/firebase/roles" };
-    authenticatedFetch(options).then((r) => {
-      console.log(r);
-      return r;
-    });
-  };
-
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -50,8 +42,8 @@ export default function Login() {
   }
 
   return (
-    <main className="bg-primary h-100">
-      <section className="d-flex align-items-center my-5 mt-lg-6 mb-lg-5">
+    <main className="bg-primary h-100 d-flex">
+      <section className="m-auto d-flex align-items-center my-5 mt-lg-6 mb-lg-5">
         <Container>
           <Row className="justify-content-center">
             <Col
@@ -60,13 +52,12 @@ export default function Login() {
             >
               <div className="bg-white shadow-soft border rounded border-light p-4 p-lg-5 w-100 fmxw-500">
                 <div className="text-center text-md-center mb-4 mt-md-0">
-                  <h3 className="mb-0">Sign in to our platform</h3>
+                  <h3 className="mb-0">Anmelden</h3>
                 </div>
 
                 {error && <Alert variant="danger">{error}</Alert>}
                 <Form className="mt-4" onSubmit={handleSubmit}>
                   <Form.Group id="email" className="mb-4">
-                    <Form.Label>Your Email</Form.Label>
                     <InputGroup>
                       <InputGroup.Text>
                         <FontAwesomeIcon icon={faEnvelope} />
@@ -83,7 +74,6 @@ export default function Login() {
                   </Form.Group>
                   <Form.Group>
                     <Form.Group id="password" className="mb-4">
-                      <Form.Label>Your Password</Form.Label>
                       <InputGroup>
                         <InputGroup.Text>
                           <FontAwesomeIcon icon={faUnlockAlt} />
@@ -99,28 +89,11 @@ export default function Login() {
                       </InputGroup>
                     </Form.Group>
                   </Form.Group>
-                  <Button
-                    // disabled={loading}
-                    variant="primary"
-                    type="submit"
-                    className="w-50"
-                  >
-                    Sign in
-                  </Button>
-                  <Button
-                    variant="primary"
-                    className="w-50"
-                    onClick={() => logout()}
-                  >
-                    Logout
-                  </Button>
-                  <Button
-                    variant="primary"
-                    className="w-50"
-                    onClick={() => fetch()}
-                  >
-                    fetch
-                  </Button>
+                  <div className="w-100 d-flex justify-content-center">
+                    <Button variant="primary" type="submit" className="w-50">
+                      Einloggen
+                    </Button>
+                  </div>
                 </Form>
               </div>
             </Col>

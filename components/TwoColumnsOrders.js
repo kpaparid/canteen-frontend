@@ -420,9 +420,9 @@ const TwoColumnsOrders = memo(
       },
       [onChangeOrderStatus]
     );
-    const handleDeclined = useCallback(
-      (userId, orderId) => {
-        onChangeOrderStatus(userId, orderId, { status: "declined", ...body });
+    const handleCancel = useCallback(
+      (userId, orderId, body) => {
+        onChangeOrderStatus(userId, orderId, { status: "canceled", ...body });
       },
       [onChangeOrderStatus]
     );
@@ -475,7 +475,9 @@ const TwoColumnsOrders = memo(
                     )}
                     <RejectModal
                       {...footerProps}
-                      onClick={() => handleAccept(props.user.uid, props.id)}
+                      onClick={(body) =>
+                        handleCancel(props.user.uid, props.id, body)
+                      }
                     />
                   </div>
                 )}
@@ -889,10 +891,9 @@ const ItemModal = memo(({ show, onClose, itemId }) => {
     </Modal>
   );
 }, isEqual);
-const RejectModal = memo(({ ...rest }) => {
+const RejectModal = memo(({ onClick }) => {
   const [show, setShow] = useState(false);
   const handleShow = () => setShow(true);
-  const dispatch = useDispatch();
   const [reason, setReason] = useState();
   const [extra, setExtra] = useState("");
   const CustomButton = ({ children }) => (
@@ -913,11 +914,12 @@ const RejectModal = memo(({ ...rest }) => {
   }, []);
   const handleCancel = useCallback(() => {
     console.log("post cancel");
-    // dispatch(
-    //   changeOrderStatus({ id, body: { status: "canceled", reason, extra } })
-    // );
+
+    onClick({
+      meta: { reason: reason === "Other" ? "" : reason, message: extra },
+    });
     handleClose();
-  }, [handleClose]);
+  }, [handleClose, onClick, extra, reason]);
   const handleClose = useCallback(() => {
     setShow(false);
     clear();
@@ -959,7 +961,7 @@ const RejectModal = memo(({ ...rest }) => {
         <Modal.Footer className="justify-content-around">
           <Button
             onClick={handleCancel}
-            disabled={!reason}
+            disabled={!reason || (reason === "Other" && extra === "")}
             className="w-100"
             variant={reason ? "senary" : "gray-100"}
           >

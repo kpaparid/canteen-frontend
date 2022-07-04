@@ -11,7 +11,7 @@ import { memo, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import styledComponents from "styled-components";
 import { formatPrice, useDurationHook } from "../utilities/utils.mjs";
-import FinishedSvg from "./svg/FinishedSvg";
+import FinishedSvg, { CanceledSvg } from "./svg/FinishedSvg";
 import OrderSvg from "./svg/OrderSvg";
 import PendingSvg from "./svg/PendingSvg.js";
 import ProcessingSvg from "./svg/ProcessingSvg";
@@ -28,75 +28,81 @@ const OrderTracker = memo(({ status, ...rest }) => {
       ? 2
       : status === "finished"
       ? 3
+      : status === "canceled"
+      ? 4
       : -1;
   return (
     <div className="orders-wrapper">
       <div className="w-100 position-relative d-flex justify-content-center">
         <Icon index={index} {...rest} />
       </div>
+      {index !== 4 && (
+        <div className="d-flex flex-nowrap w-100 justify-content-center py-2 pb-4">
+          <Ball bg={"light-primary"} active={index >= 0}></Ball>
+          <Ball bg={"light-primary"} active={index >= 1}></Ball>
+          <Ball bg={"light-primary"} active={index >= 2}></Ball>
+          <Ball bg={"light-primary"} active={index >= 3}></Ball>
+        </div>
+      )}
       <RightSide className="orders-list">
         <StyledNumber>{rest.number}</StyledNumber>
+
         <Details {...rest} />
-        <Item
-          title="Bestellung aufgegeben"
-          description="Wir haben Ihre Bestellung erhalten."
-          weight={0}
-          index={index}
-        />
-        <Item
-          title="Bestellung bestätigt"
-          description="Wir bereiten Ihre Bestellung vor."
-          weight={1}
-          index={index}
-        />
-        <Item
-          title="Abholbereit"
-          description="Ihre Bestellung ist abholbereit"
-          weight={2}
-          index={index}
-        />
-        <Item
-          title="Bestellung abgeschlossen"
-          description="Ihre Bestellung wurde erfolgreich abgeschlossen."
-          weight={3}
-          index={index}
-        />
+        {index === 0 && (
+          <Item
+            title="Bestellung aufgegeben"
+            description="Wir haben Ihre Bestellung erhalten."
+            weight={0}
+            index={index}
+          />
+        )}
+        {index === 1 && (
+          <Item
+            title="Bestellung bestätigt"
+            description="Wir bereiten Ihre Bestellung vor."
+            weight={1}
+            index={index}
+          />
+        )}
+        {index === 2 && (
+          <Item
+            title="Abholbereit"
+            description="Ihre Bestellung ist abholbereit."
+            weight={2}
+            index={index}
+          />
+        )}
+        {index === 3 && (
+          <Item
+            title="Bestellung abgeschlossen"
+            description="Ihre Bestellung wurde erfolgreich abgeschlossen."
+            weight={3}
+            index={index}
+          />
+        )}
+        {index === 4 && (
+          <Item
+            title="Bestellung canceled"
+            description={rest?.meta?.reason}
+            details={rest?.meta?.message}
+            weight={4}
+            index={index}
+          />
+        )}
       </RightSide>
     </div>
   );
 }, isEqual);
 
-const Item = memo(({ title, description, icon, index, weight }) => {
-  const calcBg = (i, w) =>
-    w === i ? "light-primary" : w > i ? "gray-100" : "gray-100";
-  const bg = calcBg(index, weight);
-  const bgAfter = calcBg(index - 1, weight);
-  const active =
-    index === weight
-      ? "bg-light-primary font-normal"
-      : index < weight
-      ? "opacity-25 font-small"
-      : "bg-light-primary opacity-50 font-small";
-  const active2 =
-    index === weight ? "active" : index < weight ? "pending" : "finished";
-
+const Item = memo(({ title, description, details, index, weight }) => {
   return (
-    <div className="item d-flex flex-nowrap align-items-center px-2">
-      <div
-        className="position-relative h-100"
-        style={{ minWidth: "30px", maxWidth: "30px" }}
-      >
-        <Ball bg={bg} active2={active2}></Ball>
-        <Bar
-          active2={active2}
-          bgBefore={bg}
-          bgAfter={bgAfter}
-          className="bar"
-        />
-      </div>
-      <div className={`order-status ${active}`}>
+    <div className="item px-2">
+      <div className={`order-status bg-light-primary`}>
         <div className="order-status-title">{title}</div>
-        <div className="order-status-description">{description}</div>
+        {description && (
+          <div className="order-status-description">{description}</div>
+        )}
+        {details && <div className="order-status-description">{details}</div>}
       </div>
     </div>
   );
@@ -111,8 +117,10 @@ const Icon = memo(({ index, time }) => {
         <ProcessingSvg2 time={time}></ProcessingSvg2>
       ) : index === 2 ? (
         <ReadySvg />
-      ) : (
+      ) : index === 3 ? (
         <FinishedSvg />
+      ) : (
+        <CanceledSvg />
       )}
     </div>
   );
@@ -213,7 +221,7 @@ const StyledDetailsBtn = styledComponents(Button)`
 const StyledNumber = styledComponents.div`
   position: absolute;
   top: -5px;
-  left: 36px;
+  left: 1.5rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -241,57 +249,20 @@ min-width: 300px;
 const Ball = styledComponents.div`
 // background-color: ${(props) => "var(--bs-" + props.bg + ")"};
 background-color: ${(props) =>
-  props.active2 === "pending"
-    ? "var(--bs-gray-100)"
-    : "var(--bs-light-primary)"};
-
-opacity: ${(props) => (props.active2 === "pending" ? "50%%" : "100%")};
+  props.active ? "var(--bs-light-primary)" : "var(--bs-gray-100)"};
 
 height: 23px;
 width: 23px;
 border-radius: 2rem;
 border: 4px solid white;
 z-index: 900;
-top: 50%;
-transform: translateY(-50%);
-position: absolute;
-`;
-const Bar = styledComponents.div`
-position: absolute;
-left: 7.5px;
-top: 0;
-bottom: 0;
-&:before{
-    position: absolute;
-    top: 0;
-    bottom: 50%;
-    width: 5px;
-    content: "";
-    display: block;
-    background-color: ${(props) => "var(--bs-" + props.bgBefore + ")"};
-    z-index: 600;
-}
-&:after{
-    position: absolute;
-    top: 50%;
-    bottom: 0;
-    width: 5px;
-    content: "";
-    display: block;
-    background-color: ${(props) => "var(--bs-" + props.bgAfter + ")"};
-    z-index: 600;
-}
 `;
 const RightSide = styledComponents.div`
 position: relative;
 display: flex;
 width: 100%;
 flex-direction: column;
-padding-bottom: 1.5rem;
-padding-top: 25px;
-.order-status{
-  margin-right: 15px;
-}
+padding: 1.5rem 1rem;
 
 .item:first-child .bar:before{
     background-color: transparent;

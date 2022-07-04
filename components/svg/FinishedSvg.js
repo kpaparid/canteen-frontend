@@ -1,4 +1,4 @@
-import { faCheck, faCircleCheck } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faCircleCheck, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isEqual } from "lodash";
 import { memo } from "react";
@@ -31,6 +31,15 @@ const FinishedSvg = memo(() => {
     <div className="h-100 w-100 p-4 d-flex justify-content-center align-items-center">
       <Wrapper>
         <FontAwesomeIcon icon={faCheck} className="h-100 w-100" />
+      </Wrapper>
+    </div>
+  );
+}, isEqual);
+export const CanceledSvg = memo(() => {
+  return (
+    <div className="h-100 w-100 p-4 d-flex justify-content-center align-items-center">
+      <Wrapper>
+        <FontAwesomeIcon icon={faX} className="h-100 w-100" />
       </Wrapper>
     </div>
   );

@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 export default function PrivateRoute({ protectedRoutes, children }) {
   const router = useRouter();
-  const { currentUser, isLoading, currentRole } = useAuth();
+  const { currentUser, claims, isLoading } = useAuth();
 
   const pathIsProtected =
     protectedRoutes.map((r) => r.url).indexOf(router.pathname) !== -1;
@@ -12,6 +12,7 @@ export default function PrivateRoute({ protectedRoutes, children }) {
     pathIsProtected &&
     protectedRoutes.find((p) => p.url === router.pathname)?.roles;
   const pathIsRoleProtected = authorizedRoles && authorizedRoles?.length !== 0;
+  const currentRole = claims?.roles;
   const authorized = pathIsRoleProtected
     ? currentUser &&
       currentRole &&
@@ -30,7 +31,7 @@ export default function PrivateRoute({ protectedRoutes, children }) {
         "/login"
       );
     }
-  }, [isLoading, currentUser, pathIsProtected]);
+  }, [router, isLoading, currentUser, pathIsProtected]);
   if (
     (!isLoading && !currentUser && pathIsProtected) ||
     (!isLoading && currentUser && router.pathname === "/login")

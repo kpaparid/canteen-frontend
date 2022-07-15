@@ -1,10 +1,39 @@
-import { format } from "date-fns";
 import { useCallback } from "react";
+import { useDispatch } from "react-redux";
 import { useAuth } from "../contexts/AuthContext";
-import { fetchOrders, clearOrders, postOrders } from "../reducer/redux2";
+import {
+  clearOrders,
+  fetchCategoriesThunk,
+  fetchMealsThunk,
+  fetchOrdersThunk,
+  fetchSettingsThunk,
+  postOrders,
+  postShopIsOpenThunk,
+  updateOrderStatusThunk,
+} from "../reducer/redux2";
+import { customFetch } from "../utilities/utils.mjs";
 
 const useAPI = () => {
-  const { authenticatedFetch, currentUser } = useAuth();
+  const { authenticatedFetch, currentUser, claims } = useAuth();
+  const dispatch = useDispatch();
+  const fetchMeals = useCallback(() => dispatch(fetchMealsThunk()), [dispatch]);
+  const fetchMeal = useCallback(
+    (itemId) => customFetch(process.env.BACKEND_URI + "meals?id=" + itemId),
+    []
+  );
+  const fetchSettings = useCallback(
+    () => dispatch(fetchSettingsThunk()),
+    [dispatch]
+  );
+  const fetchCategories = useCallback(
+    (payload) => dispatch(fetchCategoriesThunk(payload)),
+    [dispatch]
+  );
+  const postShopIsOpen = useCallback(
+    (value) =>
+      dispatch(postShopIsOpenThunk({ value, fetch: authenticatedFetch })),
+    [dispatch, authenticatedFetch]
+  );
 
   const updateSettings = useCallback(
     (body) => {
@@ -87,31 +116,59 @@ const useAPI = () => {
 
   const postUserOrders = useCallback(
     (body) => {
-      return postOrders({ ...body, user: currentUser }, authenticatedFetch);
+      return dispatch(
+        postOrders({
+          body: {
+            ...body,
+            user: { ...currentUser, phoneNumber: claims?.phoneNumber },
+          },
+          fetch: authenticatedFetch,
+        })
+      );
     },
-    [authenticatedFetch, currentUser]
+    [authenticatedFetch, currentUser, claims, dispatch]
+  );
+  const updateOrderStatus = useCallback(
+    (orderId, body) =>
+      dispatch(
+        updateOrderStatusThunk({
+          id: orderId,
+          body,
+          fetch: authenticatedFetch,
+        })
+      ),
+    [authenticatedFetch, dispatch]
+  );
+  const cancelOrderByUser = useCallback(
+    (orderId) =>
+      updateOrderStatus(orderId, {
+        status: "canceled",
+        meta: { reason: "Kundennotiz kann nicht abgeschlossen werden" },
+      }),
+    [updateOrderStatus]
   );
 
   const fetchTodaysOrders = useCallback(() => {
-    // const date = format(new Date(), "yyyy-MM-dd") + "T00:00:00.000+02:00";
-    // const suffix = `?createdAt_gte=${date}`;
     const suffix = "";
-    return fetchOrders({ suffix, authenticatedFetch });
-  }, [authenticatedFetch]);
+    return dispatch(fetchOrdersThunk({ suffix }));
+  }, [dispatch]);
   const fetchUserTodaysOrders = useCallback(() => {
     if (currentUser) {
-      // const date = format(new Date(), "yyyy-MM-dd") + "T00:00:00.000+02:00";
-      // const suffix = `?createdAt_gte=${date}&user.uid=${currentUser?.uid}`;
       const suffix = `?user.uid=${currentUser?.uid}`;
-      return fetchOrders({ suffix, authenticatedFetch });
+      return dispatch(fetchOrdersThunk({ suffix, fetch: authenticatedFetch }));
     } else {
-      return clearOrders();
+      return dispatch(clearOrders());
     }
-  }, [authenticatedFetch, currentUser]);
+  }, [authenticatedFetch, currentUser, dispatch]);
 
   return {
+    dispatch,
+    fetchSettings,
+    fetchMeals,
+    fetchMeal,
     fetchTodaysOrders,
     fetchUserTodaysOrders,
+    fetchCategories,
     postUserOrders,
     updateMeals,
     updateAllMeals,
@@ -119,6 +176,9 @@ const useAPI = () => {
     updateCategoriesAndMeals,
     postMeal,
     deleteMeal,
+    postShopIsOpen,
+    updateOrderStatus,
+    cancelOrderByUser,
   };
 };
 export default useAPI;

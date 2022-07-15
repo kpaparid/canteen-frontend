@@ -67,7 +67,7 @@ const CustomMenu = forwardRef(
     const emailRef = useRef();
     const passwordRef = useRef();
     const handleClose = useCallback(() => {
-      setError(false);
+      // setError(false);
       onClose();
     }, [onClose]);
     async function handleLogin(e) {

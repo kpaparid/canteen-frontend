@@ -35,22 +35,17 @@ export const useCart = () => {
   const time = useSelector((state) => state.shop.cart.time);
   const cartExists = items?.length !== 0;
   const empty = !items?.length !== 0;
-  const dispatch = useDispatch();
   const summa = items && items?.reduce((a, b) => a + b.calculatedPrice, 0);
-  const { postUserOrders } = useAPI();
+  const { postUserOrders, dispatch } = useAPI();
 
   const handleSendOrder = useCallback(async () => {
-    dispatch(
-      postUserOrders({
-        items: items,
-        time,
-      })
-    ).then(() => {
-      !socket
-        ? connect().emit("send_order", { test: "hi" })
-        : socket.emit("send_order", { test: "hi" });
+    postUserOrders({
+      items: items,
+      time,
+    }).then(() => {
+      socket?.emit("send_order");
     });
-  }, [socket, items, time, postUserOrders, dispatch]);
+  }, [socket, items, time, postUserOrders]);
 
   const handleAddTime = useCallback(
     (value) => {

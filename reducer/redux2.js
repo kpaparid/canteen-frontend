@@ -4,113 +4,98 @@ import {
   createEntityAdapter,
   createSelector,
   createSlice,
-  current,
   nanoid,
 } from "@reduxjs/toolkit";
-import { isEqual, sample } from "lodash";
+import { isEqual } from "lodash";
 import { createWrapper, HYDRATE } from "next-redux-wrapper";
-import {
-  mapSettingsToCategories,
-  shopToState,
-  shopToState2,
-} from "../utilities/dataMapper";
-
+import { mapSettingsToCategories, shopToState } from "../utilities/dataMapper";
+import { customFetch } from "../utilities/utils.mjs";
 const mealsAdapter = createEntityAdapter();
 const categoriesAdapter = createEntityAdapter();
 const cartItemsAdapter = createEntityAdapter();
 const ordersAdapter = createEntityAdapter();
 const settingsAdapter = createEntityAdapter();
 
-export const fetchMeals = createAsyncThunk("data/fetchMeals", async (props) => {
-  const url = process.env.BACKEND_URI;
-  return await fetch(url + "meals").then((res) =>
-    res.json().then((r) => {
-      return r.data;
-    })
-  );
-});
-export const fetchCategories = createAsyncThunk(
-  "data/fetchCategories",
-  async () => {
-    const url = process.env.BACKEND_URI;
-    return await fetch(url + "settings?uid=meal-category").then((res) =>
-      res.json().then((r) => r.data[0])
-    );
-  }
-);
-export const fetchSettings = createAsyncThunk(
-  "data/fetchSettings",
+export const fetchMealsThunk = createAsyncThunk(
+  "data/fetchMealsThunk",
   async (props) => {
-    const suffix = props?.suffix || "";
-    const url = process.env.BACKEND_URI;
-    return await fetch(url + "settings" + suffix).then((res) =>
-      res.json().then((r) => r.data)
-    );
-  }
-);
-export const fetchOrders = createAsyncThunk(
-  "data/fetchOrders",
-  async ({ suffix = "", customFetch = fetch }) => {
-    const url = process.env.BACKEND_URI + "orders" + suffix;
-    return await customFetch(url).then((res) =>
-      res.json().then((r) => {
-        return r.data;
-      })
-    );
+    const fetch = props?.fetch || customFetch;
+    const url = process.env.BACKEND_URI + "meals";
+    return await fetch(url).then((res) => res.data);
   }
 );
 
-export const openCloseShop = createAsyncThunk(
-  "data/openCloseShop",
+export const fetchCategoriesThunk = createAsyncThunk(
+  "data/fetchCategoriesThunk",
   async (props) => {
+    const fetch = props?.fetch || customFetch;
+    const url = process.env.BACKEND_URI + "settings?uid=meal-category";
+    return await fetch(url).then((res) => res.data[0]);
+  }
+);
+export const fetchSettingsThunk = createAsyncThunk(
+  "data/fetchSettingsThunk",
+  async (props) => {
+    const suffix = props?.suffix || "";
+    const fetch = props?.fetch || customFetch;
+    const url = process.env.BACKEND_URI + "settings" + suffix;
+    return await fetch(url).then((res) => res.data);
+  }
+);
+export const fetchOrdersThunk = createAsyncThunk(
+  "data/fetchOrders",
+  async (props) => {
+    const suffix = props?.suffix || "";
+    const fetch = props?.fetch || customFetch;
+    const url = process.env.BACKEND_URI + "orders" + suffix;
+    return await fetch(url).then((res) => res.data);
+  }
+);
+
+export const postShopIsOpenThunk = createAsyncThunk(
+  "data/postShopIsOpenThunk",
+  async (props) => {
+    const value = props?.value;
+    const fetch = props?.fetch || customFetch;
     const body = {
       uid: "shopIsOpen",
       entity: {
-        value: props,
+        value,
         id: "value",
       },
     };
     const url = process.env.BACKEND_URI + "settings";
     const options = {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     };
-    return await fetch(url, options).then((res) =>
-      res.json().then((r) => {
-        return r.data;
-      })
-    );
+    return await fetch(url, options).then((res) => res.data);
   }
 );
-export const postOrders = createAsyncThunk(
-  "data/postOrders",
-  async (body, customFetch = fetch) => {
-    const url = process.env.BACKEND_URI;
-    const options = {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    };
-    return await fetch(url + "orders", options).then((res) => {
-      return res.json().then((r) => {
-        return r.data;
-      });
-    });
-  }
-);
-export const changeOrderStatus = createAsyncThunk(
-  "data/changeOrderStatus",
-  async ({ id, body }) => {
+export const postOrders = createAsyncThunk("data/postOrders", async (props) => {
+  const body = props?.body;
+  const fetch = props?.fetch || customFetch;
+  const url = process.env.BACKEND_URI;
+  const options = {
+    method: "POST",
+    body: JSON.stringify(body),
+  };
+  return await fetch(url + "orders", options).then((res) => {
+    return res.data;
+  });
+});
+export const updateOrderStatusThunk = createAsyncThunk(
+  "data/updateOrderStatusThunk",
+  async (props) => {
+    const body = props?.body;
+    const fetch = props?.fetch || customFetch;
+    const id = props?.id;
     const url = `${process.env.BACKEND_URI}orders/${id}`;
     const options = {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     };
-    return await fetch(url, options).then((res) =>
-      res.json().then((r) => r.data)
-    );
+    return await fetch(url, options).then((res) => res.data);
   }
 );
 
@@ -122,6 +107,7 @@ export const subjectSlice = createSlice({
     cart: { items: cartItemsAdapter.getInitialState(), time: null },
     orders: ordersAdapter.getInitialState(),
     settings: ordersAdapter.getInitialState(),
+    error: false,
   },
   reducers: {
     addTime: (state, action) => {
@@ -187,6 +173,9 @@ export const subjectSlice = createSlice({
       cartItemsAdapter.removeAll(state.cart.items);
       state.cart.time = null;
     },
+    clearError: (state) => {
+      state.error = null;
+    },
   },
 
   extraReducers: {
@@ -196,11 +185,14 @@ export const subjectSlice = createSlice({
         ...action.payload.shop,
       };
     },
-    [fetchMeals.fulfilled](state, { payload }) {
+    [fetchMealsThunk.fulfilled](state, { payload }) {
       mealsAdapter.removeAll(state.meals);
       mealsAdapter.upsertMany(state.meals, payload || []);
     },
-    [fetchCategories.fulfilled](state, { payload, meta: { arg } }) {
+    [fetchMealsThunk.rejected](state, params) {
+      state.error = params.error.message;
+    },
+    [fetchCategoriesThunk.fulfilled](state, { payload, meta: { arg } }) {
       const categories = mapSettingsToCategories({
         entities: payload.entities,
         ids: payload.ids,
@@ -209,14 +201,14 @@ export const subjectSlice = createSlice({
       categoriesAdapter.removeAll(state.categories);
       categoriesAdapter.upsertMany(state.categories, categories);
     },
-    [fetchSettings.fulfilled](state, { payload, meta }) {
+    [fetchSettingsThunk.fulfilled](state, { payload, meta }) {
       const settings = shopToState(payload);
       settingsAdapter.upsertMany(state.settings, settings);
     },
-    [fetchOrders.fulfilled](state, { payload }) {
+    [fetchOrdersThunk.fulfilled](state, { payload }) {
       payload && ordersAdapter.upsertMany(state.orders, payload);
     },
-    [fetchOrders.rejected](state, { payload }) {
+    [fetchOrdersThunk.rejected](state, { payload }) {
       const orders = [
         {
           id: 100,
@@ -278,13 +270,24 @@ export const subjectSlice = createSlice({
       state.cart.time = null;
     },
 
-    [openCloseShop.fulfilled](state, { meta: { arg } }) {
+    [postShopIsOpenThunk.fulfilled](
+      state,
+      {
+        meta: {
+          arg: { value },
+        },
+      }
+    ) {
       settingsAdapter.upsertOne(state.settings, {
         id: "shopIsOpen",
-        value: arg,
+        value,
       });
     },
-    [changeOrderStatus.fulfilled](state, { payload, meta }) {
+    [postShopIsOpenThunk.rejected](state, { error }) {
+      console.log(error);
+      state.error = error.message;
+    },
+    [updateOrderStatusThunk.fulfilled](state, { payload, meta }) {
       const { body, id } = meta.arg;
       // const items = cartItemsSelectors.selectAll(state);
       ordersAdapter.upsertOne(state.orders, { id, ...body });
@@ -302,6 +305,7 @@ export const {
   addTime,
   clearOrders,
   clearCart,
+  clearError,
 } = actions;
 const makeStore = () =>
   configureStore({
@@ -400,17 +404,3 @@ export const selectShopIsOpen = createSelector(
   [selectSettings],
   (settings) => settings?.find((e) => e.id === "shopIsOpen")?.value
 );
-
-// export const selectSettings = createSelector([selectOrders], (orders) => {
-//   return ["pending", "confirmed", "ready", "archived"].reduce(
-//     (a, status) => ({
-//       ...a,
-//       [status]: orders.filter((o) =>
-//         status !== "archived"
-//           ? o.status === status
-//           : o.status === "canceled" || o.status === "finished"
-//       ),
-//     }),
-//     {}
-//   );
-// });

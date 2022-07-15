@@ -1,16 +1,6 @@
-import {
-  faArrowUp,
-  faBurger,
-  faCheck,
-  faChevronDown,
-  faChevronUp,
-  faEdit,
-  faFile,
-  faPlus,
-  faX,
-} from "@fortawesome/free-solid-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { debounce, indexOf, isEqual } from "lodash";
+import { debounce, isEqual } from "lodash";
 import Image from "next/image";
 import React, {
   forwardRef,
@@ -21,36 +11,34 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Button, Form, OverlayTrigger, Tooltip } from "react-bootstrap";
-import { useDispatch, useSelector } from "react-redux";
-import styledComponents from "styled-components";
+import { Button } from "react-bootstrap";
+import { useSelector } from "react-redux";
 import { useAuth } from "../contexts/AuthContext";
 // import { menu } from "../data/menu";
+import { useMediaQuery } from "react-responsive";
+import useApi from "../hooks/useAPI";
 import {
-  fetchCategories,
-  fetchMeals,
-  fetchSettings,
   itemAddedCart,
   selectAllActiveCategories,
   selectAllMealsByCategory,
 } from "../reducer/redux2";
 import { formatPrice } from "../utilities/utils.mjs";
 import Basket from "./basket/Basket";
+import { CategoriesNavbar, EditableCategoriesNavbar } from "./CategoriesNavBar";
 import Header from "./Header";
 import Item, { EditableItem } from "./Item";
-import useApi from "../hooks/useAPI";
-import { CategoriesNavbar, EditableCategoriesNavbar } from "./CategoriesNavBar";
 
 export default function Menu(props) {
   const itemsRef = useRef([]);
   const ref = useRef();
-  const dispatch = useDispatch();
-  const { currentUser, currentRole } = useAuth();
+  const { claims } = useAuth();
+  const currentRole = claims?.roles;
   const isAdmin = currentRole?.includes("admin");
   const [activeCategory, setActiveCategory] = useState();
   const categories = useSelector(selectAllActiveCategories);
   const menu = useSelector(selectAllMealsByCategory);
-  const { fetchUserTodaysOrders } = useApi();
+  const isBigScreen = useMediaQuery({ query: "(min-width: 992px)" });
+  const { fetchUserTodaysOrders, dispatch } = useApi();
   const usedUIDs = useMemo(
     () =>
       Object.keys(menu).reduce(
@@ -61,8 +49,8 @@ export default function Menu(props) {
   );
 
   useEffect(() => {
-    dispatch(fetchUserTodaysOrders());
-  }, [fetchUserTodaysOrders, dispatch, currentUser]);
+    fetchUserTodaysOrders();
+  }, [fetchUserTodaysOrders]);
 
   const addToCart = useCallback(
     (id, title, count, price, extras, comment, menuId) => {
@@ -106,13 +94,15 @@ export default function Menu(props) {
               ?.classList.add("active");
             return sectionId;
           });
-          document
-            .querySelector(".categories-navbar #category-" + sectionId)
-            .scrollIntoView(true);
+          !isBigScreen &&
+            document
+              .querySelector(".categories-navbar #category-" + sectionId)
+              .scrollIntoView(true);
         }
       }
     });
-  }, [activeCategory]);
+  }, [activeCategory, isBigScreen]);
+
   const debouncedCallback = useMemo(
     () => debounce(handleScroll, 10),
     [handleScroll]
@@ -169,8 +159,7 @@ export default function Menu(props) {
   );
 }
 const AddItem = memo(({ categories }) => {
-  const dispatch = useDispatch();
-  const { postMeal } = useApi();
+  const { postMeal, fetchCategories } = useApi();
 
   const handleAddNewItem = useCallback(() => {
     const body = {
@@ -180,11 +169,9 @@ const AddItem = memo(({ categories }) => {
       price: 0,
     };
     postMeal(body).then((r) => {
-      dispatch(fetchMeals()).then(({ payload }) =>
-        dispatch(fetchCategories(payload))
-      );
+      fetchMeals().then(({ payload }) => fetchCategories(payload));
     });
-  }, [categories, postMeal, dispatch]);
+  }, [categories, postMeal, fetchCategories]);
   return (
     <div className="w-100 d-flex justify-content-center align-content-center my-2">
       <Button

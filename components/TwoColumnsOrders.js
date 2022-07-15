@@ -1,7 +1,6 @@
 import { faClock } from "@fortawesome/free-regular-svg-icons";
 import { faBars, faPhone, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { nanoid } from "@reduxjs/toolkit";
 import {
   addMinutes,
   format,
@@ -11,29 +10,15 @@ import {
 } from "date-fns";
 import { isEqual } from "lodash";
 import Image from "next/image";
-import RegisterUser from "./Register";
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useState,
-  useRef,
-  forwardRef,
-} from "react";
-import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
-import { useDispatch, useSelector } from "react-redux";
+import { memo, useCallback, useEffect, useState } from "react";
+import { Button, Form, Modal, Spinner } from "react-bootstrap";
+import { useSelector } from "react-redux";
 import styledComponents from "styled-components";
-import { useAuth } from "../contexts/AuthContext";
-import {
-  fetchSettings,
-  openCloseShop,
-  selectShopIsOpen,
-} from "../reducer/redux2";
-import {
-  formatPrice,
-  useDurationHook,
-  validateEmail,
-} from "../utilities/utils.mjs";
+import useAPI from "../hooks/useAPI";
+import { fetchMealsThunk, selectShopIsOpen } from "../reducer/redux2";
+import { formatPrice, useDurationHook } from "../utilities/utils.mjs";
+import DismissibleAlert from "./Alert";
+import RegisterUser from "./Register";
 const CustomInput = styledComponents.input`
   outline: none;
   border: 0;
@@ -253,6 +238,9 @@ const StyledLeftItem = styledComponents.div`
 const StyledFinishedModalBody = styledComponents(Modal.Body)`
       padding: 1.5rem;
       background-color: var(--bs-nonary);
+      .info{
+        text-align: left;
+      }
       .left-item{
         background-color: transparent;
         padding: 0 0.75rem;
@@ -296,7 +284,7 @@ margin: auto;
     .left-item{
       padding: 0.45rem !important;
     }
-    padding-top: 55px;
+    padding-top: 50px;
     height: 100% !important;
     flex-wrap: wrap;
     .info-wrapper{
@@ -326,6 +314,7 @@ margin: auto;
       max-width: initial;
       background-color: var(--bs-light-nonary);
       height: calc(100% - 35px);
+      border-radius: 0;
     }
     .orders-list-wrapper{
       &:first-child, &:nth-child(2){
@@ -372,13 +361,14 @@ margin: auto;
 
 const TwoColumnsOrders = memo(
   ({ orders, loading, onChangeOrderStatus, onChangeShopStatus }) => {
-    // const dispatch = useDispatch();
     const pendingColumn = orders?.pending;
     const confirmedColumn = orders?.confirmed;
     const readyColumn = orders?.ready;
     const archivedColumn = orders?.archived;
     const [showLoading, setShowLoading] = useState();
 
+    const shopEnabled = useSelector(selectShopIsOpen);
+    const [error, setError] = useState();
     useEffect(() => {
       if (loading) {
         const timer = setTimeout(() => setShowLoading(true), 1 * 1000);
@@ -389,40 +379,81 @@ const TwoColumnsOrders = memo(
         setShowLoading(false);
       }
     }, [loading]);
+
+    const handleShopStatusChange = useCallback(
+      () =>
+        shopEnabled
+          ? orders?.pending?.length +
+              orders?.confirmed?.length +
+              orders?.ready?.length ===
+            0
+            ? onChangeShopStatus(!shopEnabled).catch((r) => {
+                console.log(r);
+                setError(r.message);
+                return r;
+              })
+            : setError(
+                "Υπάρχουν ακόμα εκκρεμείς παραγγελίες. Μετακινήστε τις παραγγελίες στην λίστα με τις ολοκληρωμένες και προσπαθήστε ξανα."
+              )
+          : onChangeShopStatus(!shopEnabled).catch((r) => {
+              console.log(r);
+              setError(r.message);
+              return r;
+            }),
+      [onChangeShopStatus, shopEnabled, orders]
+    );
     const handleAccept = useCallback(
       (userId, orderId, body) => {
-        onChangeOrderStatus(userId, orderId, { status: "confirmed", ...body });
+        return onChangeOrderStatus(userId, orderId, {
+          status: "confirmed",
+          ...body,
+        });
       },
       [onChangeOrderStatus]
     );
     const handleTimeAndAccept = useCallback(
       (userId, orderId, minutes) => {
         const time = format(addMinutes(new Date(), minutes), "HH:mm");
-        onChangeOrderStatus(userId, orderId, { status: "confirmed", time });
+        return onChangeOrderStatus(userId, orderId, {
+          status: "confirmed",
+          time,
+        });
       },
       [onChangeOrderStatus]
     );
     const handleNew = useCallback(
       (userId, orderId, body) => {
-        onChangeOrderStatus(userId, orderId, { status: "pending", ...body });
+        return onChangeOrderStatus(userId, orderId, {
+          status: "pending",
+          ...body,
+        });
       },
       [onChangeOrderStatus]
     );
     const handleReady = useCallback(
       (userId, orderId, body) => {
-        onChangeOrderStatus(userId, orderId, { status: "ready", ...body });
+        return onChangeOrderStatus(userId, orderId, {
+          status: "ready",
+          ...body,
+        });
       },
       [onChangeOrderStatus]
     );
     const handleFinish = useCallback(
       (userId, orderId, body) => {
-        onChangeOrderStatus(userId, orderId, { status: "finished", ...body });
+        return onChangeOrderStatus(userId, orderId, {
+          status: "finished",
+          ...body,
+        });
       },
       [onChangeOrderStatus]
     );
     const handleCancel = useCallback(
       (userId, orderId, body) => {
-        onChangeOrderStatus(userId, orderId, { status: "canceled", ...body });
+        return onChangeOrderStatus(userId, orderId, {
+          status: "canceled",
+          ...body,
+        });
       },
       [onChangeOrderStatus]
     );
@@ -439,107 +470,138 @@ const TwoColumnsOrders = memo(
             <Spinner animation="border" variant="darker-nonary" />
           </Modal.Body>
         </Modal>
+        <Modal
+          show={error}
+          onHide={() => setError()}
+          centered
+          contentClassName=" bg-transparent d-flex justify-content-center align-items-center border-0 shadow-none"
+        >
+          <Modal.Body className="p-0 bg-transparent">
+            <DismissibleAlert title="Σφάλμα" message={error} show={true} />
+          </Modal.Body>
+        </Modal>
         <TopBar
           archivedColumn={archivedColumn}
-          onChangeShopStatus={onChangeShopStatus}
           onReady={handleReady}
           onConfirmed={handleAccept}
           onPending={handleNew}
+          shopEnabled={shopEnabled}
+          onClick={handleShopStatusChange}
         />
         <ColumnsWrapper className="px-2">
-          <OrdersList
-            orders={pendingColumn}
-            title="pending"
-            renderItem={(props) => (
-              <LeftItem
-                interval
-                key={props.id}
-                {...props}
-                renderFooter={(footerProps) => (
-                  <div className="footer">
-                    {props?.time ? (
-                      <Button
-                        variant="senary"
-                        className="flex-fill me-2"
-                        onClick={() => handleAccept(props.user.uid, props.id)}
-                      >
-                        Accept
-                      </Button>
-                    ) : (
-                      <AcceptModal
-                        {...footerProps}
-                        onClick={(minutes) =>
-                          handleTimeAndAccept(props.user.uid, props.id, minutes)
-                        }
-                      />
+          {shopEnabled ? (
+            <>
+              <OrdersList
+                orders={pendingColumn}
+                title="Εισερχόμενες"
+                renderItem={(props) => (
+                  <LeftItem
+                    interval
+                    key={props.id}
+                    {...props}
+                    renderFooter={(footerProps) => (
+                      <div className="footer">
+                        {props?.time ? (
+                          <Button
+                            variant="senary"
+                            className="flex-fill me-2"
+                            onClick={() =>
+                              handleAccept(props.user.uid, props.id)
+                            }
+                          >
+                            Accept
+                          </Button>
+                        ) : (
+                          <AcceptModal
+                            {...footerProps}
+                            onClick={(minutes) =>
+                              handleTimeAndAccept(
+                                props.user.uid,
+                                props.id,
+                                minutes
+                              )
+                            }
+                          />
+                        )}
+                        <RejectModal
+                          {...footerProps}
+                          onClick={(body) =>
+                            handleCancel(props.user.uid, props.id, body)
+                          }
+                        />
+                      </div>
                     )}
-                    <RejectModal
-                      {...footerProps}
-                      onClick={(body) =>
-                        handleCancel(props.user.uid, props.id, body)
-                      }
-                    />
-                  </div>
+                  />
                 )}
               />
-            )}
-          />
-          <OrdersList
-            orders={confirmedColumn}
-            title="confirmed"
-            renderItem={(props) => (
-              <LeftItem
-                details={false}
-                interval
-                key={props.id}
-                {...props}
-                renderFooter={() => (
-                  <div className="d-flex flex-nowrap w-100 mt-3">
-                    <Button
-                      variant="ready"
-                      className="text-white flex-fill"
-                      onClick={() => handleReady(props.user.uid, props.id)}
-                    >
-                      Mark as Ready
-                    </Button>
-                  </div>
+              <OrdersList
+                orders={confirmedColumn}
+                title="Επιβεβαιωμένες"
+                renderItem={(props) => (
+                  <LeftItem
+                    details={false}
+                    interval
+                    key={props.id}
+                    {...props}
+                    renderFooter={() => (
+                      <div className="d-flex flex-nowrap w-100 mt-3">
+                        <Button
+                          variant="ready"
+                          className="text-white flex-fill"
+                          onClick={() => handleReady(props.user.uid, props.id)}
+                        >
+                          Παραγγελία Έτοιμη
+                        </Button>
+                      </div>
+                    )}
+                  />
                 )}
               />
-            )}
-          />
-          <OrdersList
-            orders={readyColumn}
-            col={2}
-            title="ready"
-            footer={
-              <FinishedListModal
-                orders={archivedColumn}
-                onReady={handleReady}
-                onConfirmed={handleAccept}
-                onPending={handleNew}
-              />
-            }
-            renderItem={(props) => (
-              <ReadyItem
-                key={props.id}
-                {...props}
-                renderFooter={(footerProps) => (
-                  <div className="d-flex flex-nowrap w-100 mt-3">
-                    <Button
-                      variant="ready"
-                      className="text-white flex-fill me-2"
-                      onClick={() => {
-                        footerProps?.onClick();
-                        handleFinish(props.user.uid, props.id);
-                      }}
-                    >
-                      Mark as Finished
-                    </Button>
-                  </div>
+              <OrdersList
+                orders={readyColumn}
+                col={2}
+                title="Έτοιμες"
+                footer={
+                  <FinishedListModal
+                    orders={archivedColumn}
+                    onReady={handleReady}
+                    onConfirmed={handleAccept}
+                    onPending={handleNew}
+                  />
+                }
+                renderItem={(props) => (
+                  <ReadyItem
+                    key={props.id}
+                    {...props}
+                    renderFooter={(footerProps) => (
+                      <div className="d-flex flex-nowrap w-100 mt-3">
+                        <Button
+                          variant="ready"
+                          className="text-white flex-fill me-2"
+                          onClick={() => {
+                            footerProps?.onClick();
+                            handleFinish(props.user.uid, props.id);
+                          }}
+                        >
+                          Παραγγελία Ολοκληρώθηκε
+                        </Button>
+                      </div>
+                    )}
+                  ></ReadyItem>
                 )}
-              ></ReadyItem>
-            )}
-          />
+              />
+            </>
+          ) : (
+            <div className="d-flex flex-fill">
+              <Button
+                variant="success"
+                className="p-4 m-auto"
+                onClick={handleShopStatusChange}
+              >
+                <h3 className="text-white header-text m-0">Άνοιγμα</h3>
+              </Button>
+            </div>
+          )}
         </ColumnsWrapper>
       </div>
     );
@@ -548,31 +610,29 @@ const TwoColumnsOrders = memo(
 );
 const TopBar = memo(
   ({
-    onChangeShopStatus,
-    handleReady,
-    handleAccept,
-    handleNew,
+    onClick,
+    shopEnabled,
+    onReady,
+    onConfirmed,
+    onPending,
     archivedColumn,
   }) => {
-    const shopEnabled = useSelector(selectShopIsOpen);
-    const handleClick = useCallback(
-      () => onChangeShopStatus(!shopEnabled),
-      [onChangeShopStatus, shopEnabled]
-    );
     return (
       <StyledNavBar>
         <Sidebar />
-        <FinishedListModal
-          orders={archivedColumn}
-          onReady={handleReady}
-          onConfirmed={handleAccept}
-          onPending={handleNew}
-        />
+        {shopEnabled && (
+          <FinishedListModal
+            orders={archivedColumn}
+            onReady={onReady}
+            onConfirmed={onConfirmed}
+            onPending={onPending}
+          />
+        )}
         <div
           className="shop-status d-flex flex-nowrap align-items-center justify-content-around p-1"
-          onClick={handleClick}
+          onClick={onClick}
         >
-          <div>{shopEnabled ? "Open" : "Closed"}</div>
+          <div>{shopEnabled ? "Ανοιχτά" : "Κλειστά"}</div>
           <div
             className={`ball ms-2 rounded-circle ${
               shopEnabled ? "bg-ready" : "bg-primary"
@@ -606,7 +666,11 @@ const Sidebar = memo(() => {
   return (
     <StyledSidebar>
       <div className="settings">
-        <Button variant="transparent" onClick={handleShow}>
+        <Button
+          variant="transparent"
+          onClick={handleShow}
+          className="shadow-none"
+        >
           <FontAwesomeIcon className="h-100" icon={faBars} />
         </Button>
       </div>
@@ -619,8 +683,7 @@ const Sidebar = memo(() => {
         contentClassName="w-100 h-100"
       >
         <Modal.Body className="bg-gray-white p-3">
-          <RegisterUser />
-          {/* <div>hi</div> */}
+          <RegisterUser btnText="Εγγραφή Χρήστη" />
         </Modal.Body>
       </Modal>
     </StyledSidebar>
@@ -640,7 +703,7 @@ const ReadyItem = memo((props) => {
     end,
   }).minutes;
   const time =
-    duration === 0 || isAfter(start, end) ? "now" : duration + " min";
+    duration === 0 || isAfter(start, end) ? "τώρα" : duration + " min";
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -680,7 +743,7 @@ const TimeComponent = memo(({ time }) => {
       <div className="d-flex">
         <div className="duration">
           {duration === 0 ? (
-            <span>now</span>
+            <span>τώρα</span>
           ) : (
             <>
               <span>{duration}</span>
@@ -697,7 +760,7 @@ const LeftItem = memo(
   ({
     number,
     time: pickupTime,
-    user: { email, displayName, phoneNumber = "+15751275315" },
+    user: { email, displayName, phoneNumber },
     createdAt,
     items,
     price,
@@ -732,11 +795,12 @@ const LeftItem = memo(
               </div>
             </div>
             <div className="timer">
-              {interval ? (
-                pickupTime && <TimeComponent time={pickupTime} />
-              ) : (
-                <div className="round-timer">{pickupTime}</div>
-              )}
+              {pickupTime &&
+                (interval ? (
+                  <TimeComponent time={pickupTime} />
+                ) : (
+                  <div className="round-timer">{pickupTime}</div>
+                ))}
             </div>
           </div>
         )}
@@ -754,11 +818,12 @@ const LeftItem = memo(
           </div>
           {!details && (
             <div className="timer ps-3">
-              {interval ? (
-                pickupTime && <TimeComponent time={pickupTime} />
-              ) : (
-                <div className="round-timer">{pickupTime}</div>
-              )}
+              {pickupTime &&
+                (interval ? (
+                  <TimeComponent time={pickupTime} />
+                ) : (
+                  <div className="round-timer">{pickupTime}</div>
+                ))}
             </div>
           )}
         </div>
@@ -810,17 +875,13 @@ const Item = memo(({ itemDisabled, ...rest }) => {
   );
 }, isEqual);
 const ItemModal = memo(({ show, onClose, itemId }) => {
+  const { fetchMeal } = useAPI();
   const [item, setItem] = useState();
   useEffect(() => {
-    const url = process.env.BACKEND_URI + "meals?id=" + itemId;
-    !item &&
-      show &&
-      fetch(url).then((i) =>
-        i.json().then((r) => {
-          setItem(r.data[0]);
-        })
-      );
-  }, [item, show, itemId]);
+    if (!item && show) {
+      fetchMeal(itemId).then((r) => setItem(r.data[0]));
+    }
+  }, [item, show, itemId, fetchMeal]);
 
   return (
     <Modal
@@ -896,13 +957,13 @@ const RejectModal = memo(({ onClick }) => {
   const handleShow = () => setShow(true);
   const [reason, setReason] = useState();
   const [extra, setExtra] = useState("");
-  const CustomButton = ({ children }) => (
+  const CustomButton = ({ value, label }) => (
     <Button
       className="m-1"
-      variant={reason === children ? "senary" : "gray-500"}
-      onClick={() => setReason(children)}
+      variant={reason === value ? "senary" : "gray-500"}
+      onClick={() => setReason(value)}
     >
-      {children}
+      {label}
     </Button>
   );
   const clear = useCallback(() => {
@@ -913,8 +974,6 @@ const RejectModal = memo(({ onClick }) => {
     setExtra(e.target.value);
   }, []);
   const handleCancel = useCallback(() => {
-    console.log("post cancel");
-
     onClick({
       meta: { reason: reason === "Other" ? "" : reason, message: extra },
     });
@@ -931,29 +990,44 @@ const RejectModal = memo(({ onClick }) => {
         className="flex-fill ms-2"
         onClick={handleShow}
       >
-        Reject
+        {/* Reject */}
+        Απόρριψη
       </Button>
       <Modal show={show} onHide={handleClose} centered className="p-0">
         <Modal.Header className="justify-content-start">
-          <div className="ps-2 font-large fw-bolder">Cancel Order</div>
+          <div className="ps-2 font-large fw-bolder">
+            {/* Cancel Order */}
+            Απόρριψη Παραγγελίας
+          </div>
         </Modal.Header>
         <Modal.Body>
           <div className="font-small fw-bolder">
-            Select a reason for cancelling
+            Επιλέξτε έναν λόγο για την ακύρωση
           </div>
-          <div className="d-flex flex-wrap w-100 my-2">
-            <CustomButton>Out of item(s)</CustomButton>
-            <CustomButton>Kitchen closed</CustomButton>
-            <CustomButton>Customer called to cancel</CustomButton>
-            <CustomButton>Restaurant too busy</CustomButton>
-            <CustomButton>Cannot complete customer note</CustomButton>
-            <CustomButton>Other</CustomButton>
+          <div className="d-flex flex-wrap w-100 my-2 justify-content-center">
+            <CustomButton
+              value="Nicht genug Zutaten."
+              label="Ελλειψη υλικών"
+            ></CustomButton>
+            <CustomButton
+              value="Küche ist geschlossen."
+              label="Η Κουζίνα είναι κλειστή"
+            ></CustomButton>
+            <CustomButton
+              value="Kunde angerufen, um zu stornieren."
+              label="Ο πελάτης κάλεσε για ακύρωση"
+            ></CustomButton>
+            <CustomButton
+              value="Kundennotiz kann nicht abgeschlossen werden."
+              label="Δεν είναι δυνατή η ολοκλήρωση της σημείωσης της παραγγελίας"
+            ></CustomButton>
+            <CustomButton value="Sonstiges" label="Άλλο"></CustomButton>
           </div>
           <CustomInput
             className={`font-small fw-bold my-2 text-dark ${
               reason !== "Other" ? "shadow-none" : ""
             } ${extra ? "bg-senary shadow-none" : ""}`}
-            placeholder="Anything else to add?"
+            placeholder="Θέλετε κάτι άλλο να προσθέσετε;"
             onChange={handleTextChange}
             value={extra}
           ></CustomInput>
@@ -965,7 +1039,7 @@ const RejectModal = memo(({ onClick }) => {
             className="w-100"
             variant={reason ? "senary" : "gray-100"}
           >
-            <span>Cancel order</span>
+            <span>Απόρριψη Παραγγελίας</span>
           </Button>
         </Modal.Footer>
       </Modal>
@@ -999,10 +1073,14 @@ const AcceptModal = memo(({ onClick, ...rest }) => {
   return (
     <>
       <Button variant="senary" className="flex-fill me-2" onClick={handleShow}>
-        Accept
+        {/* Accept */}
+        Αποδοχή
       </Button>
       <Modal show={show} onHide={handleClose} centered className="p-0">
-        <Modal.Header className="fw-bolder">Ready in </Modal.Header>
+        <Modal.Header className="fw-bolder">
+          {/* Ready in */}
+          Έτοιμο σε
+        </Modal.Header>
         <Modal.Body className="d-flex flex-wrap w-100 justify-content-center">
           <CustomButton>2min</CustomButton>
           <CustomButton>5min</CustomButton>
@@ -1019,7 +1097,10 @@ const AcceptModal = memo(({ onClick, ...rest }) => {
             className="w-100"
             variant={minutes ? "senary" : "gray-100"}
           >
-            <span>Submit</span>
+            <span>
+              {/* Submit */}
+              Αποδοχή
+            </span>
           </Button>
         </Modal.Footer>
       </Modal>
@@ -1057,7 +1138,7 @@ const FinishedListModal = memo(({ orders = [], ...rest }) => {
     <>
       <StyledFinishedItems className="finished-btn">
         <Button variant="gray-white" onClick={onShow}>
-          <span className="fw-600">Finished</span>
+          <span className="fw-600">Ολοκληρωμένες</span>
           <span className="fw-600 ps-2">{orders?.length}</span>
         </Button>
       </StyledFinishedItems>
@@ -1093,7 +1174,7 @@ const FinishItem = memo(
   ({ active, onPending, onConfirmed, onReady, onClose, ...rest }) => {
     const renderFooter = useCallback(() => {
       return active ? (
-        <div className="d-flex flex-wrap w-100 justify-content-around">
+        <div className="d-flex flex-wrap w-100 justify-content-between">
           <Button
             variant="pending"
             className="mt-2"

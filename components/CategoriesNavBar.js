@@ -1,13 +1,10 @@
 import {
-  faCheck,
   faChevronDown,
   faChevronUp,
   faEdit,
-  faFile,
   faImage,
   faMinus,
   faPlus,
-  faX,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { nanoid } from "@reduxjs/toolkit";
@@ -15,14 +12,8 @@ import { debounce, isEqual } from "lodash";
 import Image from "next/image";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Form, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
-import { useDispatch, useSelector } from "react-redux";
 import styledComponents from "styled-components";
 import useAPI from "../hooks/useAPI";
-import {
-  fetchCategories,
-  fetchMeals,
-  selectAllMealsByCategory,
-} from "../reducer/redux2";
 import { postPhoto } from "../utilities/utils.mjs";
 
 export const CategoriesNavbar = memo(({ categories, onClick }) => {
@@ -114,8 +105,8 @@ const EditModal = memo(({ categories: initialCategories }) => {
   const [show, setShow] = useState(false);
   const handleClose = useCallback(() => setShow(false), []);
   const handleShow = useCallback(() => setShow(true), []);
-  const { updateCategoriesAndMeals } = useAPI();
-  const dispatch = useDispatch();
+  const { updateCategoriesAndMeals, fetchMeals, fetchCategories, dispatch } =
+    useAPI();
 
   const [categories, setCategories] = useState(initialCategories);
   const [changedCategories, setChangedCategories] = useState(initialCategories);
@@ -137,12 +128,16 @@ const EditModal = memo(({ categories: initialCategories }) => {
       updateCategoriesAndMeals(newCategories).then(() => {
         handleClose();
         setActive(0);
-        dispatch(fetchMeals()).then(({ payload }) =>
-          dispatch(fetchCategories(payload))
-        );
+        fetchMeals().then(({ payload }) => fetchCategories(payload));
       });
     });
-  }, [dispatch, updateCategoriesAndMeals, changedCategories, handleClose]);
+  }, [
+    fetchMeals,
+    updateCategoriesAndMeals,
+    changedCategories,
+    handleClose,
+    fetchCategories,
+  ]);
 
   const handleCancel = useCallback(() => {
     setChangedCategories(initialCategories);
@@ -152,10 +147,12 @@ const EditModal = memo(({ categories: initialCategories }) => {
   }, [initialCategories, handleClose]);
   const handleAdd = useCallback(() => {
     setChangedCategories((old) => {
+      const id =
+        old.filter((c) => c.title.slice(0, -1) === "New Category").length + 1;
       const newCategories = [
         ...old,
         {
-          title: "New Category",
+          title: "New Category" + id,
           text: "",
           photoURL: "",
           itemIds: [],
@@ -486,10 +483,14 @@ width: 100%;
       display: flex;
       flex-wrap: nowrap;
     }
+    .categories-btn{
+      max-height: 60vh;
+      overflow: auto;
+      padding-right: 1rem;
+    }
     .left-side{
       max-width: 150px;
       min-width: 150px;
-      padding-right: 1rem;
                 svg{
             transform: scale(0.75);
           }

@@ -53,6 +53,19 @@ export const getDuration = (start, end) => {
   //     }
   //   :
 };
+export const customFetch = (url, options) =>
+  fetch(url, options)
+    .then(async (response) => {
+      return await response.json().then((res) => {
+        if (res.status !== 200 && res.status !== 201) {
+          return Promise.reject(res);
+        }
+        return res;
+      });
+    })
+    .catch((e) => {
+      return Promise.reject(e);
+    });
 export const useDurationHook = (time) => {
   const endDate = time && parse(time, "HH:mm", new Date());
   const [duration, setDuration] = useState(

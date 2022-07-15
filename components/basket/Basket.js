@@ -55,24 +55,10 @@ justify-content: space-between;
  }
 
 `;
-const RightSide = memo(({ props }) => {
-  const { orders, ordersExist } = useOrders();
-  const { summa, cartExists, items, sendOrder, addTime } = useCart();
-  const shopEnabled = useSelector(selectShopIsOpen);
+const RightSide = memo((props) => {
   return (
     <StyledRightSide className="basket-right-side">
-      <BasketTabs
-        {...{
-          orders,
-          ordersExist,
-          summa,
-          cartExists,
-          items,
-          sendOrder,
-          addTime,
-          shopEnabled,
-        }}
-      ></BasketTabs>
+      <BasketTabs {...props}></BasketTabs>
       <div className="user-dropdown-wrapper">
         <UserDropdown />
       </div>
@@ -167,10 +153,22 @@ const Basket = memo(() => {
   const { summa, cartExists, items, sendOrder, addTime } = useCart();
   const renderToggle = (props) => <ModalToggle {...props} />;
   const shopEnabled = useSelector(selectShopIsOpen);
+
   return (
     <>
       {isBigScreen ? (
-        <RightSide />
+        <RightSide
+          {...{
+            orders,
+            ordersExist,
+            summa,
+            cartExists,
+            items,
+            sendOrder,
+            addTime,
+            shopEnabled,
+          }}
+        />
       ) : (
         <StyledBar>
           <UserModal renderToggle={renderToggle} />

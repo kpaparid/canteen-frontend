@@ -1,30 +1,22 @@
 import {
-  faCartArrowDown,
-  faCartPlus,
   faEdit,
   faMinus,
   faPlus,
   faX,
-  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { debounce } from "lodash";
 import isEqual from "lodash/isEqual";
 import Image from "next/image";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Overlay, ToastBody, Tooltip } from "react-bootstrap";
+import { Overlay, Tooltip } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 // import Image from "react-bootstrap/Image";
 import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
-import { useDispatch, useSelector } from "react-redux";
-import { useAuth } from "../contexts/AuthContext.js";
+import { useSelector } from "react-redux";
 import useAPI from "../hooks/useAPI.js";
-import {
-  fetchMeals,
-  fetchCategories,
-  selectShopIsOpen,
-} from "../reducer/redux2.js";
+import { selectShopIsOpen } from "../reducer/redux2.js";
 import { formatPrice } from "../utilities/utils.mjs";
 import Accumulator from "./Accumulator";
 // eslint-disable-next-line react/display-name
@@ -206,8 +198,8 @@ export const EditableItem = memo(
     usedUIDs = [],
     ...rest
   }) => {
-    const dispatch = useDispatch();
-    const { updateMeals, deleteMeal } = useAPI();
+    const { dispatch, updateMeals, deleteMeal, fetchMeals, fetchCategories } =
+      useAPI();
     const [photoURL, setPhotoURL] = useState(initialPhotoURL);
     const [name, setName] = useState(initialName);
     const [description, setDescription] = useState(initialDescription);
@@ -339,11 +331,9 @@ export const EditableItem = memo(
     const handleDelete = useCallback(
       (id) =>
         deleteMeal(id).then(() =>
-          dispatch(fetchMeals()).then(({ payload }) =>
-            dispatch(fetchCategories(payload))
-          )
+          fetchMeals().then(({ payload }) => fetchCategories(payload))
         ),
-      [deleteMeal, dispatch]
+      [deleteMeal, fetchMeals, fetchCategories]
     );
     const handleSave = useCallback(() => {
       if (menuId && name?.trim() !== "") {
@@ -358,8 +348,8 @@ export const EditableItem = memo(
           id,
         };
         updateMeals(id, body).then(() =>
-          dispatch(fetchMeals())
-            .then(({ payload }) => dispatch(fetchCategories(payload)))
+          fetchMeals()
+            .then(({ payload }) => fetchCategories(payload))
             .then(() => clearState())
         );
       } else {
@@ -387,6 +377,8 @@ export const EditableItem = memo(
       category,
       menuId,
       updateMeals,
+      fetchCategories,
+      fetchMeals,
     ]);
     useEffect(() => {
       setPhotoURL(initialPhotoURL);

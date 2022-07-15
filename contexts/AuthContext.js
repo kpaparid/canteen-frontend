@@ -16,6 +16,7 @@ import React, {
   useState,
 } from "react";
 import { auth } from "../hooks/firebase";
+// import { customFetch } from "../utilities/utils.mjs";
 const AuthContext = createContext();
 
 export function useAuth() {
@@ -24,20 +25,26 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState();
-  const [currentRole, setCurrentRole] = useState();
+  const [claims, setClaims] = useState();
 
-  const getRole = useCallback(
-    (user = currentUser) =>
+  const getClaims = useCallback(
+    (user) =>
       user?.getIdTokenResult(true).then(({ claims }) => {
-        return claims?.roles;
+        return { roles: claims?.roles, phoneNumber: claims?.phoneNumber };
       }),
-    [currentUser]
+    []
   );
 
-  const claims = useCallback(
-    () => currentUser?.getIdTokenResult(true),
-    [currentUser]
-  );
+  function addClaims(uid, body) {
+    const options = {
+      method: "POST",
+      body: JSON.stringify(body),
+    };
+    return authenticatedFetch(
+      process.env.BACKEND_URI + "firebase/claims/" + uid,
+      options
+    );
+  }
 
   const [loading, setLoading] = useState(true);
 
@@ -67,7 +74,10 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
-    return signOut(auth);
+    return signOut(auth).then(() => {
+      setCurrentUser();
+      setClaims();
+    });
   }
 
   function handleUpdateEmail(email) {
@@ -95,41 +105,38 @@ export function AuthProvider({ children }) {
   function resetPassword(email) {
     return sendPasswordResetEmail(auth, email);
   }
-
+  const customFetch = (url, options) =>
+    fetch(url, options)
+      .then(async (response) => {
+        return await response.json().then((res) => {
+          if (res.status !== 200 && res.status !== 201) {
+            return Promise.reject(res);
+          }
+          return res;
+        });
+      })
+      .catch((e) => {
+        return Promise.reject(e);
+      });
   const authenticatedFetch = (url, options) => {
     return getHeader().then((header) => {
       const defaults = { headers: header };
       options = Object.assign({}, defaults, options);
-
-      return fetch(url, options)
-        .then((response) => {
-          return response.json().then((res) => {
-            if (res.status !== 200 && res.status !== 201) {
-              return Promise.reject(res);
-            }
-            return res;
-          });
-        })
-        .catch((e) => {
-          return Promise.reject(e);
-        });
+      return customFetch(url, options);
     });
   };
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      await (user
-        ? getRole(user).then((role) => setCurrentRole(role))
-        : setCurrentRole());
+      user && (await getClaims(user).then((claims) => setClaims(claims)));
+      user && setCurrentUser(user);
       setLoading(false);
     });
     return unsubscribe;
-  }, [getRole]);
+  }, [getClaims]);
 
   const value = {
     claims,
     currentUser,
-    currentRole,
     login,
     signup,
     logout,
@@ -143,6 +150,8 @@ export function AuthProvider({ children }) {
     updatePW,
     getHeader,
     createUser,
+    addClaims,
+    customFetch,
   };
 
   return (

@@ -16,34 +16,34 @@ import { useMediaQuery } from "react-responsive";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../contexts/SocketContext";
 import useAPI from "../../hooks/useAPI";
-import { clearCart, fetchSettings, selectOrders } from "../../reducer/redux2";
+import { clearCart, selectOrders } from "../../reducer/redux2";
 import OrderTracker from "../OrderTracker";
 export const useOrders = () => {
   const { socket } = useSocket();
-  const dispatch = useDispatch();
   const { currentUser } = useAuth();
-  const { fetchUserTodaysOrders } = useAPI();
+  const { fetchUserTodaysOrders, fetchSettings, updateOrderStatus, dispatch } =
+    useAPI();
   const orders = useSelector(selectOrders);
   const ordersExist = orders?.length !== 0;
 
   useEffect(() => {
     socket?.emit("join_room", "shopIsOpen");
-    currentUser && socket?.emit("join_room", currentUser.uid);
-  }, [socket, currentUser]);
+    currentUser?.uid && socket?.emit("join_room", currentUser.uid);
+  }, [socket, currentUser?.uid]);
 
   useEffect(() => {
     if (socket) {
       socket.on("updated_order", (data) => {
         console.log(`received updated order`);
-        dispatch(fetchUserTodaysOrders());
+        fetchUserTodaysOrders();
       });
       socket.on("updated_shop", (data) => {
         console.log(`received updated shop`);
         !data && dispatch(clearCart());
-        dispatch(fetchSettings({ suffix: "?uid=shopIsOpen" }));
+        fetchSettings({ suffix: "?uid=shopIsOpen" });
       });
     }
-  }, [socket, fetchUserTodaysOrders, dispatch]);
+  }, [socket, fetchSettings, fetchUserTodaysOrders, dispatch]);
 
   return { orders, ordersExist };
 };
@@ -61,7 +61,7 @@ export const OrdersBody = memo(({ orders }) => {
   return (
     <>
       {orders.length === 1 ? (
-        <OrderOverview {...sortedOrders[0]} />
+        <OrderTracker {...sortedOrders[0]} />
       ) : (
         <Accordion
           className="accordion-order-list"
@@ -81,7 +81,7 @@ export const OrdersBody = memo(({ orders }) => {
                 </div>
               </Accordion.Header>
               <Accordion.Body className="m-1 p-0">
-                <OrderOverview {...o} />
+                <OrderTracker {...o} />
               </Accordion.Body>
             </Accordion.Item>
           ))}
@@ -183,68 +183,6 @@ const OrderStatus = memo(({ status, time, updatedAt }) => {
   );
 }, isEqual);
 
-const OrderOverview = memo((props) => {
-  return <OrderTracker {...props} />;
-}, isEqual);
-const Order = ({
-  index,
-  count,
-  price,
-  title,
-  extras,
-  comment,
-  calculatedPrice,
-  active,
-  setActive,
-}) => {
-  return (
-    <>
-      <Accordion.Item eventKey={index} className="bg-transparent">
-        <Accordion.Header>
-          <div
-            className={`d-flex justify-content-around align-items-end pe-1 ${
-              active === index ? "text-primary" : ""
-            }`}
-          >
-            <div className="flex-fill text-start d-flex flex-nowrap font-small fw-bold">
-              <div className="text-start" style={{ minWidth: "23px" }}>
-                {count}x
-              </div>
-              <div className="ps-1 flex-fill text-break break-wrap">
-                {title}
-              </div>
-            </div>
-            {(extras?.length !== 0 || comment) && (
-              <FontAwesomeIcon
-                icon={faAngleDown}
-                className="px-3"
-              ></FontAwesomeIcon>
-            )}
-          </div>
-        </Accordion.Header>
-        <Accordion.Body>
-          {extras?.length !== 0 && (
-            <div className="col-12">
-              {extras
-                ?.reduce((a, b) => [...a, ...b.options], [])
-                ?.map((e) => (
-                  <div className="col-12 d-flex flex-nowrap" key={e.text}>
-                    <div style={{ minWidth: "23px" }}></div>
-                    <div className="ps-2 flex-fill">+ {e.text}</div>
-                  </div>
-                ))}
-            </div>
-          )}
-          {comment && (
-            <div className="comment">
-              <i>{comment}</i>
-            </div>
-          )}
-        </Accordion.Body>
-      </Accordion.Item>
-    </>
-  );
-};
 export const OrdersModal = memo(({ orders, renderToggle = () => <></> }) => {
   const [show, setShow] = useState(false);
   const handleClose = () => {
@@ -282,5 +220,4 @@ export default Orders;
 Orders.displayName = "Orders";
 OrdersBody.displayName = "OrdersBody";
 OrderStatus.displayName = "OrderStatus";
-OrderOverview.displayName = "OrderOverview";
 OrdersModal.displayName = "OrdersModal";

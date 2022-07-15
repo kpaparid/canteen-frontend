@@ -14,7 +14,8 @@
 }
 .categories-navbar {
   position: sticky;
-  width: 210px;
+  max-width: 210px;
+  width: 100%;
   z-index: 900;
   height: 90vh;
   top: 5%;
@@ -127,14 +128,18 @@
   color: white;
   text-shadow: 1px 1px 3px rgba(34, 34, 34, 0.7);
 }
+.comment .form-label {
+  &:hover {
+    cursor: pointer;
+  }
+}
 .cart {
   overflow: auto;
   // box-shadow: 4px 3px 9px 4px rgb(0 0 0 / 13%);
   background-color: white;
   // border-radius: 0.5rem;
   .textarea-wrapper {
-    margin-left: 1.5rem;
-    margin-right: 1.5rem;
+    padding-right: 1.5rem;
   }
   .card-header,
   .modal-header {
@@ -689,6 +694,7 @@
     border-top: 1px solid $gray-100;
     height: fit-content;
     max-height: 77px;
+    min-height: 77px;
   }
 }
 .cart-item {

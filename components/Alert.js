@@ -4,7 +4,7 @@ import { Alert } from "react-bootstrap";
 
 const DismissibleAlert = memo(
   ({
-    className,
+    className = "",
     title = "Oh snap! You got an error!",
     message,
     show,
@@ -12,7 +12,7 @@ const DismissibleAlert = memo(
     variant = "danger",
   }) => {
     useEffect(() => {
-      const timer1 = setTimeout(() => onClose(), 8000);
+      const timer1 = setTimeout(() => onClose && onClose(), 10000);
       return () => {
         clearTimeout(timer1);
       };
@@ -20,13 +20,13 @@ const DismissibleAlert = memo(
     if (show) {
       return (
         <Alert
-          className={className}
+          className={`m-0 ${className}`}
           variant={variant}
           onClose={onClose}
           dismissible
         >
           <Alert.Heading>{title}</Alert.Heading>
-          {message && <p>{message}</p>}
+          {message && <p className="fw-bold">{message}</p>}
         </Alert>
       );
     }

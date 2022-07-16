@@ -250,7 +250,7 @@ export const UserModal = ({ renderToggle, fullscreen = true }) => {
         onHide={handleClose}
         fullscreen={fullscreen}
         backdropClassName="user-login-modal-backdrop"
-        contentClassName="w-100"
+        contentClassName="w-100 border-0"
       >
         <Modal.Header
           closeVariant="white"

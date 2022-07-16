@@ -13,8 +13,43 @@ const StyledButton = styledComponents(Button)`
   &:focus, &:hover{
       border-color: white !important;
   }
+  border-radius: 1rem 0 0 1rem;
 `;
 const StyledFormButton = styledComponents(Button)`
+display: flex;
+flex-wrap: nowrap;
+width: 100%;
+border: 0;
+box-shadow: none;
+align-items: center;
+border-radius: 0;
+.label{
+  padding-right: 0.5rem;
+}
+.label{
+  text-align: start;
+}
+.label-wrapper{
+  min-height: 38px;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+}
+.radio{
+    min-width: 25px;
+    min-height: 25px;
+    max-width: 25px;
+    max-height: 25px;
+    border-radius: 1rem;
+    margin-right: 1rem;
+    background-color: white;
+    border: 3px solid var(--bs-primary);
+}
+  .checked{
+    border: 8px solid var(--bs-primary);
+  }
   &:disabled{
     opacity: 1;
   }
@@ -23,12 +58,6 @@ const StyledFormButton = styledComponents(Button)`
   }
   &:hover{
       background-color: var(--bs-light-primary) !important;
-  }
-  .form-check{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding-left: 1.5rem;
   }
   label, input {
     opacity: 1 !important;
@@ -91,7 +120,6 @@ const PickupTimeModal = memo(({ children, onChange }) => {
       <StyledButton
         onClick={() => setShow(true)}
         className="shadow-none p-0 border-0 border-end border-white border-2"
-        style={{ borderRadius: "1rem 0 0 1rem" }}
       >
         {time ? <div className="px-2 header-text">{time}</div> : children}
       </StyledButton>
@@ -105,7 +133,7 @@ const PickupTimeModal = memo(({ children, onChange }) => {
       >
         <div
           style={{
-            maxWidth: "280px",
+            maxWidth: "400px",
             minWidth: "280px",
             boxShadow: "2px 2px 4px 3px rgb(0 0 0 / 13%)",
           }}
@@ -117,10 +145,10 @@ const PickupTimeModal = memo(({ children, onChange }) => {
           <div className="py-4 px-2 bg-white">
             <RadioCheck
               value={0}
-              label="So schnell wie möglich"
               onClick={handleRadioClick}
               option={option}
-            />
+              label="So schnell wie möglich"
+            ></RadioCheck>
             <RadioCheck
               value={1}
               label="Vorbestellen"
@@ -157,7 +185,7 @@ const customStyles = {
 };
 const FormSelect = memo(({ onChange }) => {
   var coeff = 1000 * 60 * 5;
-  var date = new Date(); //or use any other date
+  var date = new Date();
   var rounded = new Date(Math.round(date.getTime() / coeff) * coeff);
   const result = eachMinuteOfInterval(
     {
@@ -189,69 +217,15 @@ const FormSelect = memo(({ onChange }) => {
   );
 }, isEqual);
 const RadioCheck = memo(({ value, label, option, onClick, children }) => {
-  const handleClick = useCallback(() => onClick(value), [value]);
+  const handleClick = useCallback(() => onClick(value), [onClick, value]);
   return (
-    <StyledFormButton
-      variant="white"
-      className="d-flex w-100 rounded-0 border-0 shadow-none align-items-center"
-      // disabled={option === value}
-      onClick={handleClick}
-    >
-      <Form.Check
-        type={"radio"}
-        disabled
-        checked={option === value}
-        label={
-          <div
-            className="px-3 d-flex align-items-center"
-            style={{ minHeight: "38px" }}
-          >
-            {label}
-          </div>
-        }
-      />
-      {option === value && children}
+    <StyledFormButton variant="white" onClick={handleClick}>
+      <div className={`radio ${option === value ? "checked" : ""}`}></div>
+      <div className="label-wrapper">
+        <div className="label">{label}</div>
+        <div className="checked-label">{option === value && children}</div>
+      </div>
     </StyledFormButton>
-  );
-}, isEqual);
-
-const TimePicker = memo(({ time, onOpen }) => {
-  const [value, setValue] = useState();
-  return (
-    <div className="bg-white w-100 d-flex p-3 rounded-bottom">
-      <Button className="flex-fill header-text">
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <ThemeProvider theme={theme}>
-            <MobileTimePicker
-              toolbarTitle="Zeit auswählen"
-              value={time}
-              ampm={false}
-              closeOnSelect={true}
-              minTime={addMinutes(new Date(), 1)}
-              minutesStep={5}
-              // minTime={new Date(0, 0, 0, 5, 25)}
-              // maxTime={new Date(0, 0, 0, 5, 0)}
-              maxTime={new Date(0, 0, 0, 17, 0)}
-              onChange={(newValue) => {
-                setValue(newValue);
-              }}
-              renderInput={(params) => {
-                return (
-                  <div
-                    onClick={(e) => {
-                      onOpen(e);
-                      params?.inputProps.onClick(e);
-                    }}
-                  >
-                    {params?.inputProps?.value}
-                  </div>
-                );
-              }}
-            />
-          </ThemeProvider>
-        </LocalizationProvider>
-      </Button>
-    </div>
   );
 }, isEqual);
 

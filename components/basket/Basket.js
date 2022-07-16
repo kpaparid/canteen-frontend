@@ -38,7 +38,7 @@ justify-content: space-between;
   overflow: auto;
 }
 .cart{
-  height: 100%;
+  // height: 100%;
 }
 .cart.empty .card-body{
   max-height: 100% !important;

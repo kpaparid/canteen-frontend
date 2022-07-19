@@ -123,6 +123,7 @@ display: flex;
 flex-wrap: wrap;
 flex: 1 1 auto;
 max-width: 150px;
+min-width: 130px;
 height: calc(100vh - 56px);
 position: sticky;
 top: 56px;

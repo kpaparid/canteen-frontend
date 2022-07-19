@@ -535,6 +535,7 @@
   }
   .categories-navbar,
   .dev-btn-group {
+    width: fit-content;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -549,6 +550,9 @@
     .category {
       margin: 0;
     }
+  }
+  .dev-btn-group {
+    max-width: 150px;
   }
   .categories-list,
   .dev-btn-group .wrapper {
@@ -609,7 +613,7 @@
     margin-top: 1rem;
   }
   .menu {
-    max-width: calc(100% - 370px - 2rem);
+    max-width: calc(100% - 280px - 2rem);
     padding: 1rem 2rem;
   }
   .category-text {

@@ -19,20 +19,22 @@ import { postPhoto } from "../utilities/utils.mjs";
 export const CategoriesNavbar = memo(({ categories, onClick }) => {
   return (
     <div className="categories-navbar">
-      {categories
-        ?.filter((c) => c.itemIds?.length !== 0)
-        .map(({ id, title }, index) => (
-          <div key={id} className="category" id={"category-" + id}>
-            <Button
-              variant="transparent"
-              className="category-text"
-              id={"category-btn-" + id}
-              onClick={() => onClick(index)}
-            >
-              {title}
-            </Button>
-          </div>
-        ))}
+      <div className="categories-list">
+        {categories
+          ?.filter((c) => c.itemIds?.length !== 0)
+          .map(({ id, title }, index) => (
+            <div key={id} className="category" id={"category-" + id}>
+              <Button
+                variant="transparent"
+                className="category-text"
+                id={"category-btn-" + id}
+                onClick={() => onClick(index)}
+              >
+                {title}
+              </Button>
+            </div>
+          ))}
+      </div>
     </div>
   );
 }, isEqual);

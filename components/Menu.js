@@ -37,7 +37,10 @@ export default function Menu(props) {
   const [activeCategory, setActiveCategory] = useState();
   const categories = useSelector(selectAllActiveCategories);
   const menu = useSelector(selectAllMealsByCategory);
-  const isBigScreen = useMediaQuery({ query: "(min-width: 992px)" });
+  const isXlScreen = useMediaQuery({ query: "(min-width: 1200px)" });
+  const isMdScreen = useMediaQuery({ query: "(min-width: 767.98px)" });
+  const isDeviceScreen = useMediaQuery({ query: "(max-height: 475px)" });
+  const menuWrapperClassName = isDeviceScreen ? "dev" : "";
   const { fetchUserTodaysOrders, dispatch } = useApi();
   const usedUIDs = useMemo(
     () =>
@@ -94,14 +97,15 @@ export default function Menu(props) {
               ?.classList.add("active");
             return sectionId;
           });
-          !isBigScreen &&
+          !isXlScreen &&
+            !(isMdScreen && isDeviceScreen) &&
             document
               .querySelector(".categories-navbar #category-" + sectionId)
               .scrollIntoView(true);
         }
       }
     });
-  }, [activeCategory, isBigScreen]);
+  }, [activeCategory, isXlScreen, isMdScreen, isDeviceScreen]);
 
   const debouncedCallback = useMemo(
     () => debounce(handleScroll, 10),
@@ -122,7 +126,7 @@ export default function Menu(props) {
       <div className="menu-banner">Speisekarte</div>
       <div className="d-flex bg-octonary">
         <div className="h-100 w-100 m-auto flex-column">
-          <div className="menu-wrapper">
+          <div className={`menu-wrapper ${menuWrapperClassName}`}>
             {isAdmin ? (
               <EditableCategoriesNavbar
                 categories={categories}

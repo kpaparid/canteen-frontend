@@ -72,6 +72,7 @@ const Cart = memo((props) => {
 }, isEqual);
 
 export const CartModal = ({
+  fullscreen = true,
   items,
   summa,
   onSend,
@@ -99,8 +100,8 @@ export const CartModal = ({
       <Modal
         show={show}
         onHide={handleClose}
-        fullscreen
-        contentClassName="cart"
+        fullscreen={fullscreen}
+        contentClassName="cart w-100"
       >
         <Modal.Header closeVariant="white" className="bg-primary" closeButton>
           <span>Warenkorb</span>

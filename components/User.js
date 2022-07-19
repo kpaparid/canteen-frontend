@@ -205,7 +205,7 @@ const StyledToggle = styledComponents(Button)`
 
 `;
 
-export const UserModal = ({ renderToggle, fullscreen = true }) => {
+export const UserModal = ({ renderToggle, fullscreen = false }) => {
   const [show, setShow] = useState(false);
   const [error, setError] = useState(false);
 

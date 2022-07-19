@@ -37,9 +37,6 @@ justify-content: space-between;
   max-height: calc(100% - 57px);
   overflow: auto;
 }
-.cart{
-  // height: 100%;
-}
 .cart.empty .card-body{
   max-height: 100% !important;
 }
@@ -55,18 +52,8 @@ justify-content: space-between;
  }
 
 `;
-const RightSide = memo((props) => {
-  return (
-    <StyledRightSide className="basket-right-side">
-      <BasketTabs {...props}></BasketTabs>
-      <div className="user-dropdown-wrapper">
-        <UserDropdown />
-      </div>
-    </StyledRightSide>
-  );
-}, isEqual);
 
-const StyledBar = styledComponents.div`
+const StyledBottomBar = styledComponents.div`
     box-shadow: 0 0px 4px 3px rgb(0 0 0 / 13%);
     background-color: white;
     flex-direction: row;
@@ -80,6 +67,7 @@ const StyledBar = styledComponents.div`
     display: flex;
     justify-content: space-around;
     z-index: 900;
+    
     .text{
       font-size: 12px;
       color: var(--bs-gray-800);
@@ -130,6 +118,71 @@ const StyledBar = styledComponents.div`
 }
 `;
 
+const StyledButtonGroup = styledComponents.div`
+display: flex;
+flex-wrap: wrap;
+flex: 1 1 auto;
+max-width: 150px;
+height: calc(100vh - 56px);
+position: sticky;
+top: 56px;
+justify-content: center;
+align-items: start;
+.wrapper{
+  width: fit-content;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+
+}
+.text{
+}
+.number{
+  
+    font-size: 0.75rem;
+  background-color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 41.5rem;
+    color: var(--bs-primary);
+    text-shadow: none;
+    position: absolute;
+    right: 50%;
+    transform: translate(calc(50% + 23px), 50%);
+    bottom: 50%;
+    display: flex;
+    text-align: center;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+}
+.icon-btn{
+    position:relative;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: center;
+}
+button{
+  border-radius: 1rem;
+  width: 100%;
+  box-shadow: 2px 2px 4px 3px rgb(0 0 0 / 13%);
+  max-height: 66px;
+  min-height: 66px;
+  background-color: var(--bs-primary);
+  color: white;
+  margin: 0.5rem 0;
+  text-shadow: 1px 1px 3px rgb(34 34 34 / 70%);
+  &:hover{
+    color: white;
+  }
+  &:disabled{
+    display: none;
+  }
+}
+`;
+
 const ModalToggle = memo(({ icon, text, onClick, disabled, number = 0 }) => {
   return (
     <Button
@@ -148,7 +201,8 @@ const ModalToggle = memo(({ icon, text, onClick, disabled, number = 0 }) => {
 }, isEqual);
 
 const Basket = memo(() => {
-  const isBigScreen = useMediaQuery({ query: "(min-width: 767.97px)" });
+  const isWideScreen = useMediaQuery({ query: "(min-width: 767.97px)" });
+  const isTallScreen = useMediaQuery({ query: "(min-height: 475px)" });
   const { orders, ordersExist } = useOrders();
   const { summa, cartExists, items, sendOrder, addTime } = useCart();
   const renderToggle = (props) => <ModalToggle {...props} />;
@@ -156,21 +210,48 @@ const Basket = memo(() => {
 
   return (
     <>
-      {isBigScreen ? (
-        <RightSide
-          {...{
-            orders,
-            ordersExist,
-            summa,
-            cartExists,
-            items,
-            sendOrder,
-            addTime,
-            shopEnabled,
-          }}
-        />
+      {isWideScreen && isTallScreen ? (
+        <StyledRightSide className="basket-right-side">
+          <BasketTabs
+            {...{
+              orders,
+              ordersExist,
+              summa,
+              cartExists,
+              items,
+              sendOrder,
+              addTime,
+              shopEnabled,
+            }}
+          />
+          <div className="user-dropdown-wrapper">
+            <UserDropdown />
+          </div>
+        </StyledRightSide>
+      ) : isWideScreen ? (
+        <StyledButtonGroup className="dev-btn-group">
+          <div className="wrapper">
+            <UserModal renderToggle={renderToggle} />
+            <OrdersModal
+              fullscreen={false}
+              {...{ orders, ordersExist, renderToggle }}
+            />
+            <CartModal
+              fullscreen={false}
+              {...{
+                summa,
+                cartExists,
+                items,
+                onSend: sendOrder,
+                addTime,
+                renderToggle,
+                shopEnabled,
+              }}
+            />
+          </div>
+        </StyledButtonGroup>
       ) : (
-        <StyledBar>
+        <StyledBottomBar>
           <UserModal renderToggle={renderToggle} />
           <OrdersModal {...{ orders, ordersExist, renderToggle }} />
           <CartModal
@@ -184,7 +265,7 @@ const Basket = memo(() => {
               shopEnabled,
             }}
           />
-        </StyledBar>
+        </StyledBottomBar>
       )}
     </>
   );

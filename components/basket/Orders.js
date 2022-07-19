@@ -183,38 +183,41 @@ const OrderStatus = memo(({ status, time, updatedAt }) => {
   );
 }, isEqual);
 
-export const OrdersModal = memo(({ orders, renderToggle = () => <></> }) => {
-  const [show, setShow] = useState(false);
-  const handleClose = () => {
-    setShow(false);
-  };
-  const handleShow = () => setShow(true);
+export const OrdersModal = memo(
+  ({ orders, fullscreen = true, renderToggle = () => <></> }) => {
+    const [show, setShow] = useState(false);
+    const handleClose = () => {
+      setShow(false);
+    };
+    const handleShow = () => setShow(true);
 
-  return (
-    <>
-      {renderToggle({
-        icon: faList,
-        text: "Bestellungen",
-        onClick: handleShow,
-        disabled: orders?.length === 0,
-        number: orders?.length,
-      })}
-      <Modal
-        show={show}
-        onHide={handleClose}
-        fullscreen
-        contentClassName={`cart basket-modal ${
-          orders.length === 1 ? "nofooter" : ""
-        }`}
-      >
-        <Modal.Header closeVariant="white" className="bg-primary" closeButton>
-          <span>Bestellungen</span>
-        </Modal.Header>
-        <OrdersBody orders={orders} />
-      </Modal>
-    </>
-  );
-}, isEqual);
+    return (
+      <>
+        {renderToggle({
+          icon: faList,
+          text: "Bestellungen",
+          onClick: handleShow,
+          disabled: orders?.length === 0,
+          number: orders?.length,
+        })}
+        <Modal
+          show={show}
+          onHide={handleClose}
+          fullscreen={fullscreen}
+          contentClassName={`cart basket-modal ${
+            orders.length === 1 ? "nofooter" : ""
+          }`}
+        >
+          <Modal.Header closeVariant="white" className="bg-primary" closeButton>
+            <span>Bestellungen</span>
+          </Modal.Header>
+          <OrdersBody orders={orders} />
+        </Modal>
+      </>
+    );
+  },
+  isEqual
+);
 export default Orders;
 
 Orders.displayName = "Orders";

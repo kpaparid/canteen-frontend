@@ -34,6 +34,7 @@ export default function Menu(props) {
   const { claims } = useAuth();
   const currentRole = claims?.roles;
   const isAdmin = currentRole?.includes("admin");
+  const clickScroll = useRef(false);
   const [activeCategory, setActiveCategory] = useState();
   const categories = useSelector(selectAllActiveCategories);
   const menu = useSelector(selectAllMealsByCategory);
@@ -65,6 +66,7 @@ export default function Menu(props) {
   );
   const handleCategoryClick = useCallback(
     (id) => {
+      clickScroll.current = true;
       itemsRef.current[id].scrollIntoView({
         behavior: "smooth",
         block: "start",
@@ -95,20 +97,25 @@ export default function Menu(props) {
             document
               .querySelector(".categories-navbar #category-btn-" + sectionId)
               ?.classList.add("active");
+            const f = clickScroll.current;
+            if (f === false) {
+              !isXlScreen &&
+                !(isMdScreen && isDeviceScreen) &&
+                document
+                  .querySelector(".categories-navbar #category-" + sectionId)
+                  .scrollIntoView(true);
+            }
             return sectionId;
           });
-          !isXlScreen &&
-            !(isMdScreen && isDeviceScreen) &&
-            document
-              .querySelector(".categories-navbar #category-" + sectionId)
-              .scrollIntoView(true);
         }
       }
     });
+
+    clickScroll.current = false;
   }, [activeCategory, isXlScreen, isMdScreen, isDeviceScreen]);
 
   const debouncedCallback = useMemo(
-    () => debounce(handleScroll, 10),
+    () => debounce(handleScroll, 70),
     [handleScroll]
   );
   useEffect(() => {

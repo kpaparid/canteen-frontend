@@ -804,6 +804,30 @@ const LeftItem = memo(
             </div>
           </div>
         )}
+        {!details && (
+          <div className="info-wrapper2">
+            <div className="d-flex justify-content-between align-items-center pb-2">
+              <div>
+                <div className="name fw-bolder text-truncate">
+                  {displayName || email}
+                </div>
+
+                {phoneNumber && (
+                  <div className="phone font-small text-truncate fw-bold text-gray-800">
+                    <FontAwesomeIcon icon={faPhone} className="pe-2" />
+                    {phoneNumber}
+                  </div>
+                )}
+              </div>
+              <div
+                className="order-id"
+                style={{ height: "fit-content", width: "fit-content" }}
+              >
+                {number}
+              </div>
+            </div>
+          </div>
+        )}
         <div className="d-flex flex-wrap justify-content-between align-items-center">
           <div className="items flex-fill">
             {items.map((props) => {

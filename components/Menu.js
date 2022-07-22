@@ -27,6 +27,7 @@ import Basket from "./basket/Basket";
 import { CategoriesNavbar, EditableCategoriesNavbar } from "./CategoriesNavBar";
 import Header from "./Header";
 import Item, { EditableItem } from "./Item";
+import { useSocket } from "../contexts/SocketContext";
 
 export default function Menu(props) {
   const itemsRef = useRef([]);
@@ -37,12 +38,24 @@ export default function Menu(props) {
   const clickScroll = useRef(false);
   const [activeCategory, setActiveCategory] = useState();
   const categories = useSelector(selectAllActiveCategories);
-  const menu = useSelector(selectAllMealsByCategory);
+  const userCategories = categories.filter(
+    (c) => c.visibleItemIds.length !== 0
+  );
+  const menu = useSelector((state) => selectAllMealsByCategory(state, isAdmin));
   const isXlScreen = useMediaQuery({ query: "(min-width: 1200px)" });
   const isMdScreen = useMediaQuery({ query: "(min-width: 767.98px)" });
   const isDeviceScreen = useMediaQuery({ query: "(max-height: 475px)" });
   const menuWrapperClassName = isDeviceScreen ? "dev" : "";
-  const { fetchUserTodaysOrders, dispatch } = useApi();
+  const {
+    fetchMeals,
+    fetchCategories,
+    fetchUserTodaysOrders,
+    fetchSettings,
+    dispatch,
+  } = useApi();
+  const { socket } = useSocket();
+  const { currentUser } = useAuth();
+
   const usedUIDs = useMemo(
     () =>
       Object.keys(menu).reduce(
@@ -51,6 +64,33 @@ export default function Menu(props) {
       ),
     [menu]
   );
+  useEffect(() => {
+    currentUser?.uid && socket?.emit("join_room", currentUser.uid);
+  }, [socket, currentUser?.uid]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("refreshed_data", () => {
+        fetchMeals().then(({ payload }) => fetchCategories(payload));
+      });
+      socket.on("updated_order", (data) => {
+        console.log(`received updated order`);
+        fetchUserTodaysOrders();
+      });
+      socket.on("updated_shop", (data) => {
+        console.log(`received updated shop`);
+        !data && dispatch(clearCart());
+        fetchSettings({ suffix: "?uid=shopIsOpen" });
+      });
+    }
+  }, [
+    socket,
+    fetchSettings,
+    fetchUserTodaysOrders,
+    fetchMeals,
+    fetchCategories,
+    dispatch,
+  ]);
 
   useEffect(() => {
     fetchUserTodaysOrders();
@@ -141,7 +181,7 @@ export default function Menu(props) {
               />
             ) : (
               <CategoriesNavbar
-                categories={categories}
+                categories={userCategories}
                 onClick={handleCategoryClick}
               />
             )}
@@ -170,7 +210,7 @@ export default function Menu(props) {
   );
 }
 const AddItem = memo(({ categories }) => {
-  const { postMeal, fetchCategories } = useApi();
+  const { postMeal, fetchMeals, fetchCategories } = useApi();
 
   const handleAddNewItem = useCallback(() => {
     const body = {
@@ -182,7 +222,7 @@ const AddItem = memo(({ categories }) => {
     postMeal(body).then((r) => {
       fetchMeals().then(({ payload }) => fetchCategories(payload));
     });
-  }, [categories, postMeal, fetchCategories]);
+  }, [categories, postMeal, fetchMeals, fetchCategories]);
   return (
     <div className="w-100 d-flex justify-content-center align-content-center my-2">
       <Button
@@ -200,6 +240,9 @@ const AddItem = memo(({ categories }) => {
   );
 }, isEqual);
 const SubCategory = forwardRef(({ items, category, onClick, ...rest }, ref) => {
+  const data = [...items?.data]
+    .sort((a, b) => a.uid - b.uid)
+    .filter((i) => (rest.isAdmin ? true : i.visible));
   return (
     <div className="category-wrapper" ref={ref} id={items.id}>
       <CategoryTitle
@@ -208,11 +251,9 @@ const SubCategory = forwardRef(({ items, category, onClick, ...rest }, ref) => {
         title={items.title}
       />
       <div className="rounded meal-list">
-        {[...items?.data]
-          .sort((a, b) => a.uid - b.uid)
-          .map((i) => (
-            <DetailsItem key={i.id} {...i} {...rest} />
-          ))}
+        {data.map((i) => (
+          <DetailsItem key={i.id} {...i} {...rest} />
+        ))}
       </div>
     </div>
   );
@@ -269,6 +310,7 @@ const DetailsItem = memo((props) => {
     uid,
     withFoto = false,
     isAdmin,
+    visible,
   } = props;
 
   const formattedPrice = formatPrice(price);
@@ -279,7 +321,11 @@ const DetailsItem = memo((props) => {
 
   return (
     <>
-      <div className="item-modal-toggle meal-item my-4 bg-gray-100 rounded">
+      <div
+        className={`item-modal-toggle meal-item my-4 rounded ${
+          isAdmin && !visible ? "bg-gray-600" : "bg-gray-100"
+        }`}
+      >
         <div className="w-100 border-0 rounded-0 p-0" onClick={handleShow}>
           <div className=" d-flex flex-nowrap justify-content-between align-items-center p-3">
             <div className="text-left flex-fill pe-4 d-flex flex-column justify-content-around">

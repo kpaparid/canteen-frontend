@@ -11,6 +11,8 @@ export function SocketProvider({ children }) {
   const connect = () => {
     const socketIo = io(process.env.BACKEND_URI).connect();
     console.log("connected", socketIo);
+    console.log("join_room", "user");
+    socketIo.emit("join_room", "user");
     setSocket(socketIo);
     return socketIo;
   };

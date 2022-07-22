@@ -359,14 +359,16 @@ export const selectAllActiveCategories = (state) => {
   // .filter((category) => category.itemIds.length);
 };
 export const selectAllMealsByCategory = createSelector(
-  [selectAllCategories, selectAllMeals],
-  (categories, meals) => {
+  [selectAllCategories, selectAllMeals, (state, isAdmin) => isAdmin],
+  (categories, meals, isAdmin) => {
     const mealsObject = meals.reduce((a, b) => {
       a[b.id] = b;
       return a;
     }, {});
     return categories?.reduce((a, { id, itemIds, ...rest }) => {
-      const data = itemIds.map((id) => mealsObject[id]).filter((i) => i);
+      const data = itemIds
+        .map((id) => mealsObject[id])
+        .filter((i) => i && (i?.visible || isAdmin));
       if (data.length) a[id] = { id, data, ...rest };
       return a;
     }, {});

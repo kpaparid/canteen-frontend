@@ -21,6 +21,10 @@ export const mapSettingsToCategories = ({ entities, ids, meals }) => {
       return {
         ...entities[c],
         itemIds: meals?.filter((m) => m.category === c).map((m) => m.id) || [],
+        visibleItemIds:
+          meals
+            ?.filter((m) => m.category === c && m.visible)
+            .map((m) => m.id) || [],
       };
     }) || []
   );

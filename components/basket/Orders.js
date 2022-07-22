@@ -19,31 +19,45 @@ import useAPI from "../../hooks/useAPI";
 import { clearCart, selectOrders } from "../../reducer/redux2";
 import OrderTracker from "../OrderTracker";
 export const useOrders = () => {
-  const { socket } = useSocket();
-  const { currentUser } = useAuth();
-  const { fetchUserTodaysOrders, fetchSettings, updateOrderStatus, dispatch } =
-    useAPI();
+  // const { socket } = useSocket();
+  // const { currentUser } = useAuth();
+  // const {
+  //   fetchUserTodaysOrders,
+  //   fetchSettings,
+  //   fetchMeals,
+  //   fetchCategories,
+  //   dispatch,
+  // } = useAPI();
   const orders = useSelector(selectOrders);
   const ordersExist = orders?.length !== 0;
 
-  useEffect(() => {
-    socket?.emit("join_room", "shopIsOpen");
-    currentUser?.uid && socket?.emit("join_room", currentUser.uid);
-  }, [socket, currentUser?.uid]);
+  // useEffect(() => {
+  //   currentUser?.uid && socket?.emit("join_room", currentUser.uid);
+  // }, [socket, currentUser?.uid]);
 
-  useEffect(() => {
-    if (socket) {
-      socket.on("updated_order", (data) => {
-        console.log(`received updated order`);
-        fetchUserTodaysOrders();
-      });
-      socket.on("updated_shop", (data) => {
-        console.log(`received updated shop`);
-        !data && dispatch(clearCart());
-        fetchSettings({ suffix: "?uid=shopIsOpen" });
-      });
-    }
-  }, [socket, fetchSettings, fetchUserTodaysOrders, dispatch]);
+  // useEffect(() => {
+  //   if (socket) {
+  //     socket.on("refreshed_data", () => {
+  //       fetchMeals().then(({ payload }) => fetchCategories(payload));
+  //     });
+  //     socket.on("updated_order", (data) => {
+  //       console.log(`received updated order`);
+  //       fetchUserTodaysOrders();
+  //     });
+  //     socket.on("updated_shop", (data) => {
+  //       console.log(`received updated shop`);
+  //       !data && dispatch(clearCart());
+  //       fetchSettings({ suffix: "?uid=shopIsOpen" });
+  //     });
+  //   }
+  // }, [
+  //   socket,
+  //   fetchSettings,
+  //   fetchUserTodaysOrders,
+  //   fetchMeals,
+  //   fetchCategories,
+  //   dispatch,
+  // ]);
 
   return { orders, ordersExist };
 };

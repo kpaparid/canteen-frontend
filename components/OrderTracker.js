@@ -210,7 +210,7 @@ const Details = memo(({ number, user, time, items, price, phoneNumber }) => {
 }, isEqual);
 const Cancel = memo(({ number, id }) => {
   const [show, setShow] = useState(false);
-  const { socket, connect } = useSocket();
+  const { socket } = useSocket();
   const { cancelOrderByUser } = useAPI();
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);

@@ -13,6 +13,7 @@ import Image from "next/image";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Form, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
 import styledComponents from "styled-components";
+import { useSocket } from "../contexts/SocketContext";
 import useAPI from "../hooks/useAPI";
 import { postPhoto } from "../utilities/utils.mjs";
 
@@ -107,6 +108,7 @@ const EditModal = memo(({ categories: initialCategories }) => {
   const [show, setShow] = useState(false);
   const handleClose = useCallback(() => setShow(false), []);
   const handleShow = useCallback(() => setShow(true), []);
+  const { socket } = useSocket();
   const { updateCategoriesAndMeals, fetchMeals, fetchCategories, dispatch } =
     useAPI();
 
@@ -127,13 +129,16 @@ const EditModal = memo(({ categories: initialCategories }) => {
           photoURL: arr[index].url,
         })
       );
-      updateCategoriesAndMeals(newCategories).then(() => {
-        handleClose();
-        setActive(0);
-        fetchMeals().then(({ payload }) => fetchCategories(payload));
-      });
+      updateCategoriesAndMeals(newCategories)
+        .then(() => {
+          handleClose();
+          setActive(0);
+          return fetchMeals().then(({ payload }) => fetchCategories(payload));
+        })
+        .then(() => socket.emit("refresh_data"));
     });
   }, [
+    socket,
     fetchMeals,
     updateCategoriesAndMeals,
     changedCategories,

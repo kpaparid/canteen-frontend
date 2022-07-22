@@ -15,6 +15,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
 import { useSelector } from "react-redux";
+import { useSocket } from "../contexts/SocketContext.js";
 import useAPI from "../hooks/useAPI.js";
 import { selectShopIsOpen } from "../reducer/redux2.js";
 import { formatPrice } from "../utilities/utils.mjs";
@@ -190,6 +191,7 @@ export const EditableItem = memo(
     extras: initialExtras,
     uid: initialMenuId,
     category: initialCategory,
+    visible: initialVisible,
     count: initialCount = 1,
     addToCart,
     show,
@@ -198,8 +200,9 @@ export const EditableItem = memo(
     usedUIDs = [],
     ...rest
   }) => {
-    const { dispatch, updateMeals, deleteMeal, fetchMeals, fetchCategories } =
-      useAPI();
+    const { socket } = useSocket();
+    const { updateMeals, deleteMeal, fetchMeals, fetchCategories } = useAPI();
+    const [visible, setVisible] = useState(initialVisible);
     const [photoURL, setPhotoURL] = useState(initialPhotoURL);
     const [name, setName] = useState(initialName);
     const [description, setDescription] = useState(initialDescription);
@@ -346,11 +349,15 @@ export const EditableItem = memo(
           photoURL,
           category,
           id,
+          visible,
         };
         updateMeals(id, body).then(() =>
           fetchMeals()
             .then(({ payload }) => fetchCategories(payload))
-            .then(() => clearState())
+            .then(() => {
+              socket.emit("refresh_data");
+              clearState();
+            })
         );
       } else {
         if (!menuId) {
@@ -366,8 +373,9 @@ export const EditableItem = memo(
         }
       }
     }, [
+      socket,
+      visible,
       clearState,
-      dispatch,
       extras,
       name,
       description,
@@ -420,9 +428,9 @@ export const EditableItem = memo(
           <div className="p-3 w-100">
             <div className="w-100 d-flex justify-content-between">
               {editMode ? (
-                <>
+                <div className="d-flex flex-nowrap align-items-center justify-content-between w-100">
                   <div className="d-flex flex-column justify-content-end">
-                    <Form.Label className="font-small fw-bolder m-0 mt-2">
+                    <Form.Label className="font-small fw-bolder m-0 mt-2 mb-1">
                       Category
                     </Form.Label>
                     <Form.Select
@@ -437,7 +445,15 @@ export const EditableItem = memo(
                       ))}
                     </Form.Select>
                   </div>
-                </>
+                  <div className="me-5">
+                    <Button
+                      variant={visible ? "primary header-text" : "gray-600"}
+                      onClick={() => setVisible((old) => !old)}
+                    >
+                      {visible ? "Visible" : "Hidden"}
+                    </Button>
+                  </div>
+                </div>
               ) : (
                 <>
                   <div className="d-flex align-items-end mb-3">
@@ -466,7 +482,7 @@ export const EditableItem = memo(
             </div>
             {editMode && (
               <>
-                <Form.Label className="font-small fw-bolder m-0 mt-2">
+                <Form.Label className="font-small fw-bolder m-0 mt-2 mb-1">
                   Photo
                 </Form.Label>
                 <Form.Control className="font-small" type="file" />
@@ -476,7 +492,7 @@ export const EditableItem = memo(
               <div className="d-flex flex-nowrap">
                 <div style={{ width: " 80px" }}>
                   <Form.Label
-                    className="font-small fw-bolder m-0 mt-2"
+                    className="font-small fw-bolder m-0 mt-2 mb-1"
                     type="number"
                   >
                     ID
@@ -496,7 +512,7 @@ export const EditableItem = memo(
                 </div>
 
                 <div className="flex-fill ps-3">
-                  <Form.Label className="font-small fw-bolder m-0 mt-2">
+                  <Form.Label className="font-small fw-bolder m-0 mt-2 mb-1">
                     Title
                   </Form.Label>
                   <Form.Control
@@ -515,7 +531,7 @@ export const EditableItem = memo(
             )}
             {editMode ? (
               <>
-                <Form.Label className="font-small fw-bolder m-0 mt-2">
+                <Form.Label className="font-small fw-bolder m-0 mt-2 mb-1">
                   Description
                 </Form.Label>
                 <Form.Control
@@ -531,7 +547,7 @@ export const EditableItem = memo(
 
             {editMode ? (
               <>
-                <Form.Label className="font-small fw-bolder m-0 mt-2">
+                <Form.Label className="font-small fw-bolder m-0 mt-2 mb-1">
                   Price
                 </Form.Label>
                 <Form.Control
